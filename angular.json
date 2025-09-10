@@ -17,6 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "allowedCommonJsDependencies": ["leaflet"],
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
@@ -26,17 +27,20 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "src/images",
+                "output": "images"
+              },
+              {
+                "glob": "**/*",
+                "input": "public",
+                "output": "public"
               }
             ],
+
             "styles": [
               "src/styles.scss"
             ],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            "outputMode": "static"
           },
           "configurations": {
             "production": {
@@ -89,7 +93,13 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "src/images",
+                "output": "images"
+              },
+              {
+                "glob": "**/*",
+                "input": "public",
+                "output": "public"
               }
             ],
             "styles": [

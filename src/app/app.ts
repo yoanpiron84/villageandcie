@@ -1,12 +1,12 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+// app.component.ts
+import { Component } from '@angular/core';
+import { VoiceComponent } from './voice-component/voice-component';
+import { MapComponent } from './map/map';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  standalone: true,
+  imports: [VoiceComponent, MapComponent],
+  templateUrl: './app.html'
 })
-export class App {
-  protected readonly title = signal('angular-osm-app');
-}
+export class AppComponent {}
