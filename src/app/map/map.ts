@@ -78,7 +78,7 @@ export class MapComponent implements OnInit {
     const labelsLayer = new TileLayer({
       source: new XYZ({
         url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-        attributions: '© ESRI'
+        attributions: '© ESRI -'
       })
     });
 
