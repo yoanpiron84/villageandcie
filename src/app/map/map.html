@@ -1,15 +1,51 @@
-<div class="map-wrapper">
-  <button (click)="showWater()">Afficher les points d'eau</button>
-  <button (click)="showGreenSpaces()">Afficher les espaces verts</button>
-  <div id="map-container" class="map-container"></div>
+<div id="map-container" class="map-container"></div>
+
+<div class="search-container">
+  <input
+    type="text"
+    placeholder="Rechercher..."
+    [(ngModel)]="searchTerm"
+    (input)="onSearchInput($event)"
+    (blur)="onSearchBlur()"
+  />
+
+  <span class="search-icon">🔍</span>
+
+  <!-- Bouton Globe -->
+  <button class="toggle-view-btn" (click)="toggleViewOptions()">
+    🌍
+  </button>
+
+  <!-- Mini Card avec choix de la vue -->
+  <div class="view-options-card" *ngIf="showViewOptions">
+    <div class="view-option" (click)="setMapView('satellite')">
+      <img src="/images/satellite.png" alt="Satellite">
+      <span>Satellite</span>
+    </div>
+    <div class="view-option" (click)="setMapView('osm')">
+      <img src="/images/osm.png" alt="OSM">
+      <span>OSM</span>
+    </div>
+  </div>
+
+  <!-- Bouton pour activer/désactiver le placement de pin -->
+  <button
+    class="toggle-pin-btn"
+    [class.active]="isPinModeActive"
+    (click)="togglePinMode()"
+  >
+    📍
+  </button>
+
+
+  <ul class="dropdown" *ngIf="showDropdown">
+    <li
+      *ngFor="let result of searchResults"
+      (click)="selectResult(result)"
+    >
+      {{ result.display_name }}
+    </li>
+  </ul>
 </div>
 
 
-<!-- Carte OSM -->
-<!--<div id="map-container" class="map" [hidden]="showSanta"></div>-->
-
-<!-- Image Père Noël -->
-<!--<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Santa_Claus_Icon.svg/1200px-Santa_Claus_Icon.svg.png"-->
-<!--     alt="Père Noël"-->
-<!--     class="map"-->
-<!--     [hidden]="!showSanta">-->

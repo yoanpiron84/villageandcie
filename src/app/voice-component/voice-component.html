@@ -1,37 +1,23 @@
-<div *ngIf="showErrorSidebar" class="error-sidebar">
-  <p class="error-sidebar">Service momentanément indisponible.</p>
-</div>
-
-<!-- Chat icon -->
-<div class="chat-icon" (click)="toggleChat()">💬</div>
-
-<!-- Chat popup -->
-<div *ngIf="showChat" class="chat-popup">
-  <!-- Header -->
-  <div class="chat-header">
-    Chat IA
-    <button class="close-btn" (click)="toggleChat()">✖</button>
+<div class="chat-modal" *ngIf="showChat" [ngClass]="{ minimized: isMinimized }" #chatModal>
+  <div class="chat-header" (mousedown)="startDrag($event)">
+    <span>Chat IA</span>
+    <button *ngIf="!isMinimized" (click)="toggleMinimize()"><i class="fa-solid fa-compress-alt"></i></button>
+    <button *ngIf="isMinimized" (click)="toggleMinimize()"><i class="fa-solid fa-expand-alt"></i></button>
   </div>
 
-  <!-- Messages -->
-  <div class="chat-messages">
-    <div *ngFor="let msg of chatMessages" class="chat-message" [class.user]="msg.user === 'user'" [class.ai]="msg.user === 'ai'">
-      <!-- Icône IA / utilisateur -->
-      <img *ngIf="msg.user==='ai'" src="images/ia_icon.png" class="chat-avatar" alt="IA">
-      <img *ngIf="msg.user==='user'" src="images/user_icon.png" class="chat-avatar" alt="Vous">
-      <div class="chat-bubble">{{ msg.text }}</div>
+  <div class="chat-body">
+    <div class="chat-messages">
+      <div *ngFor="let msg of chatMessages" class="chat-message" [class.user]="msg.user==='user'" [class.ai]="msg.user==='ai'">
+        <img *ngIf="msg.user==='ai'" src="images/ia_icon.png" class="chat-avatar" alt="IA">
+        <img *ngIf="msg.user==='user'" src="images/user_icon.png" class="chat-avatar" alt="Vous">
+        <div class="chat-bubble">{{ msg.text }}</div>
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <img [src]="isRecording ? 'images/micro_rouge.png' : 'images/micro_bleu.png'" alt="Microphone" class="micro-icon" />
+      <input type="text" [(ngModel)]="userMessage" placeholder="Écrivez votre demande ici" (keydown.enter)="sendMessage()" />
+      <button (click)="startRecording()">🎙️ Parler</button>
     </div>
   </div>
-
-  <!-- Input -->
-  <div class="chat-input">
-    <img
-      [src]="isRecording ? 'images/micro_rouge.png' : 'images/micro_bleu.png'"
-      alt="Microphone"
-      class="micro-icon"
-    />
-    <input type="text" [(ngModel)]="userMessage" placeholder="Ecrivez votre demande ici" (keydown.enter)="sendMessage()" />
-    <button (click)="startRecording()">🎙️ Parler</button>
-  </div>
 </div>
-

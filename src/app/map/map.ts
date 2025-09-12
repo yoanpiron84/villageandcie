@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
@@ -7,16 +7,45 @@ import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Fill, Stroke, Style } from 'ol/style';
-import { fromLonLat } from 'ol/proj';
+import {fromLonLat, toLonLat} from 'ol/proj';
 import { GeoJSON } from 'ol/format';
 import CircleStyle from 'ol/style/Circle';
 import {XYZ} from 'ol/source';
+import {FormsModule} from '@angular/forms';
+import {NgForOf, NgIf} from '@angular/common';
+import { Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import Icon from 'ol/style/Icon';
+import Point from 'ol/geom/Point';
+import Feature from 'ol/Feature';
+
+
+
+
+interface NominatimResult {
+  display_name: string;
+  lat: string;
+  lon: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    postcode?: string;
+    state?: string;
+    county?: string;
+    country?: string;
+  };
+}
 
 
 @Component({
   selector: 'app-map',
   standalone: true,
   templateUrl: './map.html',
+  imports: [
+    FormsModule
+    , HttpClientModule, NgIf, NgForOf
+  ],
   styleUrls: ['./map.scss']
 })
 export class MapComponent implements OnInit {
@@ -24,12 +53,49 @@ export class MapComponent implements OnInit {
   private waterLayer!: VectorLayer<VectorSource>;
   private greenLayer!: VectorLayer<VectorSource>;
 
+  searchTerm: string = '';
+  searchResults: NominatimResult[] = [];
+  showDropdown: boolean = false;
+
+
+  private searchSubject = new Subject<string>();
+
+  isSatelliteView: boolean = true;
+  showViewOptions: boolean = false;
+
+  private satelliteLayer!: TileLayer<XYZ>;
+  private labelsLayer!: TileLayer<XYZ>;
+  private osmLayer!: TileLayer<OSM>;
+
+  // --- Gestion du Pin ---
+  private pinLayer!: VectorLayer<VectorSource>;
+  private currentPinFeature: Feature | null = null;
+  isPinModeActive: boolean = false;
+
+
+
   constructor(private http: HttpClient) {}
   coords = "44.17,5.43,44.19,5.45";
 
   ngOnInit(): void {
     this.initMap();
+
+    // Déclenche la recherche 1s après la dernière frappe
+    this.searchSubject.pipe(
+      debounceTime(1000)  // 1 seconde
+    ).subscribe(term => {
+      this.performSearch(term);
+    });
   }
+
+  ngAfterViewInit() {
+    const overlay = document.querySelector('.ol-overlaycontainer-stopevent') as HTMLElement;
+    if (overlay) {
+      overlay.style.pointerEvents = 'none';
+      overlay.querySelectorAll('*').forEach(el => (el as HTMLElement).style.pointerEvents = 'none');
+    }
+  }
+
 
   /** Initialise la carte avec un fond OSM et une couche vide pour les eaux */
   initMap() {
@@ -67,41 +133,93 @@ export class MapComponent implements OnInit {
       }
     });
 
+    // Couche pour le Pin
+    this.pinLayer = new VectorLayer({
+      source: new VectorSource(),
+    });
+
     // Couche Satellite ESRI
-    const satelliteLayer = new TileLayer({
+    this.satelliteLayer = new TileLayer({
       source: new XYZ({
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attributions: '© ESRI'
-      })
+      }),
+      visible: this.isSatelliteView
     });
 
-    const labelsLayer = new TileLayer({
+    this.labelsLayer = new TileLayer({
       source: new XYZ({
         url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-        attributions: '© ESRI -'
-      })
+        attributions: '© ESRI'
+      }),
+      visible: this.isSatelliteView
     });
 
+// Couche OpenStreetMap
+    this.osmLayer = new TileLayer({
+      source: new OSM(),
+      visible: !this.isSatelliteView
+    });
 
-    // Création de la carte
+// Création de la carte
     this.map = new Map({
       target: 'map-container',
       layers: [
-        satelliteLayer,  // fond satellite
-        labelsLayer,     // noms des villes et routes
+        this.satelliteLayer,
+        this.labelsLayer,
+        this.osmLayer,
         this.waterLayer,
-        this.greenLayer
+        this.greenLayer,
+        this.pinLayer
       ],
       view: new View({
-        center: fromLonLat([5.43, 44.17]), // Montbrun-les-Bains
+        center: fromLonLat([5.43, 44.17]),
         zoom: 15,
         minZoom: 3,
         maxZoom: 19
       })
     });
+
+    // Événement clic pour placer le pin si le mode est activé
+    this.map.on('click', (event) => {
+      if (!this.isPinModeActive) return;
+
+      const [lon, lat] = toLonLat(event.coordinate);
+      this.placePin(lon, lat);
+    });
   }
 
-  // PARCS
+  /** Placer ou déplacer le pin sur la carte */
+  private placePin(lon: number, lat: number) {
+    const pinSource = this.pinLayer.getSource();
+    pinSource?.clear();
+
+    const pin = new Feature({
+      geometry: new Point(fromLonLat([lon, lat])),
+    });
+
+    pin.setStyle(
+      new Style({
+        image: new Icon({
+          src: '/images/pin.png', // ton image de pin
+          scale: 0.1,
+          anchor: [0.5, 1],
+        }),
+      })
+    );
+
+    pinSource?.addFeature(pin);
+    this.currentPinFeature = pin;
+
+    // Mettre à jour les coords pour Overpass autour du pin
+    const offset = 0.02; // zone ~2km
+    this.coords = `${lat - offset},${lon - offset},${lat + offset},${lon + offset}`;
+  }
+
+  /** Active/Désactive le mode placement de pin */
+  togglePinMode() {
+    this.isPinModeActive = !this.isPinModeActive;
+  }
 
 
 
@@ -223,6 +341,126 @@ export class MapComponent implements OnInit {
     return new GeoJSON().readFeatures(geojson, {
       dataProjection: 'EPSG:4326',   // Coordonnées OSM
       featureProjection: 'EPSG:3857' // Projection utilisée par OpenLayers
+    });
+  }
+
+
+
+  performSearch(term: string) {
+    if (!term.trim()) return;
+
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&addressdetails=1&limit=10`;
+
+    this.http.get<NominatimResult[]>(url).subscribe({
+      next: (results) => {
+        this.searchResults = results;
+        this.showDropdown = results.length > 0;
+      },
+      error: (err) => {
+        console.error('Erreur API Nominatim :', err);
+        this.showDropdown = false;
+      }
+    });
+  }
+
+  onSearchInput(event: any) {
+    const term = event.target.value;
+    this.searchSubject.next(term);
+  }
+
+  onSearchBlur() {
+    setTimeout(() => this.showDropdown = false, 200);
+  }
+
+
+  selectResult(result: any) {
+    this.searchTerm = result.display_name;
+    this.showDropdown = false;
+    this.updateCoordsForCity(result);
+    this.zoomToResult(result);
+  }
+
+  /** Zoom sur le point choisi */
+  zoomToResult(result: any) {
+    const lon = parseFloat(result.lon);
+    const lat = parseFloat(result.lat);
+
+    console.log('Zoom sur :', lon, lat);
+
+    this.map.getView().animate({
+      center: fromLonLat([lon, lat]),
+      zoom: 13,
+      duration: 1000
+    });
+  }
+
+  private updateCoordsForCity(result: any) {
+    const lon = parseFloat(result.lon);
+    const lat = parseFloat(result.lat);
+
+    // Offset pour définir une zone autour de la ville (~2km)
+    const offset = 0.02;
+
+    // Format Overpass : "sud, ouest, nord, est"
+    this.coords = `${lat - offset},${lon - offset},${lat + offset},${lon + offset}`;
+    console.log('Coords mises à jour pour Overpass:', this.coords);
+  }
+
+  toggleViewOptions() {
+    this.showViewOptions = !this.showViewOptions;
+  }
+
+  /** Changer la vue de la map */
+  setMapView(viewType: 'satellite' | 'osm') {
+    this.isSatelliteView = viewType === 'satellite';
+
+    this.satelliteLayer.setVisible(this.isSatelliteView);
+    this.labelsLayer.setVisible(this.isSatelliteView);
+    this.osmLayer.setVisible(!this.isSatelliteView);
+
+  }
+
+  showCity(cityName: string, onResult: (found: boolean) => void): void {
+    if (!cityName || !cityName.trim()) {
+      onResult(false);
+      return;
+    }
+
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&addressdetails=1&limit=1`;
+
+    this.http.get<any[]>(url).subscribe({
+      next: (results) => {
+        if (results.length === 0) {
+          console.warn('Ville non trouvée :', cityName);
+          onResult(false); // ❌ Ville introuvable
+          return;
+        }
+
+        const result = results[0];
+
+        // --- 1. Mettre à jour coords ---
+        const lon = parseFloat(result.lon);
+        const lat = parseFloat(result.lat);
+        const offset = 0.02;
+        this.coords = `${lat - offset},${lon - offset},${lat + offset},${lon + offset}`;
+        console.log('Coords mises à jour pour Overpass:', this.coords);
+
+        // --- 2. Zoomer sur la ville ---
+        this.map.getView().animate({
+          center: fromLonLat([lon, lat]),
+          zoom: 13,
+          duration: 1000
+        });
+
+        // --- 3. Mettre à jour la barre de recherche ---
+        this.searchTerm = result.display_name;
+
+        onResult(true); // ✅ Ville trouvée
+      },
+      error: (err) => {
+        console.error('Erreur Nominatim:', err);
+        onResult(false);
+      }
     });
   }
 

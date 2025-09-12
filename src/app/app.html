@@ -1,2 +1,55 @@
-<app-voice [mapComponent]="mapRef"></app-voice>
-<app-map #mapRef></app-map>
+<!-- Sidebar -->
+<nav class="sidebar">
+  <!-- Logo à gauche -->
+  <div class="logo">
+    <img src="images/site-logo.png" alt="Logo" class="site-logo"/>
+  </div>
+
+  <!-- Hamburger menu pour mobile -->
+  <div class="menu-toggle" (click)="toggleMenu()">&#9776;</div>
+
+  <!-- Menu de navigation -->
+  <ul class="sidebar-menu" [class.active]="menuActive">
+    <li>
+      <a (click)="toggleHome()" title="Home">
+        <i class="fa fa-home"></i>
+        <span class="menu-text"> Accueil</span>
+      </a>
+    </li>
+    <li>
+      <a (click)="toggleMap()" title="Carte">
+        <i class="fa fa-map"></i>
+        <span class="menu-text"> Carte</span>
+      </a>
+    </li>
+    <li>
+      <a (click)="toggleChat()" title="Chat IA">
+        <i class="fa fa-comments"></i>
+        <span class="menu-text"> Chat IA</span>
+      </a>
+    </li>
+  </ul>
+
+</nav>
+
+<!-- Main Content -->
+<div class="main-content">
+  <header id="home" class="header-section">
+    <h1 class="title"><span class="hide-small">Bienvenue sur</span> Village&Cie</h1>
+    <p class="subtitle">Découvrez des villages et lieux près de vous.</p>
+  </header>
+
+  <!-- Map Section -->
+  <section *ngIf="showMap" id="map-section" class="map-section">
+    <div class="map-buttons">
+      <button (click)="mapRef.showWater()">Afficher les points d'eau</button>
+      <button (click)="mapRef.showGreenSpaces()">Afficher les espaces verts</button>
+    </div>
+    <div class="map-container">
+      <app-map #mapRef></app-map>
+    </div>
+  </section>
+</div>
+
+<!-- Chat Flottant -->
+<app-voice *ngIf="showChat" [mapComponent]="mapRef"></app-voice>
