@@ -33,8 +33,8 @@
 </nav>
 
 <!-- Main Content -->
-<div class="main-content">
-  <header id="home" class="header-section">
+<div class="main-content" [class.full-screen-map]="showMap">
+  <header *ngIf="!showMap" id="home" class="header-section">
     <h1 class="title"><span class="hide-small">Bienvenue sur</span> Village&Cie</h1>
     <p class="subtitle">Découvrez des villages et lieux près de vous.</p>
   </header>
@@ -50,6 +50,7 @@
     </div>
   </section>
 </div>
+
 
 <!-- Chat Flottant -->
 <app-voice *ngIf="showChat" [mapComponent]="mapRef"></app-voice>

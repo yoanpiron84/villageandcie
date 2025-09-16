@@ -1,5 +1,5 @@
 <div class="chat-modal" *ngIf="showChat" [ngClass]="{ minimized: isMinimized }" #chatModal>
-  <div class="chat-header" (mousedown)="startDrag($event)">
+  <div class="chat-header" (mousedown)="startDrag($event)" (touchstart)="startDrag($event)">
     <span>Chat IA</span>
     <button *ngIf="!isMinimized" (click)="toggleMinimize()"><i class="fa-solid fa-compress-alt"></i></button>
     <button *ngIf="isMinimized" (click)="toggleMinimize()"><i class="fa-solid fa-expand-alt"></i></button>

@@ -11,9 +11,10 @@
   box-shadow: 0 0 10px #000;
   display: flex;
   flex-direction: column;
-  z-index: 1000;
-  resize: both;
+  z-index: 9999;
+  resize: both; /* Permet le redimensionnement sur desktop */
   overflow: hidden;
+  touch-action: none; /* Pour gérer le pinch sur mobile */
 
   /* --- HEADER --- */
   .chat-header {
@@ -51,7 +52,6 @@
     box-sizing: border-box;
     overflow: hidden;
 
-    /* Zone des messages avec scroll */
     .chat-messages {
       flex: 1 1 auto;
       overflow-y: auto;
@@ -84,7 +84,6 @@
       }
     }
 
-    /* Zone de saisie du message */
     .chat-input {
       display: flex;
       align-items: center;
@@ -121,44 +120,61 @@
     height: 40px;
 
     .chat-body {
-      display: none; /* Masque tout sauf le header */
+      display: none;
     }
   }
 }
 
 @media only screen and (max-width: 600px) {
   .chat-modal {
-    width: 90%;          // presque toute la largeur
-    height: 30vh;         // hauteur relative à l'écran
-    max-height: 80vh;     // limite max pour éviter overflow
-    bottom: 10px;
-    right: 5%;
+    resize: none; /* Désactive le resize natif sur mobile */
 
     .chat-body {
       .chat-messages {
-        max-height: calc(60vh - 100px); // adapte la hauteur des messages
+        max-height: calc(60vh - 100px);
+      }
+
+      .chat-input {
+        margin-top: 10px;
+        margin-bottom: 10px;
+
+        button {
+          margin-right: 10px; /* espace pour le bouton parler */
+        }
       }
     }
 
+    /* Min/max pour pinch mobile */
+    & {
+      width: 90vw;  /* minimum width 80% de l'écran */
+      height: 30vh; /* minimum height 30% de l'écran */
+      max-width: 95vw;
+      max-height: 80vh;
+    }
+
     &.minimized {
-      width: 150px;       // réduit sur petit écran
+      width: 150px;
       height: 40px;
     }
   }
 
-  .chat-input input {
-    padding: 6px;
-    font-size: 14px;
+  .chat-input {
+    input {
+      padding: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 6px 10px;
+      font-size: 14px;
+      margin-right: 10px; /* espace pour le bouton parler */
+    }
   }
 
-  .chat-input button {
-    padding: 6px 10px;
-    font-size: 14px;
-  }
-
-  .chat-header button {
-    font-size: 16px;
-    padding: 4px;
+  .chat-header {
+    button {
+      font-size: 16px;
+      padding: 4px;
+    }
   }
 }
-

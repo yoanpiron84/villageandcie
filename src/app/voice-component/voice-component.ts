@@ -39,21 +39,36 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
   protected isRecording = false;
   private rmsThreshold = -46;
 
+  private initialPinchDistance: number | null = null;
+  private initialModalWidth = 0;
+  private initialModalHeight = 0;
+
   constructor(private http: HttpClient, private ngZone: NgZone) {}
 
   ngOnInit() {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        this.stream = stream;
-        this.startListening();
-      })
-      .catch(err => console.error("❌ Impossible d'accéder au micro:", err));
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          console.log("Microphone activé", stream);
+        })
+        .catch(err => {
+          console.error("Erreur d'accès au micro :", err);
+        });
+    } else {
+      console.warn("getUserMedia non disponible. Utilise HTTPS ou localhost.");
+    }
   }
+
 
   ngAfterViewInit() {
     const modal = this.chatModal.nativeElement;
     this.initialWidth = modal.offsetWidth;
     this.initialHeight = modal.offsetHeight;
+    modal.style.touchAction = 'none';
+
+    modal.addEventListener('touchstart', this.onPinchStart.bind(this), { passive: false });
+    modal.addEventListener('touchmove', this.onPinchMove.bind(this), { passive: false });
+    modal.addEventListener('touchend', this.onPinchEnd.bind(this));
 
     const observer = new MutationObserver(() => {
       if (this.isMinimized) {
@@ -70,6 +85,56 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
     observer.observe(modal, { attributes: true, attributeFilter: ['style'] });
   }
 
+  private getDistance(touches: TouchList): number {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  private onPinchStart(event: TouchEvent) {
+    if (event.touches.length === 2) {
+      event.preventDefault();
+      this.initialPinchDistance = this.getDistance(event.touches);
+
+      const modal = this.chatModal.nativeElement;
+      this.initialModalWidth = modal.offsetWidth;
+      this.initialModalHeight = modal.offsetHeight;
+    }
+  }
+
+  private onPinchMove(event: TouchEvent) {
+    if (event.touches.length === 2 && this.initialPinchDistance) {
+      event.preventDefault();
+
+      const modal = this.chatModal.nativeElement;
+      const currentDistance = this.getDistance(event.touches);
+      const scale = currentDistance / this.initialPinchDistance;
+
+      // 🔹 Calculer la nouvelle taille
+      let newWidth = this.initialModalWidth * scale;
+      let newHeight = this.initialModalHeight * scale;
+
+      // 🔹 Limites min/max pour pinch
+      const minWidth = 100;   // largeur minimale en px
+      const minHeight = 40;   // hauteur minimale en px
+      const maxWidth = window.innerWidth - 40;   // max largeur
+      const maxHeight = window.innerHeight - 80; // max hauteur
+
+      newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+      newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+
+      modal.style.width = newWidth + 'px';
+      modal.style.height = newHeight + 'px';
+    }
+  }
+
+
+
+  private onPinchEnd(event: TouchEvent) {
+    if (event.touches.length < 2) {
+      this.initialPinchDistance = null;
+    }
+  }
 
   ngOnDestroy() {
     this.stopAll();
@@ -107,22 +172,36 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showChat = !this.showChat;
   }
 
-  startDrag(event: MouseEvent) {
+  startDrag(event: MouseEvent | TouchEvent) {
     if (!this.chatModal) return;
+
+    const target = event.target as HTMLElement;
+
+    // ⛔ Ignore le drag si on clique sur un bouton, un input, etc.
+    if (target.closest('button') || target.closest('input') || target.closest('textarea')) {
+      return;
+    }
+
     event.preventDefault();
     this.dragging = true;
 
     const modal = this.chatModal.nativeElement;
 
-    const rect = modal.getBoundingClientRect();
-    this.offsetX = event.clientX - rect.left;
-    this.offsetY = event.clientY - rect.top;
+    const clientX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
+    const clientY = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
 
-    const onMouseMove = (e: MouseEvent) => {
+    const rect = modal.getBoundingClientRect();
+    this.offsetX = clientX - rect.left;
+    this.offsetY = clientY - rect.top;
+
+    const onMove = (e: MouseEvent | TouchEvent) => {
       if (!this.dragging) return;
 
-      let left = e.clientX - this.offsetX;
-      let top = e.clientY - this.offsetY;
+      const moveX = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX;
+      const moveY = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY;
+
+      let left = moveX - this.offsetX;
+      let top = moveY - this.offsetY;
 
       const maxLeft = window.innerWidth - modal.offsetWidth - 10;
       const maxTop = window.innerHeight - modal.offsetHeight - 10;
@@ -133,16 +212,21 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       modal.style.top = top + 'px';
     };
 
-    const onMouseUp = () => {
+    const onEnd = () => {
       this.dragging = false;
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-
+      window.removeEventListener('mousemove', onMove as any);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove as any);
+      window.removeEventListener('touchend', onEnd);
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('mousemove', onMove as any);
+    window.addEventListener('mouseup', onEnd);
+
+    window.addEventListener('touchmove', onMove as any);
+    window.addEventListener('touchend', onEnd);
   }
+
 
 
 
@@ -174,7 +258,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       if (dB > this.rmsThreshold) {
         const formData = new FormData();
         formData.append('audio', blob, 'listen.webm');
-        fetch('http://localhost:5000/voice', { method: 'POST', body: formData })
+        fetch('http://192.168.1.110:5000/voice', { method: 'POST', body: formData })
           .then(response => response.ok ? response.json() : { texte: '' })
           .catch(() => { return { texte: '' }; })
           .then(res => {
@@ -216,7 +300,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'voice.webm');
 
-      this.http.post<any>('http://localhost:5000/voice', formData).subscribe(res => {
+      this.http.post<any>('http://192.168.1.110:5000/voice', formData).subscribe(res => {
         if (!this.mapComponent) return;
 
         if (res.texte && res.texte.trim() !== '') {
