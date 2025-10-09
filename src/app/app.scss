@@ -90,11 +90,11 @@
 
 .header-section {
   text-align: center;
-  padding: 32px 16px;
+  padding: 0 0;
 }
 
 .header-section .title {
-  font-size: 36px;
+  font-size: 32px;
   color: #fff;
 }
 
@@ -108,29 +108,20 @@
   height: 400px;
 }
 
-/* Quand map est affichée, prend tout l'écran */
-.full-screen-map .map-container {
-  position: absolute; /* pour occuper tout l'espace à droite de la sidebar */
-  top: 0;
-  left: 0; /* largeur sidebar */
-  right: 0;
-  bottom: 0;
-  width: 100%; /* espace à droite de la sidebar */
-  height: 100vh; /* prend toute la hauteur de la fenêtre */
-  margin: 0;
-  border-radius: 0;
-}
-
-/* Map section globale en full screen */
-.full-screen-map .map-section {
+.full-screen-map {
   position: absolute;
   top: 0;
-  left: 0; /* à droite de la sidebar */
+  left: 80px;       // largeur de la sidebar
   right: 0;
   bottom: 0;
   margin: 0;
   padding: 0;
+  height: 100vh;
+  width: calc(100% - 80px); // espace restant à droite de la sidebar
+  overflow: hidden;
 }
+
+
 
 .chat-section {
   background: #111;
@@ -185,13 +176,17 @@
   margin-right: 8px;
 }
 
+.menu-icon {
+  color: white;
+}
+
 /* header visible par défaut */
 .header-section {
   text-align: center;
-  padding: 32px 16px;
+  padding: 0 0;
 
   .title {
-    font-size: 36px;
+    font-size: 32px;
     color: #fff;
   }
 
@@ -206,8 +201,217 @@
   display: none;
 }
 
+.language-switcher {
+  position: fixed;
+  top: 100px;
+  left: 25px;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+
+  .toggle-lang-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      opacity: 0.8; // léger effet au survol
+    }
+
+    .flag-icon {
+      width: 28px;
+      height: 20px;
+      object-fit: cover;
+      border: 1px solid #ddd; // contour fin pour démarquer
+      border-radius: 0;       // carré, pas rond
+    }
+  }
+
+  .language-menu-card {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: 10px;
+    background: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 5px; // légère arrondie pour le menu, pas les drapeaux
+    padding: 5px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    display: flex;
+    gap: 10px;
+    white-space: nowrap;
+
+    .language-option {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      cursor: pointer;
+      color: #000;
+      font-weight: 500;
+      transition: background 0.2s ease;
+
+      .flag-icon {
+        width: 24px;
+        height: 16px;
+        margin-right: 6px;
+        object-fit: cover;
+        border: 1px solid #ddd;
+        border-radius: 0;
+      }
+
+      &:hover {
+        background: #f5f5f5;
+      }
+    }
+  }
+}
+
+
+/* CSS CAROUSSEL */
+
+.carousel-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease-in-out; /* Animation glisse */
+}
+
+.carousel-item {
+  min-width: 100%; /* Chaque slide prend 100% du conteneur */
+  position: relative;
+}
+
+.carousel-item img {
+  width: 100%;
+  display: block;
+  border-radius: 10px;
+}
+
+.carousel-caption {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 1.1rem;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0,0,0,0.5);
+  color: #fff;
+  border: none;
+  font-size: 2rem;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  z-index: 10;
+}
+
+.carousel-btn.prev { left: 10px; }
+.carousel-btn.next { right: 10px; }
+
+.carousel-btn:hover { background-color: rgba(0,0,0,0.7); }
+
 
 @media only screen and (max-width: 600px) {
+
+  .full-screen-map {
+    position: absolute;
+    top: 0;
+    left: 0;       // largeur de la sidebar
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    height: 100%; // espace restant à droite de la sidebar
+    overflow: hidden;
+  }
+
+  .language-switcher {
+    position: fixed;
+    top: 20px;
+    left: 80px;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+
+    .toggle-lang-btn {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        opacity: 0.8; // léger effet au survol
+      }
+
+      .flag-icon {
+        width: 28px;
+        height: 20px;
+        object-fit: cover;
+        border: 1px solid #ddd; // contour fin pour démarquer
+        border-radius: 0;       // carré, pas rond
+      }
+    }
+
+    .language-menu-card {
+      position: absolute;
+      top: -10px;
+      left: 100%;
+      margin-left: 10px;
+      background: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 5px; // légère arrondie pour le menu, pas les drapeaux
+      padding: 5px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      display: flex;
+      gap: 10px;
+      white-space: nowrap;
+
+      .language-option {
+        display: flex;
+        align-items: center;
+        padding: 6px 10px;
+        cursor: pointer;
+        color: #000;
+        font-weight: 500;
+        transition: background 0.2s ease;
+
+        .flag-icon {
+          width: 24px;
+          height: 16px;
+          margin-right: 6px;
+          object-fit: cover;
+          border: 1px solid #ddd;
+          border-radius: 0;
+        }
+
+        &:hover {
+          background: #f5f5f5;
+        }
+      }
+    }
+  }
 
   /* Chat modal reste au-dessus */
   .chat-modal {
@@ -224,6 +428,11 @@
   /* Affiche le texte des menus */
   .menu-text {
     display: inline;
+    color: white;
+  }
+
+  .menu-icon {
+    color: white;
   }
 
   .hide-on-mobile-map {
@@ -262,10 +471,10 @@
     display: none;
     position: absolute;
     top: 60px; /* sous la barre */
-    right: 0;
+    right: 15px;
     background: #222;
     flex-direction: column;
-    width: 130px;
+    width: 210px;
     padding: 10px 0;
     border-radius: 0 0 8px 8px;
     z-index: 2000;
@@ -281,6 +490,10 @@
 
   .sidebar-menu a {
     font-size: 18px;
+  }
+
+  .menu-icon {
+    color: white;
   }
 
   /* Main content prend tout le reste de la page sous la sidebar */
@@ -312,4 +525,158 @@
     right: 0;
     z-index: 2;
   }
+
+  .carousel-container {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    margin: 20px auto;
+    overflow: hidden;
+    border-radius: 10px;
+  }
+
+  .carousel-caption {
+    position: absolute;
+    bottom: 10px;
+    left: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    padding: 2px;
+    border-radius: 5px;
+    font-size: 0.7rem;
+  }
 }
+
+
+
+/* ===== TABLETTES (601px → 1024px) ===== */
+@media only screen and (max-width: 1300px) and (min-width: 601px) {
+
+  .full-screen-map {
+    position: absolute;
+    top: 0;
+    left: 0;       // largeur de la sidebar
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100%; // espace restant à droite de la sidebar
+    overflow: hidden;
+  }
+
+  /* Sidebar verticale réduite */
+  .sidebar {
+    width: 60px;
+    padding: 10px 0;
+  }
+
+  .logo,
+  .site-logo {
+    width: 50px;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .sidebar-menu a {
+    font-size: 32px;
+  }
+
+  .sidebar-menu li {
+    margin: 50px 0;
+  }
+
+  .menu-icon {
+    color: white;
+  }
+
+
+
+  /* Footer compact */
+  .footer {
+    padding: 16px;
+    font-size: 14px;
+  }
+
+  /* Chat modal reste au-dessus */
+  .chat-modal {
+    z-index: 9999 !important;
+    position: fixed !important;
+    bottom: 20px;
+    right: 20px;
+  }
+
+  .carousel-container {
+    max-width: 600px;
+    max-height: 400px;
+    margin: 15px auto;
+    border-radius: 8px;
+  }
+
+  .carousel-caption {
+    font-size: 0.9rem;
+    padding: 6px;
+    bottom: 15px;
+    left: 15px;
+    right: 15px;
+  }
+}
+
+/* ===== TABLETTES FORMAT PORTRAIT (≤ 800px) ===== */
+@media only screen and (max-width: 800px) and (min-width: 601px) {
+
+  /* Bouton hamburger en bas à gauche */
+  .menu-toggle {
+    display: block;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #4caf50;
+    z-index: 4000; /* Toujours au-dessus du contenu */
+  }
+
+  /* Menu qui s'affiche au-dessus du bouton hamburger */
+  .sidebar-menu {
+    display: none;
+    position: fixed;
+    bottom: 60px; /* juste au-dessus du bouton */
+    left: 20px;
+    background: #222;
+    flex-direction: column;
+    width: 200px;
+    padding: 10px 0;
+    border-radius: 8px;
+    z-index: 3000;
+  }
+
+  .sidebar-menu.active {
+    display: flex;
+  }
+
+  .sidebar-menu li {
+    margin: 10px 15px;
+  }
+
+  .sidebar-menu a {
+    font-size: 20px;
+    color: white;
+  }
+
+  .menu-text {
+    display: inline-block;
+    color: white;
+    margin-left: 8px;
+  }
+
+  .language-switcher {
+    top: 80px;
+    left: 30px;
+    transform: translateX(-50%);
+    z-index: 4000;
+  }
+}
+
+

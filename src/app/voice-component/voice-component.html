@@ -1,23 +1,51 @@
-<div class="chat-modal" *ngIf="showChat" [ngClass]="{ minimized: isMinimized }" #chatModal>
-  <div class="chat-header" (mousedown)="startDrag($event)" (touchstart)="startDrag($event)">
-    <span>Chat IA</span>
-    <button *ngIf="!isMinimized" (click)="toggleMinimize()"><i class="fa-solid fa-compress-alt"></i></button>
-    <button *ngIf="isMinimized" (click)="toggleMinimize()"><i class="fa-solid fa-expand-alt"></i></button>
-  </div>
+@if (showChat){
+  <div class="chat-modal" [ngClass]="{ minimized: isMinimized }" #chatModal>
+    <div class="chat-header" (mousedown)="startDrag($event)" (touchstart)="startDrag($event)">
+      <span>{{ translations['chat_ai'] }}</span>
+      @if (!isMinimized){
+        <button (click)="toggleMinimize()">
+          <i class="fa-solid fa-compress-alt"></i>
+        </button>
+      } @else {
+        <button (click)="toggleMinimize()">
+          <i class="fa-solid fa-expand-alt"></i>
+        </button>
+      }
+    </div>
 
-  <div class="chat-body">
-    <div class="chat-messages">
-      <div *ngFor="let msg of chatMessages" class="chat-message" [class.user]="msg.user==='user'" [class.ai]="msg.user==='ai'">
-        <img *ngIf="msg.user==='ai'" src="images/ia_icon.png" class="chat-avatar" alt="IA">
-        <img *ngIf="msg.user==='user'" src="images/user_icon.png" class="chat-avatar" alt="Vous">
-        <div class="chat-bubble">{{ msg.text }}</div>
+    <div class="chat-body">
+      <div class="chat-messages">
+        @for (msg of chatMessages; track msg){
+          <div class="chat-message" [class.user]="msg.user==='user'" [class.ai]="msg.user==='ai'">
+
+            @if (msg.user==='ai'){
+              <img src="images/ia_icon.png" class="chat-avatar" alt="IA">
+            } @else {
+              <img src="images/user_icon.png" class="chat-avatar" alt="Vous">
+            }
+
+            <div class="chat-bubble">{{ msg.text }}</div>
+          </div>
+        }
+      </div>
+
+      <div class="chat-input">
+        <input
+          type="text"
+          [(ngModel)]="userMessage"
+          [placeholder]="translations['type_message']"
+          (keydown.enter)="sendMessage()"
+        />
+        <button
+          class="record-button"
+          (click)="startRecording()"
+          [ngClass]="{ recording: isRecording }">
+          {{ isRecording ? translations['speaking'] : translations['speak'] }}
+        </button>
+
+
+
       </div>
     </div>
-
-    <div class="chat-input">
-      <img [src]="isRecording ? 'images/micro_rouge.png' : 'images/micro_bleu.png'" alt="Microphone" class="micro-icon" />
-      <input type="text" [(ngModel)]="userMessage" placeholder="Écrivez votre demande ici" (keydown.enter)="sendMessage()" />
-      <button (click)="startRecording()">🎙️ Parler</button>
-    </div>
   </div>
-</div>
+}

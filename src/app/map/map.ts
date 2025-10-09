@@ -1,25 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, ElementRef, Input, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import Map from 'ol/Map';
-import View from 'ol/View';
+import { Map, View } from 'ol';
 import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { Fill, Stroke, Style } from 'ol/style';
-import {fromLonLat, toLonLat} from 'ol/proj';
+import { XYZ, OSM } from 'ol/source';
+import { Fill, Stroke, Style, Icon, Circle as CircleStyle } from 'ol/style';
+import { fromLonLat, toLonLat } from 'ol/proj';
 import { GeoJSON } from 'ol/format';
-import CircleStyle from 'ol/style/Circle';
-import {XYZ} from 'ol/source';
-import {FormsModule} from '@angular/forms';
-import {NgForOf, NgIf} from '@angular/common';
-import { Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
-import Icon from 'ol/style/Icon';
 import Point from 'ol/geom/Point';
 import Feature from 'ol/Feature';
-
-
+import { FormsModule } from '@angular/forms';
+import {NgClass, NgForOf, NgIf} from '@angular/common';
+import { Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { getDistance as olDistance } from 'ol/sphere';
+import { Coordinate } from 'ol/coordinate';
 
 
 interface NominatimResult {
@@ -43,15 +39,24 @@ interface NominatimResult {
   standalone: true,
   templateUrl: './map.html',
   imports: [
-    FormsModule
-    , HttpClientModule, NgIf, NgForOf
+    FormsModule,
+    NgClass
   ],
   styleUrls: ['./map.scss']
 })
 export class MapComponent implements OnInit {
+
+  /*********************************************************************
+
+                      Initialisation de variables
+
+   *********************************************************************/
+
   private map!: Map;
   private waterLayer!: VectorLayer<VectorSource>;
   private greenLayer!: VectorLayer<VectorSource>;
+  private restaurantLayer!: VectorLayer<VectorSource>;
+
 
   searchTerm: string = '';
   searchResults: NominatimResult[] = [];
@@ -68,37 +73,99 @@ export class MapComponent implements OnInit {
   private osmLayer!: TileLayer<OSM>;
 
   // --- Gestion du Pin ---
-  private pinLayer!: VectorLayer<VectorSource>;
+  pinLayer!: VectorLayer<VectorSource>;
   private currentPinFeature: Feature | null = null;
   isPinModeActive: boolean = false;
 
+  @Input() translations: Record<string, string> = {};
+
+  @Input() currentLanguage: string = 'fr';
+
+  private coords: string = "41.303, -5.266, 51.124, 9.662"; // Coordonnées France
+
+  countryCenters: Record<string, [number, number]> = {
+    fr: [2.2137, 46.2276], // France
+    en: [-0.1276, 51.5074], // Angleterre (Londres)
+    es: [-3.7038, 40.4168]  // Espagne (Madrid)
+  };
+
+  protected isLocalisationActive: boolean = false;
+
+  private userPosition: { lat: number, lon: number } | null = null;
+
+  lastAction: (() => void) | null = null;
+
+
+  // Filtre rayon
+  showFilterCard = false;
+  radius = 1;
+  currentRadius = 1;
+  @ViewChild('radiusSlider', { static: false }) radiusSlider!: ElementRef<HTMLInputElement>;
+  protected waitingMessage: string | null = null;
+  canApplyFilter = true;
+  layerNames: { [key: string]: string } = {};
+  selectedLayerAction: string = "";
+
+  layerLabels: Record<string, string> = {
+    showRestaurant: 'Restaurants',
+    showWater: 'Points d\'eau',
+    showChurch: 'Églises',
+    showGreen: 'Espaces verts',
+    // ajoute les autres actions/layers ici
+  };
+
+  activeLayers: Set<string> = new Set();
 
 
   constructor(private http: HttpClient) {}
-  coords = "44.17,5.43,44.19,5.45";
+
+  /*********************************************************************
+
+                        Fonctions système (Ng)
+
+   *********************************************************************/
 
   ngOnInit(): void {
+
+    // par défaut
     this.initMap();
 
-    // Déclenche la recherche 1s après la dernière frappe
-    this.searchSubject.pipe(
-      debounceTime(1000)  // 1 seconde
-    ).subscribe(term => {
-      this.performSearch(term);
-    });
-  }
-
-  ngAfterViewInit() {
     const overlay = document.querySelector('.ol-overlaycontainer-stopevent') as HTMLElement;
     if (overlay) {
       overlay.style.pointerEvents = 'none';
       overlay.querySelectorAll('*').forEach(el => (el as HTMLElement).style.pointerEvents = 'none');
     }
+
+    this.searchSubject.pipe(
+      debounceTime(1000)
+    ).subscribe(term => {
+      this.performSearch(term);
+    });
+
+
   }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['currentLanguage'] && this.map) {
+      const newCenter = this.countryCenters[this.currentLanguage] || this.countryCenters['fr'];
+
+      this.map.getView().animate({
+        center: fromLonLat(newCenter),
+        zoom: 6,
+        duration: 1000
+      });
+    }
+
+  }
+
+
 
 
   /** Initialise la carte avec un fond OSM et une couche vide pour les eaux */
   initMap() {
+    const center = this.countryCenters[this.currentLanguage] || this.countryCenters['fr'];
+    const restaurantSource = new VectorSource();
+
     // Styles pour arbres et parcs
     const treeStyle = new Style({
       image: new CircleStyle({
@@ -133,6 +200,18 @@ export class MapComponent implements OnInit {
       }
     });
 
+    // Couche Restaurant
+    this.restaurantLayer = new VectorLayer({
+      source: restaurantSource,
+      style: new Style({
+        image: new Icon({
+          src: '/images/restaurant.png',
+          scale: 0.05,
+          anchor: [0.5, 1]
+        })
+      })
+    });
+
     // Couche pour le Pin
     this.pinLayer = new VectorLayer({
       source: new VectorSource(),
@@ -155,13 +234,13 @@ export class MapComponent implements OnInit {
       visible: this.isSatelliteView
     });
 
-// Couche OpenStreetMap
+    // Couche OpenStreetMap
     this.osmLayer = new TileLayer({
       source: new OSM(),
       visible: !this.isSatelliteView
     });
 
-// Création de la carte
+    // Création de la carte
     this.map = new Map({
       target: 'map-container',
       layers: [
@@ -170,17 +249,17 @@ export class MapComponent implements OnInit {
         this.osmLayer,
         this.waterLayer,
         this.greenLayer,
+        this.restaurantLayer,
         this.pinLayer
       ],
       view: new View({
-        center: fromLonLat([5.43, 44.17]),
-        zoom: 15,
+        center: fromLonLat(center),
+        zoom: 6,
         minZoom: 3,
         maxZoom: 19
       })
     });
 
-    // Événement clic pour placer le pin si le mode est activé
     this.map.on('click', (event) => {
       if (!this.isPinModeActive) return;
 
@@ -189,7 +268,12 @@ export class MapComponent implements OnInit {
     });
   }
 
-  /** Placer ou déplacer le pin sur la carte */
+  /*********************************************************************
+
+                    Fonctions d'interaction map
+
+   *********************************************************************/
+
   private placePin(lon: number, lat: number) {
     const pinSource = this.pinLayer.getSource();
     pinSource?.clear();
@@ -221,79 +305,100 @@ export class MapComponent implements OnInit {
     this.isPinModeActive = !this.isPinModeActive;
   }
 
+  toggleViewOptions() {
+    this.showViewOptions = !this.showViewOptions;
+  }
 
+  /** Changer la vue de la map */
+  setMapView(viewType: 'satellite' | 'osm') {
+    this.isSatelliteView = viewType === 'satellite';
 
-  /** Charge et affiche les polygones d'eau */
-  showWater() {
-    const query = `
-    [out:json];
-    (
-      way["waterway"="river"](${this.coords});       // rivières
-      way["waterway"="stream"](${this.coords});      // ruisseaux
-      way["waterway"="canal"](${this.coords});       // canaux
-      way["waterway"="drain"](${this.coords});       // petits fossés ou canaux artificiels
-      relation["natural"="water"](${this.coords});   // lacs, étangs
-    );
-    out geom;
-  `;
+    this.satelliteLayer.setVisible(this.isSatelliteView);
+    this.labelsLayer.setVisible(this.isSatelliteView);
+    this.osmLayer.setVisible(!this.isSatelliteView);
 
+  }
 
-    console.log("requête eau: ", query)
+  toggleLocalisation() {
+    this.isLocalisationActive = !this.isLocalisationActive;
 
-    const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+    if (this.isLocalisationActive) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
 
-    this.http.get(url).subscribe({
-      next: (result: any) => {
-        const features = this.convertOverpassToGeoJSON(result);
+            this.userPosition = { lat, lon };
 
-        const source = this.waterLayer.getSource();
-        source?.clear();
-        source?.addFeatures(features);
+            this.coords = `${lat},${lon}`;
 
-        if (features.length > 0) {
-          const extent = source!.getExtent();
-          this.map.getView().fit(extent, { padding: [50, 50, 50, 50] });
-        }
-      },
-      error: (err) => {
-        console.error('Erreur Overpass API:', err);
+            const view = this.map.getView();
+            view.animate({
+              center: fromLonLat([lon, lat]),
+              zoom: 18,
+              duration: 1000
+            });
+          },
+          (error) => {
+            console.error("Erreur de géolocalisation :", error);
+            alert("Impossible d'accéder à la localisation.");
+            this.isLocalisationActive = false;
+          }
+        );
+      } else {
+        alert("La géolocalisation n'est pas supportée par votre navigateur.");
+        this.isLocalisationActive = false;
       }
-    });
+    } else {
+      const view = this.map.getView();
+      const center = this.countryCenters[this.currentLanguage] || this.countryCenters['fr'];
+      view.animate({
+        center: fromLonLat(center),
+        zoom: 6,
+        duration: 1000
+      });
+    }
   }
 
-  showGreenSpaces() {
-    const query = `
-    [out:json];
-    (
-      node["natural"="tree"](`+this.coords+`);
-      way["natural"="tree"](`+this.coords+`);
-      relation["natural"="tree"](`+this.coords+ `);
+  toggleFilterCard() {
+    this.showFilterCard = !this.showFilterCard;
+    if (this.showFilterCard) {
+      // Permet de stocker la valeur rayon
+      this.currentRadius = this.radius;
+    }
+  }
 
-      way["leisure"="park"](`+this.coords+`);
-      relation["leisure"="park"](`+this.coords+ `);
+  applyFilter() {
+    if (!this.selectedLayerAction || !this.canApplyFilter || !this.userPosition || !this.currentRadius || !this.lastAction) return;
 
-      way["landuse"="forest"](`+this.coords+`);
-      relation["landuse"="forest"](`+this.coords+`);
+    if (typeof (this as any)[this.selectedLayerAction] === 'function') {
+      this.radius = this.currentRadius;
+      (this as any)[this.selectedLayerAction]();
+    }
 
-      way["natural"="wood"](`+this.coords+`);
-      relation["natural"="wood"](`+this.coords+`);
-    );
-    out geom;
-  `;
+    this.canApplyFilter = false;
+    const delaySec = 6;
+    this.waitingMessage = `Veuillez attendre ${delaySec} secondes avant de refiltrer...`;
 
-    const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+    setTimeout(() => {
+      this.canApplyFilter = true;
+      this.waitingMessage = "";
+    }, delaySec * 1000);
 
-    this.http.get(url).subscribe((result: any) => {
-      console.log('Green data:', result);
-      const features = this.convertOverpassToGeoJSON(result);
+    this.showFilterCard = false;
+  }
 
-      const source = this.greenLayer.getSource();
-      source?.clear();
-      source?.addFeatures(features);
-    });
+  get availableLayers(): string[] {
+    return Array.from(this.activeLayers).map(action => this.layerLabels[action]);
   }
 
 
+  /*********************************************************************
+
+                        Fonctions de conversion
+
+   *********************************************************************/
 
   /**
    * Convertit la réponse Overpass en features OpenLayers
@@ -305,11 +410,28 @@ export class MapComponent implements OnInit {
     };
 
     data.elements.forEach((element: any) => {
+
+      // ✅ CAS 1 : NODES → Point (restaurants, arbres, etc.)
+      if (element.type === 'node') {
+        geojson.features.push({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [element.lon, element.lat]
+          },
+          properties: {
+            id: element.id,
+            tags: element.tags || {}
+          }
+        });
+        return;
+      }
+
+      // Rivières, routes, etc.
       if (element.geometry) {
         const coords = element.geometry.map((g: any) => [g.lon, g.lat]);
 
         if (element.tags?.waterway) {
-          // Cas d'une rivière / canal → LineString
           geojson.features.push({
             type: 'Feature',
             geometry: {
@@ -318,11 +440,14 @@ export class MapComponent implements OnInit {
             },
             properties: {
               id: element.id,
-              type: 'waterway'
+              type: 'waterway',
+              tags: element.tags || {}
             }
           });
-        } else if ((element.type === 'way' || element.type === 'relation') && coords.length >= 3) {
-          // Cas d'un lac ou plan d'eau → Polygon
+        }
+
+        // Parcs, lacs, zones
+        else if ((element.type === 'way' || element.type === 'relation') && coords.length >= 3) {
           geojson.features.push({
             type: 'Feature',
             geometry: {
@@ -331,7 +456,8 @@ export class MapComponent implements OnInit {
             },
             properties: {
               id: element.id,
-              type: 'water'
+              type: 'area',
+              tags: element.tags || {}
             }
           });
         }
@@ -345,15 +471,29 @@ export class MapComponent implements OnInit {
   }
 
 
+  /*********************************************************************
+
+            Fonctions de recherche textuelle de ville
+
+   *********************************************************************/
 
   performSearch(term: string) {
     if (!term.trim()) return;
 
+    // On prend la langue actuelle (FR par défaut)
+    const lang = this.currentLanguage?.toLowerCase() || 'fr';
+
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&addressdetails=1&limit=10`;
 
-    this.http.get<NominatimResult[]>(url).subscribe({
+    const headers = { 'Accept-Language': lang };
+
+    this.http.get<NominatimResult[]>(url, { headers }).subscribe({
       next: (results) => {
-        this.searchResults = results;
+        // On peut filtrer ou adapter les résultats si nécessaire
+        this.searchResults = results.map(r => ({
+          ...r,
+          display_name: r.display_name // Nominatim renvoie déjà en bonne langue
+        }));
         this.showDropdown = results.length > 0;
       },
       error: (err) => {
@@ -362,6 +502,7 @@ export class MapComponent implements OnInit {
       }
     });
   }
+
 
   onSearchInput(event: any) {
     const term = event.target.value;
@@ -387,38 +528,127 @@ export class MapComponent implements OnInit {
 
     console.log('Zoom sur :', lon, lat);
 
+    const coord = fromLonLat([lon, lat]);
+
+    this.pinLayer.getSource()?.clear();
+
+    const pinFeature = new Feature({
+      geometry: new Point(coord)
+    });
+
+    // 3️⃣ Applique un style avec une image
+    pinFeature.setStyle(
+      new Style({
+        image: new Icon({
+          src: '/images/pin_search.png',
+          anchor: [0.5, 1],
+          scale: 0.1
+        })
+      })
+    );
+
+    this.pinLayer.getSource()?.addFeature(pinFeature);
+
     this.map.getView().animate({
       center: fromLonLat([lon, lat]),
       zoom: 13,
       duration: 1000
     });
+
   }
+
 
   private updateCoordsForCity(result: any) {
     const lon = parseFloat(result.lon);
     const lat = parseFloat(result.lat);
 
-    // Offset pour définir une zone autour de la ville (~2km)
     const offset = 0.02;
 
-    // Format Overpass : "sud, ouest, nord, est"
     this.coords = `${lat - offset},${lon - offset},${lat + offset},${lon + offset}`;
+    this.userPosition = { lat, lon };
     console.log('Coords mises à jour pour Overpass:', this.coords);
   }
 
-  toggleViewOptions() {
-    this.showViewOptions = !this.showViewOptions;
+
+  /*********************************************************************
+
+   Fonctions associées aux actions (water, city, etc...)
+
+   *********************************************************************/
+
+  /** Charge et affiche les polygones d'eau */
+  showWater() {
+    const query = `
+    [out:json];
+    (
+      way["waterway"="river"](${this.coords});       // rivières
+      way["waterway"="stream"](${this.coords});      // ruisseaux
+      way["waterway"="canal"](${this.coords});       // canaux
+      way["waterway"="drain"](${this.coords});       // petits fossés ou canaux artificiels
+      relation["natural"="water"](${this.coords});   // lacs, étangs
+    );
+    out geom;
+  `;
+
+    const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+
+    this.http.get(url).subscribe({
+      next: (result: any) => {
+        const features = this.convertOverpassToGeoJSON(result);
+
+        const source = this.waterLayer.getSource();
+        source?.clear();
+        source?.addFeatures(features);
+        this.activeLayers.add('showWater');
+
+        if (features.length > 0) {
+          const extent = source!.getExtent();
+          this.map.getView().fit(extent, { padding: [50, 50, 50, 50] });
+        }
+      },
+      error: (err) => {
+        console.error('Erreur Overpass API:', err);
+      }
+    });
   }
 
-  /** Changer la vue de la map */
-  setMapView(viewType: 'satellite' | 'osm') {
-    this.isSatelliteView = viewType === 'satellite';
+  showGreen() {
+    if (this.isLocalisationActive || this.userPosition) {
+      console.log("ENTREE DANS ESPACES VERTS");
+      const {lat, lon} = this.userPosition ?? {lat: 0, lon: 0};
+      const query = `
+      [out:json];
+      (
+        node["natural"="tree"](`+this.coords+`);
+        way["natural"="tree"](`+this.coords+`);
+        relation["natural"="tree"](`+this.coords+ `);
 
-    this.satelliteLayer.setVisible(this.isSatelliteView);
-    this.labelsLayer.setVisible(this.isSatelliteView);
-    this.osmLayer.setVisible(!this.isSatelliteView);
+        way["leisure"="park"](`+this.coords+`);
+        relation["leisure"="park"](`+this.coords+ `);
 
+        way["landuse"="forest"](`+this.coords+`);
+        relation["landuse"="forest"](`+this.coords+`);
+
+        way["natural"="wood"](`+this.coords+`);
+        relation["natural"="wood"](`+this.coords+`);
+      );
+      out geom;
+    `;
+
+      const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+
+
+      this.http.get(url).subscribe((result: any) => {
+        const features = this.convertOverpassToGeoJSON(result);
+
+        const source = this.greenLayer.getSource();
+        source?.clear();
+        source?.addFeatures(features);
+        this.activeLayers.add('showGreen');
+      });
+    }
   }
+
 
   showCity(cityName: string, onResult: (found: boolean) => void): void {
     if (!cityName || !cityName.trim()) {
@@ -432,30 +662,27 @@ export class MapComponent implements OnInit {
       next: (results) => {
         if (results.length === 0) {
           console.warn('Ville non trouvée :', cityName);
-          onResult(false); // ❌ Ville introuvable
+          onResult(false);
           return;
         }
 
         const result = results[0];
 
-        // --- 1. Mettre à jour coords ---
+
         const lon = parseFloat(result.lon);
         const lat = parseFloat(result.lat);
         const offset = 0.02;
         this.coords = `${lat - offset},${lon - offset},${lat + offset},${lon + offset}`;
+        this.userPosition = { lat, lon };
         console.log('Coords mises à jour pour Overpass:', this.coords);
 
-        // --- 2. Zoomer sur la ville ---
-        this.map.getView().animate({
-          center: fromLonLat([lon, lat]),
-          zoom: 13,
-          duration: 1000
-        });
 
-        // --- 3. Mettre à jour la barre de recherche ---
+        this.zoomToResult(result);
+
+
         this.searchTerm = result.display_name;
 
-        onResult(true); // ✅ Ville trouvée
+        onResult(true);
       },
       error: (err) => {
         console.error('Erreur Nominatim:', err);
@@ -464,5 +691,35 @@ export class MapComponent implements OnInit {
     });
   }
 
+  showRestaurant() {
+    let query = "";
+    const r = this.radius * 1000;
+
+    if (this.isLocalisationActive || this.userPosition) {
+      const { lat, lon } = this.userPosition ?? { lat: 0, lon: 0 };
+
+      query = `
+      [out:json];
+      (
+        node["amenity"="restaurant"](around:${r},${lat},${lon});
+        way["amenity"="restaurant"](around:${r},${lat},${lon});
+        relation["amenity"="restaurant"](around:${r},${lat},${lon});
+      );
+      out geom;
+    `;
+    }
+
+    const url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+
+
+    this.http.get(url).subscribe((result: any) => {
+      const features = this.convertOverpassToGeoJSON(result);
+
+      const source = this.restaurantLayer.getSource();
+      source?.clear();
+      source?.addFeatures(features);
+      this.activeLayers.add('showRestaurant');
+    });
+  }
 
 }

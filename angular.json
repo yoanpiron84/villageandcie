@@ -34,6 +34,21 @@
                 "glob": "**/*",
                 "input": "public",
                 "output": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/lang",
+                "output": "lang"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/images/flags",
+                "output": "images/flags"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/sons",
+                "output": "sons"
               }
             ],
 
@@ -100,6 +115,21 @@
                 "glob": "**/*",
                 "input": "public",
                 "output": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/lang",
+                "output": "lang"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/images/flags",
+                "output": "images/flags"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/sons",
+                "output": "sons"
               }
             ],
             "styles": [

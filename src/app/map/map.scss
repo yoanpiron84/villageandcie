@@ -1,3 +1,9 @@
+:host {
+  display: block;   /* important pour que le composant prenne tout l'espace disponible */
+  width: 100%;
+  height: 100%;
+}
+
 .map-buttons {
   display: flex;
   gap: 10px;
@@ -21,12 +27,6 @@
   width: 100%;
   height: 100%;
   position: relative;
-}
-
-app-map {
-  width: 100%;
-  height: 100%;
-  display: block;
 }
 
 
@@ -213,6 +213,201 @@ app-map {
 
   &.active {
     background: limegreen;
+  }
+}
+
+// BOUTON LOCALISATION
+
+.btn-localisation {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.activetoinactive-localisation {
+  background-color: red;
+}
+
+.inactivetoactive-localisation {
+  background-color: limegreen;
+}
+
+// BOUTON FILTRE
+
+.toggle-filter-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+
+  &:hover {
+    background-color: #0056a3;
+  }
+}
+
+.filter-card {
+  position: absolute;
+  bottom: 70px;
+  left: 20px;
+  width: 220px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  z-index: 1000;
+  font-family: Arial, sans-serif;
+
+  h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: black;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: black;
+  }
+
+  input[type=range] {
+    width: 100%;
+  }
+}
+
+.filter-actions {
+  text-align: right;
+  margin-top: 10px;
+  color: red;
+}
+
+.btn-apply-filter {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s ease;
+}
+
+.btn-apply-filter:hover {
+  background-color: #0056a3;
+}
+
+.disabled-btn {
+  background-color: #ccc;
+  cursor: not-allowed;
+  color: #666;
+}
+
+
+@media only screen and (min-width: 601px) and (max-width: 1300px) {
+  .toggle-filter-btn {
+    bottom: 20px;
+    left: 80px;
+    padding: 8px 12px;
+    font-size: 16px;
+  }
+
+  .filter-card {
+    bottom: 65px;
+    left: 80px;
+    width: 200px;
+    padding: 12px;
+
+    h4 {
+      font-size: 14px;
+      color: black;
+    }
+
+    label {
+      font-size: 13px;
+      color: black;
+    }
+
+    input[type=range] {
+      width: 100%;
+    }
+  }
+}
+
+/* Mobile / petit écran : max-width 600px */
+@media only screen and (max-width: 600px) {
+  .toggle-filter-btn {
+    bottom: 20px;
+    left: 20px;
+    padding: 10px 14px;
+    font-size: 18px;
+  }
+
+  .filter-card {
+    bottom: 70px;
+    left: 20px;
+    width: 180px;
+    padding: 10px;
+
+    h4 {
+      font-size: 13px;
+      color: black;
+    }
+
+    label {
+      font-size: 12px;
+      color: black;
+    }
+
+    input[type=range] {
+      width: 100%;
+    }
+  }
+}
+
+// TABLETTE VUE PORTRAIT
+
+@media only screen and (min-width: 601px) and (max-width: 800px) {
+  .toggle-filter-btn {
+    bottom: 20px;
+    left: 80px;
+    padding: 10px 14px;
+    font-size: 18px;
+  }
+
+  .filter-card {
+    bottom: 70px;
+    left: 80px;
+    width: 180px;
+    padding: 10px;
+
+    h4 {
+      font-size: 13px;
+      color: black;
+    }
+
+    label {
+      font-size: 12px;
+      color: black;
+    }
+
+    input[type=range] {
+      width: 100%;
+    }
   }
 }
 

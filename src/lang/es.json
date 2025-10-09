@@ -1,0 +1,30 @@
+{
+  "home": "Inicio",
+  "map": "Mapa",
+  "chat": "Chat",
+  "water_points": "Mostrar puntos de agua",
+  "green_spaces": "Mostrar espacios verdes",
+  "welcome": "Bienvenido a",
+  "subtitle": "Descubre pueblos y lugares cerca de ti.",
+  "search_placeholder": "Buscar...",
+  "satellite": "Satélite",
+  "osm": "OSM",
+  "chat_ai": "Chat IA",
+  "type_message": "Escribe tu solicitud aquí",
+  "speak": "🎙️ Hablar",
+  "speaking": "Escuchando...",
+
+  "verbs": "mostrar,ver",
+  "city_verb": "buscar",
+  "ok_city": "Ok, te muestro {city}.",
+  "not_found_city": "Lo siento, no encontré la ciudad \"{city}\".",
+  "show_prefix": "Te muestro:",
+  "missing_verb": "Por favor, use un verbo de acción entre: ",
+  "not_understood": "No entendí tu solicitud.",
+  "show_map_first": "Por favor, muestra primero el mapa para usar ciudades o verbos de acción.",
+  "ask_question": "Ingrese su solicitud aquí.",
+  "text_slide_1": "Descubre todas las actividades que puedes hacer a tu alrededor.",
+  "text_slide_2": "Obtén toda la información sobre actividades/lugares interesantes para ti.",
+  "text_slide_3": "Un asistente de voz está disponible para ayudarte en tus búsquedas."
+
+}

@@ -1,9 +1,10 @@
 <div id="map-container" class="map-container"></div>
 
+
 <div class="search-container">
   <input
     type="text"
-    placeholder="Rechercher..."
+    [placeholder]="translations['search_placeholder']"
     [(ngModel)]="searchTerm"
     (input)="onSearchInput($event)"
     (blur)="onSearchBlur()"
@@ -11,24 +12,21 @@
 
   <span class="search-icon">🔍</span>
 
-  <!-- Bouton Globe -->
-  <button class="toggle-view-btn" (click)="toggleViewOptions()">
-    🌍
-  </button>
+  <button class="toggle-view-btn" (click)="toggleViewOptions()">🌍</button>
 
-  <!-- Mini Card avec choix de la vue -->
-  <div class="view-options-card" *ngIf="showViewOptions">
-    <div class="view-option" (click)="setMapView('satellite')">
-      <img src="/images/satellite.png" alt="Satellite">
-      <span>Satellite</span>
+  @if (showViewOptions){
+    <div class="view-options-card">
+      <div class="view-option" (click)="setMapView('satellite')">
+        <img src="/images/satellite.png" alt="Satellite">
+        <span>{{ translations['satellite'] }}</span>
+      </div>
+      <div class="view-option" (click)="setMapView('osm')">
+        <img src="/images/osm.png" alt="OSM">
+        <span>{{ translations['osm'] }}</span>
+      </div>
     </div>
-    <div class="view-option" (click)="setMapView('osm')">
-      <img src="/images/osm.png" alt="OSM">
-      <span>OSM</span>
-    </div>
-  </div>
+  }
 
-  <!-- Bouton pour activer/désactiver le placement de pin -->
   <button
     class="toggle-pin-btn"
     [class.active]="isPinModeActive"
@@ -37,15 +35,49 @@
     📍
   </button>
 
+  @if (showDropdown){
+    <ul class="dropdown">
+      @for (result of searchResults; track searchResults){
+        <li (click)="selectResult(result)" >
+          {{ result.display_name }}
+        </li>
+      }
+    </ul>
+  }
 
-  <ul class="dropdown" *ngIf="showDropdown">
-    <li
-      *ngFor="let result of searchResults"
-      (click)="selectResult(result)"
-    >
-      {{ result.display_name }}
-    </li>
-  </ul>
 </div>
 
+<button
+  class="btn-localisation"
+  [ngClass]="{'activetoinactive-localisation': isLocalisationActive, 'inactivetoactive-localisation': !isLocalisationActive}"
+  (click)="toggleLocalisation()">
+  {{ isLocalisationActive ? 'Désactiver ma localisation' : 'Activer ma localisation' }}
+</button>
+
+<button class="toggle-filter-btn" (click)="toggleFilterCard()">
+  <i class="fa fa-filter"></i>
+</button>
+
+<!-- Card Filtre -->
+@if (showFilterCard){
+  <div class="filter-card">
+    <h4>Filtrer par couche</h4>
+
+    <!-- Sélecteur de couche -->
+    <select [(ngModel)]="selectedLayerAction">
+      @for (action of activeLayers; track action){
+        <option [value]="action">{{layerLabels[action]}}</option>
+      }
+    </select>
+
+    <h4>Filtrer par rayon</h4>
+    <label for="radiusSlider">{{currentRadius}} km</label>
+    <input #radiusSlider type="range" id="radiusSlider" min="1" max="10" [(ngModel)]="currentRadius"  [disabled]="!canApplyFilter" [ngClass]="{'disabled-btn': !canApplyFilter}" (change)="applyFilter()">
+    <div class="filter-actions">
+      @if (waitingMessage){
+        <div>{{ waitingMessage }}</div>
+      }
+    </div>
+  </div>
+}
 

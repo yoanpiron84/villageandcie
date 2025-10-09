@@ -1,24 +1,44 @@
-import { Component, Input, OnInit, OnDestroy, NgZone, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit,
+  OnDestroy,
+  NgZone,
+  ViewChild,
+  ElementRef,
+  AfterViewInit,
+  SimpleChanges
+} from '@angular/core';
 import { MapComponent } from '../map/map';
 import { HttpClient } from '@angular/common/http';
-import {NgClass, NgForOf, NgIf} from '@angular/common';
+import {NgClass, NgForOf, NgIf, NgStyle} from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import ol from 'ol/dist/ol';
 
 @Component({
   selector: 'app-voice',
   templateUrl: './voice-component.html',
   styleUrls: ['./voice-component.scss'],
   standalone: true,
-  imports: [NgIf, NgForOf, FormsModule, NgClass]
+  imports: [FormsModule, NgClass, NgStyle]
 })
 export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
+
+  /*********************************************************************
+
+                        Initialisation des variables
+
+   *********************************************************************/
+
   @Input() mapComponent!: MapComponent;
+  @Input() translations: Record<string, string> = {};
+  @Input() currentLanguage: string = 'fr';
   @ViewChild('chatModal', { static: false }) chatModal!: ElementRef<HTMLDivElement>;
 
 
   protected showChat = true;
   protected chatMessages: { user: 'user' | 'ai'; text: string }[] = [
-    { user: 'ai', text: 'Posez moi vos questions, j\'y répondrai !'}
+    { user: 'ai', text: this.translations['ask_question'] || 'Entrez votre demande ici.'}
   ];
   protected userMessage = '';
   isMinimized = false;
@@ -43,13 +63,31 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
   private initialModalWidth = 0;
   private initialModalHeight = 0;
 
+  private wordMap: Record<string, string[]> = {}; // action => synonymes
+
   constructor(private http: HttpClient, private ngZone: NgZone) {}
 
+  /*********************************************************************
+
+                          Fonctions système (Ng)
+
+   *********************************************************************/
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['currentLanguage'] && !changes['currentLanguage'].firstChange) {
+      this.loadWords(this.currentLanguage);
+    }
+  }
+
   ngOnInit() {
+    this.loadWords(this.currentLanguage);
+
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
           console.log("Microphone activé", stream);
+          this.stream = stream;
+          this.startListening();
         })
         .catch(err => {
           console.error("Erreur d'accès au micro :", err);
@@ -85,11 +123,62 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
     observer.observe(modal, { attributes: true, attributeFilter: ['style'] });
   }
 
+  ngOnDestroy() {
+    this.stopAll();
+  }
+
+
+  /*********************************************************************
+
+                  Fonctions associées au lexique
+
+   *********************************************************************/
+
+
+  private loadWords(lang: string) {
+    const fileName = `lang/words_${lang}.txt`;
+    this.http.get(fileName, { responseType: 'text' }).subscribe(data => {
+      this.wordMap = {};
+      const lines = data.split('\n');
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.includes('=')) return;
+
+        const [key, arrStr] = trimmed.split('=');
+        const synonyms = arrStr
+          .replace('[','').replace(']','')
+          .split(',')
+          .map(s => s.trim().toLowerCase());
+        this.wordMap[key.trim()] = synonyms;
+      });
+    });
+  }
+
+  /** Détecte l’action correspondant au texte reconnu */
+  private detectAction(text: string): string | null {
+    text = text.toLowerCase();
+    for (const action in this.wordMap) {
+      if (this.wordMap[action].some(word => text.includes(word))) {
+        return action; // retourne action standardisée
+      }
+    }
+    return null;
+  }
+
+
+  /*********************************************************************
+
+                  Fonctions d'interaction fenêtre
+
+   *********************************************************************/
+
+
   private getDistance(touches: TouchList): number {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
     return Math.sqrt(dx * dx + dy * dy);
   }
+
 
   private onPinchStart(event: TouchEvent) {
     if (event.touches.length === 2) {
@@ -101,6 +190,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       this.initialModalHeight = modal.offsetHeight;
     }
   }
+
 
   private onPinchMove(event: TouchEvent) {
     if (event.touches.length === 2 && this.initialPinchDistance) {
@@ -115,10 +205,10 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       let newHeight = this.initialModalHeight * scale;
 
       // 🔹 Limites min/max pour pinch
-      const minWidth = 100;   // largeur minimale en px
-      const minHeight = 40;   // hauteur minimale en px
-      const maxWidth = window.innerWidth - 40;   // max largeur
-      const maxHeight = window.innerHeight - 80; // max hauteur
+      const minWidth = 100;
+      const minHeight = 40;
+      const maxWidth = window.innerWidth - 40;
+      const maxHeight = window.innerHeight - 80;
 
       newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
       newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
@@ -129,16 +219,12 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
 
-
   private onPinchEnd(event: TouchEvent) {
     if (event.touches.length < 2) {
       this.initialPinchDistance = null;
     }
   }
 
-  ngOnDestroy() {
-    this.stopAll();
-  }
 
   toggleMinimize() {
     this.isMinimized = !this.isMinimized;
@@ -167,17 +253,16 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
 
-
   toggleChat() {
     this.showChat = !this.showChat;
   }
+
 
   startDrag(event: MouseEvent | TouchEvent) {
     if (!this.chatModal) return;
 
     const target = event.target as HTMLElement;
 
-    // ⛔ Ignore le drag si on clique sur un bouton, un input, etc.
     if (target.closest('button') || target.closest('input') || target.closest('textarea')) {
       return;
     }
@@ -228,10 +313,13 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
 
+  /*********************************************************************
+
+                    Fonctions associées au Chat IA
+
+   *********************************************************************/
 
 
-
-  // ENREGISTREMENT
   private startListening() {
     if (!this.stream) return;
 
@@ -258,11 +346,10 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       if (dB > this.rmsThreshold) {
         const formData = new FormData();
         formData.append('audio', blob, 'listen.webm');
-        fetch('http://192.168.1.110:5000/voice', { method: 'POST', body: formData })
+        fetch('https://192.168.1.10:5000/voice', { method: 'POST', body: formData })
           .then(response => response.ok ? response.json() : { texte: '' })
           .catch(() => { return { texte: '' }; })
           .then(res => {
-            console.log("ENTREE", res?.texte);
             if (res?.texte?.includes('ok michel') && !this.isRecording) {
               this.ngZone.run(() => this.startRecording());
             }
@@ -276,6 +363,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => { if (this.listeningRecorder.state === 'recording') this.listeningRecorder.stop(); }, 2000);
   }
 
+
   private restartListening() {
     if (this.listeningRecorder.state === 'inactive') {
       this.listeningRecorder.start();
@@ -283,8 +371,13 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+
   public startRecording() {
     if (!this.stream || this.isRecording) return;
+
+    const startSound = new Audio('/sons/record_on.mp3');
+    startSound.play().catch(err => console.error('Erreur lecture son :', err));
+
     this.isRecording = true;
     this.audioChunks = [];
     this.commandRecorder = new MediaRecorder(this.stream);
@@ -300,45 +393,82 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'voice.webm');
 
-      this.http.post<any>('http://192.168.1.110:5000/voice', formData).subscribe(res => {
+      this.http.post<any>('https://192.168.1.10:5000/voice', formData).subscribe(res => {
         if (!this.mapComponent) return;
 
-        if (res.texte && res.texte.trim() !== '') {
+        if (res.texte?.trim()) {
           this.ngZone.run(() => {
-            this.userMessage = res.texte;
-            this.sendMessage();
-          });
-        }
+            const msg = res.texte.trim();
+            this.userMessage = msg;
+            this.chatMessages.push({ user: 'user', text: msg });
 
-        if (res.action === 'water') {
-          this.mapComponent.showWater();
-        } else if (res.action === 'green') {
-          this.mapComponent.showGreenSpaces();
-        } else if (res.action === 'city' && res.city) {
-          console.log("Chercher la ville :", res.city);
-          return;
+            const verbs = this.translations['verbs']?.split(',') || [];
+            const cityVerb = this.translations['city_verb'] || 'search';
+            const lowerMsg = msg.toLowerCase();
+
+            if (lowerMsg.startsWith(cityVerb)) {
+              const cityName = lowerMsg.replace(cityVerb, '').trim();
+              if (cityName) {
+                this.mapComponent.showCity(cityName, (found: boolean) => {
+                  const text = (found
+                      ? this.translations['ok_city']
+                      : this.translations['not_found_city']
+                  )?.replace('{city}', cityName) || msg;
+                  this.chatMessages.push({ user: 'ai', text });
+                });
+              }
+            }
+            else {
+              const detectedAction = this.detectAction(lowerMsg);
+              if (detectedAction) {
+                const hasVerb = verbs.some(v => lowerMsg.includes(v));
+                if (hasVerb) {
+                  const methodName = 'show' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+                  if (typeof (this.mapComponent as any)[methodName] === 'function') {
+                    (this.mapComponent as any)[methodName]();
+                  }
+                  let displayText = lowerMsg;
+                  verbs.forEach(v => displayText = displayText.replace(new RegExp(`\\b${v}\\b`, 'gi'), '').trim());
+                  displayText = displayText.replace(/\s+/g, ' ');
+
+                  const prefix = this.translations['show_prefix'] || 'Je vous affiche:';
+                  this.chatMessages.push({ user: 'ai', text: `${prefix} ${displayText}` });
+                } else {
+                  this.chatMessages.push({ user: 'ai', text: this.translations['missing_verb'] });
+                }
+              } else {
+                this.chatMessages.push({ user: 'ai', text: this.translations['not_understood'] });
+              }
+            }
+          });
         }
 
         this.startListening();
       });
-
     };
 
     this.commandRecorder.start();
     this.resetSilenceTimer();
   }
 
+
+
+
   private resetSilenceTimer() {
     if (this.silenceTimeout) clearTimeout(this.silenceTimeout);
     this.silenceTimeout = setTimeout(() => this.stopRecording(), 6000);
   }
 
+
   public stopRecording() {
     if (this.commandRecorder && this.commandRecorder.state !== 'inactive') {
       this.commandRecorder.stop();
+      const stopSound = new Audio('/sons/record_off.mp3');
+      stopSound.play().catch(err => console.error('Erreur lecture son :', err));
       this.isRecording = false;
     }
   }
+
 
   private stopAll() {
     this.stopRecording();
@@ -346,49 +476,75 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
     this.stream?.getTracks().forEach(t => t.stop());
   }
 
-  // ================= CHAT =================
+
   sendMessage() {
     if (!this.userMessage.trim()) return;
 
-    this.chatMessages.push({ user: 'user', text: this.userMessage });
+    if (!this.mapComponent || !this.mapComponent['map']) {
+      const mapMsg = this.translations['show_map_first']
+        || 'Please display the map first to use city or action verbs.';
+      this.chatMessages.push({ user: 'ai', text: mapMsg });
+      this.userMessage = '';
+      return;
+    }
 
-    const msg = this.userMessage.toLowerCase();
+    const msg = this.userMessage.trim();
+    this.chatMessages.push({ user: 'user', text: msg });
 
-    if (msg.includes('eau')) {
-      this.mapComponent?.showWater();
-      this.chatMessages.push({ user: 'ai', text: 'Je vous affiche les points d’eau.' });
+    const lowerMsg = msg.toLowerCase();
+    const verbs = this.translations['verbs']?.split(',') || [];
+    const cityVerb = this.translations['city_verb'] || 'search';
 
-    } else if (msg.includes('parc') || msg.includes('vert')) {
-      this.mapComponent?.showGreenSpaces();
-      this.chatMessages.push({ user: 'ai', text: 'Je vous affiche les espaces verts.' });
-
-    } else if (msg.startsWith('chercher ')) {
-      const city = msg.replace('chercher', '').trim();
-      if (city && this.mapComponent) {
-        this.mapComponent.showCity(city, (found: boolean) => {
-          if (found) {
-            this.chatMessages.push({ user: 'ai', text: `Ok, je vous affiche ${city}.` });
-          } else {
-            this.chatMessages.push({ user: 'ai', text: `Désolé, je n'ai pas trouvé la ville "${city}".` });
-          }
-
-          setTimeout(() => {
-            if (!this.chatModal) return;
-            const chatDiv = this.chatModal.nativeElement.querySelector('.chat-messages');
-            if (chatDiv) chatDiv.scrollTop = chatDiv.scrollHeight;
-          }, 0);
+    if (lowerMsg.startsWith(cityVerb)) {
+      const cityName = lowerMsg.replace(cityVerb, '').trim();
+      if (cityName && this.mapComponent) {
+        this.mapComponent.showCity(cityName, (found: boolean) => {
+          const text = (found
+              ? this.translations['ok_city']
+              : this.translations['not_found_city']
+          )?.replace('{city}', cityName) || msg;
+          this.chatMessages.push({ user: 'ai', text });
         });
       } else {
-        this.chatMessages.push({ user: 'ai', text: "Je n'ai pas compris le nom de la ville." });
+        this.chatMessages.push({ user: 'ai', text: this.translations['not_understood'] });
+      }
+    }
+    else {
+
+      if (!this.mapComponent.pinLayer.getSource()?.getFeatures().length)  {
+        this.chatMessages.push({ user: 'ai', text: 'Veuillez sélectionner une ville avant.' });
+        this.userMessage = '';
+        return;
       }
 
-    } else {
-      this.chatMessages.push({ user: 'ai', text: 'Je n’ai pas compris votre demande.' });
+      const detectedAction = this.detectAction(lowerMsg);
+
+      if (detectedAction) {
+        const hasVerb = verbs.some(v => lowerMsg.includes(v));
+        if (hasVerb) {
+          const methodName = 'show' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+          if (this.mapComponent && typeof (this.mapComponent as any)[methodName] === 'function') {
+            (this.mapComponent as any)[methodName]();
+          }
+
+          this.mapComponent.lastAction = () => {
+            (this.mapComponent as any)[methodName]();
+          };
+
+          let displayText = lowerMsg;
+          verbs.forEach(v => displayText = displayText.replace(new RegExp(`\\b${v}\\b`, 'gi'), '').trim());
+          displayText = displayText.replace(/\s+/g, ' ');
+
+          const prefix = this.translations['show_prefix'] || 'Je vous affiche:';
+          this.chatMessages.push({ user: 'ai', text: `${prefix} ${displayText}` });
+        } else {
+          this.chatMessages.push({ user: 'ai', text: this.translations['missing_verb'] + verbs });
+        }
+      } else {
+        this.chatMessages.push({ user: 'ai', text: this.translations['not_understood'] });
+      }
     }
 
     this.userMessage = '';
   }
-
-
-
 }

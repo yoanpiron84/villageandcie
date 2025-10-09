@@ -1,0 +1,5 @@
+water = [eau, eaux, rivière, fontaine]
+green = [vert, verts, espace vert, parc, jardins, jardin]
+restaurant = [restaurant, resto, snack, cafétéria, cantine]
+city = [ville, cité, localité, commune]
+church = [église, cathédrale, chappelle]
