@@ -15,6 +15,7 @@ import {Geometry} from 'ol/geom';
 import Overlay from 'ol/Overlay';
 import { Map as OlMap } from 'ol';
 import {FeatureLike} from 'ol/Feature';
+import {RouteService} from './route';
 
 @Injectable({ providedIn: 'root' })
 export class InteractionService {
@@ -48,6 +49,7 @@ export class InteractionService {
   private readonly mapService = inject(MapService);
   private readonly http = inject(HttpClient);
   private readonly layerService = inject(LayerService);
+  private readonly routeService = inject(RouteService);
 
 
   togglePinMode() {
@@ -116,6 +118,9 @@ export class InteractionService {
     pin.setStyle(new Style({ image: new Icon({ src: '/images/pin.png', scale: 0.1, anchor: [0.5, 1] }) }));
     pinSource?.addFeature(pin);
     this.userPosition = { lat, lon };
+
+    // Coordonnées exactes du pin
+    this.routeService.updateRouteFromPin([lon, lat]);
   }
 
   initTooltip(){

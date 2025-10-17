@@ -6,26 +6,92 @@ import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import { Vector as VectorLayer } from 'ol/layer';
 import VectorSource from 'ol/source/Vector';
-import {Style, Stroke, Fill, Circle as CircleStyle, Icon} from 'ol/style';
+import { Style, Stroke, Fill, Circle as CircleStyle, Icon } from 'ol/style';
 import Overlay from 'ol/Overlay';
 import { GeoJSON } from 'ol/format';
+
+interface RouteStep extends Record<string, any> {
+  distance?: number;
+  duration?: number;
+  maneuver?: any;
+  name?: string;
+  completed?: boolean;
+  // autres champs OSRM possibles...
+}
+
+interface RouteInfo {
+  distance: number;
+  duration: number;
+  steps: RouteStep[];
+  nextStepIndex?: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class RouteService {
   isRouteModeActive = false;
   routePoints: [number, number][] = [];
   lastRoutePoints: [number, number][] = [];
-  routeInfo: { distance: number; duration: number; steps: any[] } | null = null;
+  routeInfo: RouteInfo | null = null;
   routeMode: String = 'routed-car';
 
   showStepsCard = false;
-
 
   routeLineLayer: VectorLayer<VectorSource> | null = null;
   routePointLayer: VectorLayer<VectorSource> | null = null;
   private routeHoverListener: any = null;
 
+  userMarkerLayer: VectorLayer<VectorSource> | null = null;
+
   constructor(private mapService: MapService, private http: HttpClient) {}
+
+  private initUserMarkerLayer() {
+    if (!this.userMarkerLayer) {
+      this.userMarkerLayer = new VectorLayer({
+        source: new VectorSource(),
+        zIndex: 9999, // toujours au-dessus
+      });
+      this.mapService.map.addLayer(this.userMarkerLayer);
+    }
+  }
+
+  updateUserPositionMarker(lon: number, lat: number, rotation: number = 0) {
+    this.initUserMarkerLayer();
+    const source = this.userMarkerLayer!.getSource()!;
+    source.clear();
+
+    const triangleFeature = new Feature({
+      geometry: new Point(fromLonLat([lon, lat]))
+    });
+
+    triangleFeature.setStyle(new Style({
+      image: new Icon({
+        src: '/images/triangle_itineraire.png',
+        scale: 0.05,
+        rotation,
+        anchor: [0.5, 0.5],
+        crossOrigin: 'anonymous'
+      })
+    }));
+
+    source.addFeature(triangleFeature);
+  }
+
+  watchUserPosition() {
+    if (!navigator.geolocation) {
+      alert('Géolocalisation non supportée');
+      return;
+    }
+
+    navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        this.mapService.userPosition = { lat: latitude, lon: longitude };
+        this.updateUserPositionMarker(longitude, latitude, 0);
+      },
+      (err) => console.error(err),
+      { enableHighAccuracy: true, maximumAge: 1000 }
+    );
+  }
 
   toggleRouteMode() {
     this.isRouteModeActive = !this.isRouteModeActive;
@@ -43,6 +109,15 @@ export class RouteService {
     if (!this.isRouteModeActive) {
       this.clearRoute();
     }
+  }
+
+  onDestinationSelected(lon: number, lat: number) {
+    if (!this.mapService.userPosition) {
+      alert('Veuillez activer la géolocalisation pour démarrer le parcours.');
+      return;
+    }
+
+    this.fetchRouteWithUserPosition([lon, lat]);
   }
 
   private clearRoute() {
@@ -94,6 +169,176 @@ export class RouteService {
     }
   }
 
+  advanceToNextStep() {
+    if (!this.routeInfo) return;
+
+    const idx = this.routeInfo.nextStepIndex ?? 0;
+
+    // Marquer la step actuelle comme complétée
+    if (this.routeInfo.steps[idx]) {
+      this.routeInfo.steps[idx].completed = true;
+    }
+
+    // Passer à la suivante
+    if (idx < this.routeInfo.steps.length - 1) {
+      this.routeInfo.nextStepIndex = idx + 1;
+    } else {
+      // Dernière étape atteinte
+      this.routeInfo.nextStepIndex = this.routeInfo.steps.length;
+    }
+  }
+
+
+
+  updateRouteFromPin(pinCoord: [number, number]) {
+    if (!this.lastRoutePoints?.length) return;
+
+    const end: [number, number] = this.lastRoutePoints[this.lastRoutePoints.length - 1];
+    const newStart: [number, number] = pinCoord;
+
+    // Redéfinir le tracé depuis le pin (pour test)
+    this.lastRoutePoints = [newStart, end];
+
+    const coordsStr = `${newStart[0]},${newStart[1]};${end[0]},${end[1]}`;
+    const url = `https://routing.openstreetmap.de/${this.routeMode}/route/v1/driving/${coordsStr}?overview=full&geometries=geojson&steps=true&annotations=true&continue_straight=false`;
+
+    this.http.get<any>(url).subscribe({
+      next: (data) => {
+        if (!data.routes?.length) return;
+        const route = data.routes[0];
+
+        // Mettre à jour le tracé (layer)
+        if (!this.routeLineLayer) {
+          this.routeLineLayer = new VectorLayer({
+            source: new VectorSource(),
+            style: new Style({ stroke: new Stroke({ color: 'gray', width: 4 }) })
+          });
+          this.mapService.map.addLayer(this.routeLineLayer);
+        }
+        const lineFeatures = new GeoJSON().readFeatures(
+          { type: 'Feature', geometry: route.geometry },
+          { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }
+        );
+        this.routeLineLayer.getSource()?.clear();
+        this.routeLineLayer.getSource()?.addFeatures(lineFeatures);
+
+        // Mettre à jour les steps: première step -> completed, nextStepIndex = 1 si possible
+        const steps = route.legs[0].steps || [];
+        const mappedSteps: RouteStep[] = steps.map((s: any, i: number) => ({ ...s, completed: i === 0 }));
+
+        const nextIdx = mappedSteps.length > 1 ? 1 : 0;
+
+        this.routeInfo = {
+          distance: route.distance,
+          duration: route.duration,
+          steps: mappedSteps,
+          nextStepIndex: nextIdx
+        };
+
+        this.advanceToNextStep();
+      },
+      error: (err) => console.error('Erreur OSRM:', err)
+    });
+  }
+
+  getDistanceToNextStep(index: number): number {
+    const steps = this.routeInfo?.steps;
+    if (!steps) return 0;
+
+    // index dans le slice:1 → index réel = index + 1
+    const realIndex = index + 1;
+
+    // Distance jusqu'à l'étape suivante
+    if (realIndex + 1 < steps.length) {
+      // Somme des distances de l'étape actuelle + distance des étapes intermédiaires ?
+      let distance = 0;
+      for (let i = realIndex; i < realIndex + 1; i++) {
+        distance += steps[i].distance ?? 0;
+      }
+      return distance;
+    }
+
+    return 0;
+  }
+
+
+  fetchRouteWithUserPosition(destination: [number, number]) {
+    if (!this.mapService.userPosition) return;
+
+    const start: [number, number] = [this.mapService.userPosition.lon, this.mapService.userPosition.lat];
+    const end: [number, number] = destination;
+    const coordsStr = `${start[0]},${start[1]};${end[0]},${end[1]}`;
+    const url = `https://routing.openstreetmap.de/${this.routeMode}/route/v1/driving/${coordsStr}?overview=full&geometries=geojson&steps=true&annotations=true&continue_straight=false`;
+
+    this.http.get<any>(url).subscribe({
+      next: (data) => {
+        if (!data.routes?.length) return;
+        const route = data.routes[0];
+
+        const steps = route.legs[0].steps || [];
+        this.routeInfo = {
+          distance: route.distance,
+          duration: route.duration,
+          steps: steps.map((s: any) => ({ ...s, completed: false })),
+          nextStepIndex: steps.length > 1 ? 1 : 0
+        };
+
+        this.lastRoutePoints = [start, end];
+
+        // Affichage du tracé
+        if (!this.routeLineLayer) {
+          this.routeLineLayer = new VectorLayer({
+            source: new VectorSource(),
+            style: () => new Style({ stroke: new Stroke({ color: 'gray', width: 4 }) })
+          });
+          this.mapService.map.addLayer(this.routeLineLayer);
+        }
+
+        const lineFeatures = new GeoJSON().readFeatures(
+          { type: 'Feature', geometry: route.geometry },
+          { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }
+        );
+        this.routeLineLayer.getSource()?.clear();
+        this.routeLineLayer.getSource()?.addFeatures(lineFeatures);
+
+        // Points départ / arrivée
+        if (!this.routePointLayer) {
+          this.routePointLayer = new VectorLayer({ source: new VectorSource() });
+          this.mapService.map.addLayer(this.routePointLayer);
+        }
+
+        const startPoint = new Feature({ geometry: new Point(fromLonLat(start)), name: 'Départ' });
+        const endPoint = new Feature({ geometry: new Point(fromLonLat(end)), name: 'Arrivée' });
+
+        startPoint.setStyle(new Style({
+          image: new CircleStyle({ radius: 6, fill: new Fill({ color: 'green' }), stroke: new Stroke({ color: '#000', width: 1 }) })
+        }));
+        endPoint.setStyle(new Style({
+          image: new CircleStyle({ radius: 6, fill: new Fill({ color: 'red' }), stroke: new Stroke({ color: '#000', width: 1 }) })
+        }));
+
+        this.routePointLayer.getSource()?.clear();
+        this.routePointLayer.getSource()?.addFeatures([startPoint, endPoint]);
+
+        // Simple animation test : colorie successivement les segments (optionnel)
+        let currentStepIndex = 0;
+        const updateStepColor = () => {
+          if (!this.routeLineLayer) return;
+          const features = this.routeLineLayer.getSource()?.getFeatures() || [];
+          features.forEach((f, i) => {
+            f.setStyle(new Style({ stroke: new Stroke({ color: i === currentStepIndex ? 'green' : 'gray', width: 4 }) }));
+          });
+          currentStepIndex++;
+          if (currentStepIndex < features.length) {
+            setTimeout(updateStepColor, 1000);
+          }
+        };
+        updateStepColor();
+      },
+      error: (err) => console.error('Erreur OSRM:', err)
+    });
+  }
+
   fetchRoute() {
     if (this.routePoints.length < 2 && this.lastRoutePoints.length < 2) return;
     const points = this.routePoints.length >= 2 ? this.routePoints : this.lastRoutePoints;
@@ -106,7 +351,13 @@ export class RouteService {
       next: async (data) => {
         if (!data.routes?.length) return;
         const route = data.routes[0];
-        this.routeInfo = { distance: route.distance, duration: route.duration, steps: route.legs[0].steps };
+        const steps = route.legs[0].steps || [];
+        this.routeInfo = {
+          distance: route.distance,
+          duration: route.duration,
+          steps: steps.map((s: any) => ({ ...s, completed: false })),
+          nextStepIndex: steps.length > 1 ? 1 : 0
+        };
         this.lastRoutePoints = points;
 
         const [lon0, lat0] = points[0];
@@ -184,5 +435,4 @@ export class RouteService {
 
     this.routePoints = [];
   }
-
 }

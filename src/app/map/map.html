@@ -44,7 +44,7 @@
 
   <!-- Bouton pour afficher la carte des étapes -->
   <button *ngIf="routeService?.routeInfo" class="toggle-steps-btn" (click)="routeService.showStepsCard = !routeService.showStepsCard">
-    🧭 {{ routeService.showStepsCard ? translations['hide_steps'] || 'Cacher étapes' : translations['show_steps'] || 'Voir étapes' }}
+    🧭 {{ routeService.showStepsCard ? 'Cacher étapes' : 'Voir étapes' }}
   </button>
 
   <!-- Sélecteur de mode -->
@@ -63,19 +63,27 @@
   </div>
 
   <div class="steps-list">
-    <div *ngFor="let step of routeService.routeInfo?.steps; let i = index" class="step-item">
+    <div *ngFor="let step of routeService.routeInfo?.steps | slice:1; let i = index" class="step-item">
       <div class="step-number">{{ i + 1 }}</div>
       <div class="step-text">
-        <strong>{{ translations['maneuver_' + (step.maneuver?.type || 'unknown')] || (step.maneuver?.type | titlecase) }}</strong>
+        <strong>
+          {{ translations['maneuver_' + (step.maneuver?.type || 'unknown')] || (step.maneuver?.type | titlecase) }}
+        </strong>
         <span *ngIf="step.maneuver?.modifier">
-          {{ ' ' + (translations['modifier_' + step.maneuver.modifier] || step.maneuver.modifier) }}
-        </span>
+        {{ ' ' + (translations['modifier_' + step.maneuver.modifier] || step.maneuver.modifier) }}
+      </span>
         <span *ngIf="step.name"> {{ translations['on'] || 'sur' }} {{ step.name }}</span>
         <br />
-        <small>{{ step.distance | number:'1.0-0' }} {{ translations['meters'] || 'm' }}</small>
+        <small>
+          Distance de l'étape : {{ step.distance | number:'1.0-0' }} {{ translations['meters'] || 'm' }}
+          <span *ngIf="routeService.routeInfo!.steps[i]">
+          | Arrivée à l'étape dans : {{ routeService.routeInfo!.steps[i].distance | number:'1.0-0' }} {{ translations['meters'] || 'm' }}
+        </span>
+        </small>
       </div>
     </div>
   </div>
+
 </div>
 
 <div class="route-panel" *ngIf="routeService.routeInfo as r">
@@ -102,7 +110,7 @@
 <button class="btn-localisation"
         [ngClass]="{'activetoinactive-localisation': interactionService.isLocalisationActive, 'inactivetoactive-localisation': !interactionService.isLocalisationActive}"
         (click)="interactionService.toggleLocalisation(currentLanguage)">
-  {{ interactionService.isLocalisationActive ? translations['disable_location'] || 'Désactiver ma localisation' : translations['enable_location'] || 'Activer ma localisation' }}
+  {{ interactionService.isLocalisationActive ? 'Désactiver ma localisation' : 'Activer ma localisation' }}
 </button>
 
 @if(layerService.activeLayers.size > 0) {

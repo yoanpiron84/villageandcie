@@ -12,7 +12,7 @@ import { Style, Icon } from 'ol/style';
 import VectorSource from 'ol/source/Vector';
 import {debounceTime, Subscription} from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import {DecimalPipe, NgClass, NgForOf, NgIf, TitleCasePipe} from '@angular/common';
+import {DecimalPipe, NgClass, NgForOf, NgIf, SlicePipe, TitleCasePipe} from '@angular/common';
 import Overlay from 'ol/Overlay';
 
 @Component({
@@ -25,7 +25,8 @@ import Overlay from 'ol/Overlay';
     NgIf,
     NgForOf,
     NgClass,
-    TitleCasePipe
+    TitleCasePipe,
+    SlicePipe
   ],
   styleUrls: ['./map.scss']
 })
@@ -57,18 +58,28 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
   ngOnInit(): void {
     this.interactionService.translations = this.translations;
 
-    // Abonnement clic carte (une seule fois)
+    // Commence à suivre la position GPS dès le départ
+    this.routeService.watchUserPosition();
+
+    // Abonnement clic carte
     this.mapService.map.on('click', (event) => {
+      const [lon, lat] = toLonLat(event.coordinate);
+
+      // Mode pin
       if (this.interactionService.isPinModeActive) {
-        const [lon, lat] = toLonLat(event.coordinate);
         this.interactionService.placePin(lon, lat);
+        return;
       }
 
+      // Mode itinéraire
       if (this.routeService.isRouteModeActive) {
-        if (this.interactionService.isPinModeActive) {
+        // Si userPosition existe → départ = GPS, clic = arrivée
+        if (this.mapService.userPosition && this.interactionService.isLocalisationActive) {
+          this.routeService.onDestinationSelected(lon, lat);
           return;
         }
-        const [lon, lat] = toLonLat(event.coordinate);
+
+        // Sinon → mode classique à deux points
         this.routeService.routePoints.push([lon, lat]);
 
         if (this.routeService.routePoints.length === 2) {
@@ -80,13 +91,14 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
 
     this.interactionService.initTooltip();
 
+    // Recherche avec debounce
     this.searchService.searchSubject.pipe(
       debounceTime(1000)
     ).subscribe(term => {
       this.searchService.performSearch(term, this.currentLanguage);
     });
-
   }
+
 
   ngAfterViewInit(): void {
 
@@ -208,6 +220,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
     this.layerService.updateCoordsForCity(result);
     this.layerService.zoomToResult(result);
   }
+
 
 
 }
