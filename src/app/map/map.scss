@@ -1,9 +1,17 @@
 :host {
   display: block;   /* important pour que le composant prenne tout l'espace disponible */
   width: 100%;
-  height: 100%;
+  height: 100vh;
 }
 
+/* === CONTAINER === */
+.map-container {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+}
+
+/* === MAP BUTTONS === */
 .map-buttons {
   display: flex;
   gap: 10px;
@@ -11,43 +19,38 @@
 }
 
 .map-buttons button {
-  padding: 8px 12px;
+  padding: 0.5rem 0.75rem;
   background: #0078d7;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   cursor: pointer;
+  font-size: clamp(12px, 1vw, 16px);
 
   &:hover {
     background: #005a9e;
   }
 }
 
-.map-container {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-
+/* === SEARCH PANEL === */
 .search-panel {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 300px;
+  top: 1rem;
+  left: 1rem;
+  width: clamp(200px, 25vw, 300px);
   background: rgba(255, 255, 255, 0.95);
-  padding: 10px;
-  border-radius: 8px;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   z-index: 1200;
 }
 
 .search-panel input {
   width: 100%;
-  padding: 8px;
-  font-size: 14px;
+  padding: 0.5rem;
+  font-size: clamp(12px, 1vw, 14px);
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 0.25rem;
 }
 
 .autocomplete-list {
@@ -61,26 +64,26 @@
   background: white;
   position: absolute;
   color: #000;
-  width: 280px;
+  width: 100%;
   z-index: 1000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .autocomplete-list li {
-  padding: 8px;
+  padding: 0.5rem;
   cursor: pointer;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
 }
 
-.autocomplete-list li:hover {
-  background-color: #f0f0f0;
-}
-
-
+/* === SEARCH CONTAINER === */
 .search-container {
   position: absolute;
-  top: 30px;
-  right: 10px;
-  width: 250px;
+  top: 2rem;
+  right: 1rem;
+  width: clamp(200px, 20vw, 250px);
   z-index: 2000;
   display: flex;
   flex-direction: column;
@@ -88,29 +91,31 @@
 }
 
 .search-container input {
-  padding: 8px 35px 8px 10px;
-  border-radius: 6px;
+  padding: 0.5rem 2.25rem 0.5rem 0.5rem;
+  border-radius: 0.375rem;
   border: 1px solid #ccc;
   outline: none;
   width: 100%;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
+  font-size: clamp(12px, 1vw, 14px);
 }
 
 .search-container .search-icon {
   position: absolute;
-  right: 15px;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 16px;
+  font-size: 1rem;
   color: #666;
   z-index: 2;
 }
 
+/* DROPDOWN */
 .dropdown {
   position: absolute;
-  top: 38px;
+  top: 2.25rem;
   left: 0;
   width: 100%;
   margin: 0;
@@ -122,49 +127,47 @@
   overflow-y: auto;
   background: white;
   color: #111111;
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 0.375rem 0.375rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   z-index: 1500;
 }
 
-
 .dropdown li {
-  padding: 8px 10px;
+  padding: 0.5rem 0.625rem;
   cursor: pointer;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
 }
 
-.dropdown li:hover {
-  background-color: #f0f0f0;
-}
-
-// BOUTON
-
+/* === BOUTON VUE MAP === */
 .toggle-view-btn {
   position: absolute;
-  top: 50px;
-  right: 10px;
+  top: 3rem;
+  right: 1rem;
   z-index: 1000;
-  padding: 8px;
+  padding: 0.5rem;
   background: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  font-size: 20px;
+  font-size: clamp(16px, 2vw, 20px);
 }
 
 .view-options-card {
   position: absolute;
-  top: 100px;
-  right: 10px;
+  top: 6rem;
+  right: 1rem;
   background: white;
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
   z-index: 1100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .view-option {
@@ -172,8 +175,8 @@
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 0.375rem;
+  border-radius: 0.375rem;
   transition: background 0.2s;
 
   &:hover {
@@ -181,34 +184,32 @@
   }
 
   img {
-    width: 64px;
-    height: 64px;
-    border-radius: 6px;
+    width: clamp(48px, 6vw, 64px);
+    height: clamp(48px, 6vw, 64px);
+    border-radius: 0.375rem;
     object-fit: cover;
-    margin-bottom: 4px;
+    margin-bottom: 0.25rem;
   }
 
   span {
-    font-size: 12px;
+    font-size: clamp(10px, 0.8vw, 12px);
     color: #333;
   }
 }
 
-
-// BOUTON PIN
-
+/* === BOUTON PIN === */
 .toggle-pin-btn {
   position: absolute;
-  top: 100px;
-  right: 10px;
+  top: 6rem;
+  right: 1rem;
   z-index: 1000;
-  padding: 8px;
+  padding: 0.5rem;
   background: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  font-size: 20px;
+  font-size: clamp(16px, 2vw, 20px);
   color: blue;
 
   &.active {
@@ -216,19 +217,18 @@
   }
 }
 
-// BOUTON LOCALISATION
-
+/* === BOUTON LOCALISATION === */
 .btn-localisation {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
-  right: 20px;
+  right: 16px;
   z-index: 1000;
   color: white;
   border: none;
   padding: 10px 14px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 500;
 }
 
@@ -240,12 +240,11 @@
   background-color: limegreen;
 }
 
-// BOUTON FILTRE
-
+/* === BOUTON FILTRE === */
 .toggle-filter-btn {
-  position: absolute;
+  position: fixed;
   bottom: 20px;
-  left: 20px;
+  left: 96px;
   z-index: 1000;
   padding: 10px 14px;
   border: none;
@@ -261,153 +260,305 @@
 }
 
 .filter-card {
-  position: absolute;
+  position: fixed;
+  left: 96px;
   bottom: 70px;
-  left: 20px;
-  width: 220px;
-  padding: 15px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  z-index: 1000;
-  font-family: Arial, sans-serif;
-
-  h4 {
-    margin: 0 0 10px 0;
-    font-size: 16px;
-    color: black;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    color: black;
-  }
-
-  input[type=range] {
-    width: 100%;
-  }
+  width: clamp(180px, 20vw, 240px);
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 1100;
+  font-family: "Inter", Arial, sans-serif;
+  max-height: 70%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  animation: fadeIn 0.25s ease-out;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
 }
 
-.filter-actions {
-  text-align: right;
-  margin-top: 10px;
-  color: red;
+.filter-card h4 {
+  margin: 0 0 0.4rem 0;
+  font-size: clamp(13px, 1.1vw, 16px);
+  color: #222;
+  font-weight: 600;
 }
 
-.btn-apply-filter {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+.filter-card .radius-value {
+  text-align: center;
+  font-weight: 500;
+  color: #444;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* === SLIDER === */
+.filter-card input[type="range"] {
+  width: 100%;
+  accent-color: #007bff;
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.3s ease;
 }
 
-.btn-apply-filter:hover {
-  background-color: #0056a3;
+.filter-card .select-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
 }
 
+.filter-card select {
+  appearance: none;
+  width: 100%;
+  padding: 0.45rem 1.8rem 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.filter-card .select-arrow {
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #555;
+  font-size: 0.8rem;
+}
+
+/* === ITINERAIRE === */
+.route-panel {
+  background-color: #ffffff;
+  border: 2px solid #005fcc;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-top: 1rem;
+  max-width: 400px;
+  font-family: Arial, sans-serif;
+  color: #1a1a1a;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  left: 80px;
+
+  font-size: 1rem;
+  line-height: 1.5;
+
+  &:focus-within {
+    outline: 3px solid #ffbf00;
+  }
+
+  transition: box-shadow 0.3s, transform 0.2s;
+
+  &:hover {
+    transform: scale(1.01);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  }
+
+  > div {
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+
+    &:first-child {
+      font-size: 1.1rem;
+      color: #003366;
+    }
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+
+    li {
+      background-color: #f9f9f9;
+      margin-bottom: 0.4rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      border-left: 4px solid #005fcc;
+      cursor: default;
+
+      &:focus,
+      &:hover {
+        background-color: #e6f0ff;
+        outline: none;
+      }
+
+      color: #111;
+    }
+  }
+
+  li,
+  ng-template {
+    font-style: italic;
+    color: #666;
+  }
+}
+
+/* === CONTROLS ITINERAIRE === */
+.map-controls {
+  position: absolute;
+  top: 3rem;
+  left: 1rem;
+  z-index: 1000;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  button {
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 0.375rem;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: clamp(12px, 1vw, 14px);
+    transition: background 0.2s;
+
+    &:hover {
+      background-color: #0056a3;
+    }
+  }
+
+  select {
+    padding: 0.45rem 0.6rem;
+    border-radius: 0.375rem;
+    border: 1px solid #ccc;
+    font-size: clamp(12px, 1vw, 14px);
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #fff;
+      border-color: #aaa;
+    }
+  }
+}
+
+
+/* Card itinéraite étapes */
+
+.steps-card {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 320px;
+  max-height: 400px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  color: black;
+  border-radius: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+  z-index: 9999;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.steps-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #1976d2;
+  color: white;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.steps-list {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.step-number {
+  background: #1976d2;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  text-align: center;
+  line-height: 24px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.toggle-steps-btn {
+  margin-left: 8px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.toggle-steps-btn:hover {
+  background: #1976d2;
+  color: #fff;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+
+/* === MEDIA QUERIES === */
+@media (max-width: 599px) {
+  .filter-card {
+    bottom: 70px;
+    left: 16px;
+  }
+
+  .btn-localisation {
+    font-size: 16px;
+    bottom: 20px;
+  }
+
+  .toggle-filter-btn {
+    left: 15px;
+  }
+}
+
+/* === ANIMATION === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === DISABLED === */
 .disabled-btn {
   background-color: #ccc;
   cursor: not-allowed;
   color: #666;
 }
-
-
-@media only screen and (min-width: 601px) and (max-width: 1300px) {
-  .toggle-filter-btn {
-    bottom: 20px;
-    left: 80px;
-    padding: 8px 12px;
-    font-size: 16px;
-  }
-
-  .filter-card {
-    bottom: 65px;
-    left: 80px;
-    width: 200px;
-    padding: 12px;
-
-    h4 {
-      font-size: 14px;
-      color: black;
-    }
-
-    label {
-      font-size: 13px;
-      color: black;
-    }
-
-    input[type=range] {
-      width: 100%;
-    }
-  }
-}
-
-/* Mobile / petit écran : max-width 600px */
-@media only screen and (max-width: 600px) {
-  .toggle-filter-btn {
-    bottom: 20px;
-    left: 20px;
-    padding: 10px 14px;
-    font-size: 18px;
-  }
-
-  .filter-card {
-    bottom: 70px;
-    left: 20px;
-    width: 180px;
-    padding: 10px;
-
-    h4 {
-      font-size: 13px;
-      color: black;
-    }
-
-    label {
-      font-size: 12px;
-      color: black;
-    }
-
-    input[type=range] {
-      width: 100%;
-    }
-  }
-}
-
-// TABLETTE VUE PORTRAIT
-
-@media only screen and (min-width: 601px) and (max-width: 800px) {
-  .toggle-filter-btn {
-    bottom: 20px;
-    left: 80px;
-    padding: 10px 14px;
-    font-size: 18px;
-  }
-
-  .filter-card {
-    bottom: 70px;
-    left: 80px;
-    width: 180px;
-    padding: 10px;
-
-    h4 {
-      font-size: 13px;
-      color: black;
-    }
-
-    label {
-      font-size: 12px;
-      color: black;
-    }
-
-    input[type=range] {
-      width: 100%;
-    }
-  }
-}
-

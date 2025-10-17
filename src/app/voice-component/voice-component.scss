@@ -12,9 +12,14 @@
   display: flex;
   flex-direction: column;
   z-index: 9999;
-  resize: both; /* Permet le redimensionnement sur desktop */
+  resize: both;
   overflow: hidden;
-  touch-action: none; /* Pour gérer le pinch sur mobile */
+
+  touch-action: pinch-zoom;
+  transform-origin: bottom right;
+  transition: transform 0.2s ease;
+
+
 
   /* --- HEADER --- */
   .chat-header {
@@ -125,8 +130,7 @@
   }
 }
 
-/* BOUTON ENREGISTREMENT */
-
+/* --- BOUTON ENREGISTREMENT --- */
 .record-button {
   position: relative;
   padding: 15px 30px;
@@ -134,51 +138,68 @@
   color: white;
   border: none;
   border-radius: 50%;
-  background-color: green; /* couleur par défaut */
+  background-color: green; // couleur par défaut
   cursor: pointer;
   transition: transform 0.2s ease, background-color 0.3s ease;
+
+  &.recording {
+    background-color: red !important;
+    animation: heartbeat 1s infinite;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 60px;
+      height: 60px;
+      border: 2px solid rgba(255, 0, 0, 0.6);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      opacity: 0;
+      animation: pulse 1s infinite;
+      z-index: -1;
+    }
+  }
 }
 
-/* Quand on enregistre : battement + couleur rouge */
-.record-button.recording {
-  background-color: red !important;
-  animation: heartbeat 1s infinite;
-}
-
-/* Pulse simple autour du bouton */
-.record-button.recording::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 60px;
-  height: 60px;
-  border: 2px solid rgba(255, 0, 0, 0.6);
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0.5);
-  opacity: 0;
-  animation: pulse 1s infinite;
-  z-index: -1;
-}
-
-/* Animation du cœur qui bat */
+/* --- ANIMATIONS --- */
 @keyframes heartbeat {
-  0%, 100% { transform: scale(1); }
-  25% { transform: scale(1.15); }
-  50% { transform: scale(1.05); }
-  75% { transform: scale(1.15); }
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.15);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  75% {
+    transform: scale(1.15);
+  }
 }
 
-/* Pulse simple */
 @keyframes pulse {
-  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.6; }
-  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
 }
 
-
+/* --- MOBILE --- */
 @media only screen and (max-width: 600px) {
   .chat-modal {
-    resize: none; /* Désactive le resize natif sur mobile */
+    resize: none; // Désactive le resize natif sur mobile
+
+    &::after {
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, transparent 40%, #777 40%, #777 60%, transparent 60%);
+    }
 
     .chat-body {
       .chat-messages {
@@ -190,18 +211,17 @@
         margin-bottom: 10px;
 
         button {
-          margin-right: 10px; /* espace pour le bouton parler */
+          margin-right: 10px; // espace pour le bouton parler
         }
       }
     }
 
-    /* Min/max pour pinch mobile */
-    & {
-      width: 90vw;  /* minimum width 80% de l'écran */
-      height: 30vh; /* minimum height 30% de l'écran */
-      max-width: 95vw;
-      max-height: 80vh;
-    }
+    // Min/max pour pinch mobile
+    touch-action: pinch-zoom;
+    width: 90vw;
+    height: 30vh;
+    max-width: 95vw;
+    max-height: 80vh;
 
     &.minimized {
       width: 150px;
@@ -218,7 +238,7 @@
     button {
       padding: 6px 10px;
       font-size: 14px;
-      margin-right: 10px; /* espace pour le bouton parler */
+      margin-right: 10px; // espace pour le bouton parler
     }
   }
 

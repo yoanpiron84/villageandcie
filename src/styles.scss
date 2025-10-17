@@ -9,3 +9,59 @@ html, body, app-root {
   font-family: "Montserrat", sans-serif;
   color: #fff;
 }
+
+.tooltip-card {
+  /* Position & interaction */
+  position: fixed;
+  pointer-events: none;
+  display: none;
+  z-index: 1000;
+  white-space: nowrap;
+
+  /* Apparence */
+  background-color: #ffffff;    /* fond blanc */
+  color: #333333;               /* texte gris foncé */
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+
+  /* Animation & positionnement */
+  transform: translateX(-50%);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+
+
+
+.tooltip-card-itineraire {
+  /* Position & interaction */
+  position: fixed;
+  pointer-events: none;
+  display: none;
+  z-index: 1000;
+  white-space: nowrap;
+
+  /* Apparence simple */
+  background-color: #fff;  /* fond blanc */
+  color: #333;             /* texte sombre */
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+
+  /* Animation & positionnement */
+  transform: translateX(-50%);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+
+

@@ -1,83 +1,140 @@
 <div id="map-container" class="map-container"></div>
 
-
+<!-- Recherche -->
 <div class="search-container">
   <input
     type="text"
-    [placeholder]="translations['search_placeholder']"
-    [(ngModel)]="searchTerm"
+    placeholder="Rechercher un lieu..."
+    [(ngModel)]="searchService.searchTerm"
     (input)="onSearchInput($event)"
     (blur)="onSearchBlur()"
   />
-
   <span class="search-icon">🔍</span>
 
+  <!-- Liste autocomplete -->
+  <ul class="dropdown" *ngIf="searchService.showDropdown">
+    <li *ngFor="let result of searchService.searchResults" (click)="selectResult(result)">
+      {{ result.display_name }}
+    </li>
+  </ul>
+
+  <!-- Vue map -->
   <button class="toggle-view-btn" (click)="toggleViewOptions()">🌍</button>
-
-  @if (showViewOptions){
-    <div class="view-options-card">
-      <div class="view-option" (click)="setMapView('satellite')">
-        <img src="/images/satellite.png" alt="Satellite">
-        <span>{{ translations['satellite'] }}</span>
-      </div>
-      <div class="view-option" (click)="setMapView('osm')">
-        <img src="/images/osm.png" alt="OSM">
-        <span>{{ translations['osm'] }}</span>
-      </div>
+  <div class="view-options-card" *ngIf="showViewOptions">
+    <div class="view-option" (click)="interactionService.setMapView('satellite')">
+      <img src="/images/satellite.png" alt="Satellite" />
+      <span>Satellite</span>
     </div>
-  }
-
-  <button
-    class="toggle-pin-btn"
-    [class.active]="isPinModeActive"
-    (click)="togglePinMode()"
-  >
-    📍
-  </button>
-
-  @if (showDropdown){
-    <ul class="dropdown">
-      @for (result of searchResults; track searchResults){
-        <li (click)="selectResult(result)" >
-          {{ result.display_name }}
-        </li>
-      }
-    </ul>
-  }
-
-</div>
-
-<button
-  class="btn-localisation"
-  [ngClass]="{'activetoinactive-localisation': isLocalisationActive, 'inactivetoactive-localisation': !isLocalisationActive}"
-  (click)="toggleLocalisation()">
-  {{ isLocalisationActive ? 'Désactiver ma localisation' : 'Activer ma localisation' }}
-</button>
-
-<button class="toggle-filter-btn" (click)="toggleFilterCard()">
-  <i class="fa fa-filter"></i>
-</button>
-
-<!-- Card Filtre -->
-@if (showFilterCard){
-  <div class="filter-card">
-    <h4>Filtrer par couche</h4>
-
-    <!-- Sélecteur de couche -->
-    <select [(ngModel)]="selectedLayerAction">
-      @for (action of activeLayers; track action){
-        <option [value]="action">{{layerLabels[action]}}</option>
-      }
-    </select>
-
-    <h4>Filtrer par rayon</h4>
-    <label for="radiusSlider">{{currentRadius}} km</label>
-    <input #radiusSlider type="range" id="radiusSlider" min="1" max="10" [(ngModel)]="currentRadius"  [disabled]="!canApplyFilter" [ngClass]="{'disabled-btn': !canApplyFilter}" (change)="applyFilter()">
-    <div class="filter-actions">
-      @if (waitingMessage){
-        <div>{{ waitingMessage }}</div>
-      }
+    <div class="view-option" (click)="interactionService.setMapView('osm')">
+      <img src="/images/osm.png" alt="OSM" />
+      <span>OSM</span>
     </div>
   </div>
-}
 
+  <!-- Pin -->
+  <button class="toggle-pin-btn" [class.active]="interactionService.isPinModeActive" (click)="interactionService.togglePinMode()">📍</button>
+</div>
+
+<!-- Boutons et panneau itinéraire -->
+<div class="map-controls">
+  <!-- Bouton principal Itinéraire -->
+  <button (click)="toggleRouteMode()">
+    {{ routeService.isRouteModeActive ? (translations['route_cancel'] || 'Annuler Itinéraire') : (translations['route_start'] || 'Itinéraire') }}
+  </button>
+
+  <!-- Bouton pour afficher la carte des étapes -->
+  <button *ngIf="routeService?.routeInfo" class="toggle-steps-btn" (click)="routeService.showStepsCard = !routeService.showStepsCard">
+    🧭 {{ routeService.showStepsCard ? translations['hide_steps'] || 'Cacher étapes' : translations['show_steps'] || 'Voir étapes' }}
+  </button>
+
+  <!-- Sélecteur de mode -->
+  <select [(ngModel)]="routeService.routeMode" (change)="setRouteMode(routeService.routeMode)">
+    <option value="routed-car">{{ translations['routed_car'] || 'Voiture' }}</option>
+    <option value="routed-foot">{{ translations['routed_foot'] || 'À pied' }}</option>
+    <option value="routed-bike">{{ translations['routed_bike'] || 'Vélo' }}</option>
+  </select>
+</div>
+
+<!-- 🧭 Carte déroulante des étapes -->
+<div class="steps-card" *ngIf="routeService.showStepsCard && routeService.routeInfo?.steps?.length">
+  <div class="steps-header">
+    <h3>🗺️ {{ translations['route_details'] || "Détails de l’itinéraire" }}</h3>
+    <button class="close-btn" (click)="routeService.showStepsCard = false">✖</button>
+  </div>
+
+  <div class="steps-list">
+    <div *ngFor="let step of routeService.routeInfo?.steps; let i = index" class="step-item">
+      <div class="step-number">{{ i + 1 }}</div>
+      <div class="step-text">
+        <strong>{{ translations['maneuver_' + (step.maneuver?.type || 'unknown')] || (step.maneuver?.type | titlecase) }}</strong>
+        <span *ngIf="step.maneuver?.modifier">
+          {{ ' ' + (translations['modifier_' + step.maneuver.modifier] || step.maneuver.modifier) }}
+        </span>
+        <span *ngIf="step.name"> {{ translations['on'] || 'sur' }} {{ step.name }}</span>
+        <br />
+        <small>{{ step.distance | number:'1.0-0' }} {{ translations['meters'] || 'm' }}</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="route-panel" *ngIf="routeService.routeInfo as r">
+  <div>{{ translations['total_distance'] || 'Distance totale' }} : {{ (r.distance ?? 0) / 1000 | number:'1.1-1' }} {{ translations['km'] || 'km' }}</div>
+  <div>{{ translations['total_duration'] || 'Durée totale' }} : {{ (r.duration ?? 0) / 60 | number:'1.0-0' }} {{ translations['minutes'] || 'min' }}</div>
+
+  <ul *ngIf="r.steps?.length; else noSteps">
+    <li *ngFor="let step of r.steps">
+      {{ translations['maneuver_' + (step.maneuver?.type || 'unknown')] || (step.maneuver?.type | titlecase) }}
+      <span *ngIf="step.maneuver?.modifier">
+        {{ ' ' + (translations['modifier_' + step.maneuver.modifier] || step.maneuver.modifier) }}
+      </span>
+      <span *ngIf="step.name"> {{ translations['on'] || 'sur' }} {{ step.name }}</span>
+      ({{ step?.distance ?? 0 | number:'1.0-0' }} {{ translations['meters'] || 'm' }})
+    </li>
+  </ul>
+
+  <ng-template #noSteps>
+    <li>{{ translations['no_steps'] || 'Aucune étape disponible.' }}</li>
+  </ng-template>
+</div>
+
+<!-- Localisation -->
+<button class="btn-localisation"
+        [ngClass]="{'activetoinactive-localisation': interactionService.isLocalisationActive, 'inactivetoactive-localisation': !interactionService.isLocalisationActive}"
+        (click)="interactionService.toggleLocalisation(currentLanguage)">
+  {{ interactionService.isLocalisationActive ? translations['disable_location'] || 'Désactiver ma localisation' : translations['enable_location'] || 'Activer ma localisation' }}
+</button>
+
+@if(layerService.activeLayers.size > 0) {
+  <!-- Filtre -->
+  <button class="toggle-filter-btn" (click)="layerService.toggleFilterCard()">
+    <i class="fa fa-filter"></i>
+  </button>
+
+  <div class="filter-card" *ngIf="layerService.showFilterCard">
+    <h4>Filtrer par couche</h4>
+    <div class="select-wrapper">
+      <select [(ngModel)]="layerService.selectedLayerAction" (ngModelChange)="layerService.currentRadius = layerService.layerRadii[$event] || 1">
+        <option *ngFor="let action of layerService.activeLayers" [value]="action">{{ this.layerService.layerLabels[action] }}</option>
+      </select>
+      <span class="select-arrow">▼</span>
+    </div>
+
+    <h4>Filtrer par rayon</h4>
+    <input #radiusSlider
+           type="range"
+           min="1"
+           max="10"
+           step="0.5"
+           [value]="layerService.currentRadius"
+           (change)="layerService.applyFilter($any($event.target).valueAsNumber)"
+           [disabled]="!layerService.canApplyFilter"
+           [ngClass]="{'disabled-btn': !layerService.canApplyFilter}" />
+    <div class="radius-value">{{ layerService.currentRadius || layerService.layerRadii[layerService.selectedLayerAction] || 1 }} km</div>
+
+    <div class="filter-actions">
+      <div *ngIf="mapService.waitingMessage">{{ mapService.waitingMessage }}</div>
+    </div>
+
+  </div>
+}

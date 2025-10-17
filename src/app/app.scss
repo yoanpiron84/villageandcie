@@ -1,7 +1,7 @@
 :host {
   display: flex;
   flex-direction: row;
-  height: 100%;
+  height: 100vh;
   width: 100%;
   background: #000;
   color: #fff;
@@ -9,8 +9,10 @@
   overflow: hidden;
 }
 
+/* Sidebar verticale fixe */
 .sidebar {
   width: 80px;
+  min-width: 80px;
   background: #222;
   display: flex;
   flex-direction: column;
@@ -33,8 +35,7 @@
 .site-logo {
   height: 90%;
   width: 75%;
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 0 10px;
 }
 
 .sidebar-menu {
@@ -44,7 +45,7 @@
 }
 
 .sidebar-menu li {
-  margin: 100px 0;
+  margin: 50px 0;
 }
 
 .sidebar-menu a {
@@ -59,38 +60,40 @@
   transform: scale(1.2);
 }
 
+/* Contenu principal */
 .main-content {
   display: flex;
   flex-direction: column;
   flex: 1;
-  margin-left: 80px;
+  margin-left: 80px; /* largeur de la sidebar */
   padding: 32px;
-  overflow-y: auto;
+  min-height: 100vh;
   position: relative;
+  justify-content: center;  /* ✅ centre verticalement */
+  align-items: center;      /* ✅ centre horizontalement */
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .main-content::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: url("/images/Montbrun.jpg") no-repeat center/cover;
   opacity: 0.5;
-  filter: blur(8px);
   z-index: 1;
   pointer-events: none;
 }
 
 .main-content > * {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
+/* Header */
 .header-section {
   text-align: center;
-  padding: 0 0;
+  padding: 0;
 }
 
 .header-section .title {
@@ -103,34 +106,30 @@
   font-size: 18px;
 }
 
-/* Default map height */
+/* Map */
 .map-container {
   height: 400px;
+  width: 100%;
 }
 
 .full-screen-map {
   position: absolute;
   top: 0;
-  left: 80px;       // largeur de la sidebar
+  left: 80px;
   right: 0;
   bottom: 0;
   margin: 0;
   padding: 0;
   height: 100vh;
-  width: calc(100% - 80px); // espace restant à droite de la sidebar
+  width: calc(100% - 80px);
   overflow: hidden;
 }
 
-
-
+/* Chat Section */
 .chat-section {
   background: #111;
   padding: 20px;
   border-radius: 8px;
-}
-
-.map-section,
-.chat-section {
   margin-top: 20px;
 }
 
@@ -146,14 +145,15 @@
   margin-bottom: 20px;
 }
 
-/* ===== FOOTER ===== */
+/* Footer */
 .footer {
   text-align: center;
   padding: 24px;
   color: #757575;
-  margin-top: 40px;
+  margin-top: auto;
 }
 
+/* Social icons */
 .social-icons i {
   margin: 0 8px;
   cursor: pointer;
@@ -164,6 +164,7 @@
   opacity: 0.7;
 }
 
+/* Menu */
 .menu-toggle {
   display: none;
   font-size: 30px;
@@ -180,115 +181,87 @@
   color: white;
 }
 
-/* header visible par défaut */
-.header-section {
-  text-align: center;
-  padding: 0 0;
-
-  .title {
-    font-size: 32px;
-    color: #fff;
-  }
-
-  .subtitle {
-    color: #ccc;
-    font-size: 18px;
-  }
-}
-
-/* cacher le header quand map affichée, mobile ET desktop */
 .hide-on-map {
   display: none;
 }
 
+/* Lang switcher */
 .language-switcher {
-  position: fixed;
-  top: 100px;
-  left: 25px;
-  z-index: 2000;
   display: flex;
   align-items: center;
-
-  .toggle-lang-btn {
-    background: transparent;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    &:hover {
-      opacity: 0.8; // léger effet au survol
-    }
-
-    .flag-icon {
-      width: 28px;
-      height: 20px;
-      object-fit: cover;
-      border: 1px solid #ddd; // contour fin pour démarquer
-      border-radius: 0;       // carré, pas rond
-    }
-  }
-
-  .language-menu-card {
-    position: absolute;
-    top: 0;
-    left: 100%;
-    margin-left: 10px;
-    background: #ffffff;
-    border: 1px solid #ccc;
-    border-radius: 5px; // légère arrondie pour le menu, pas les drapeaux
-    padding: 5px 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    display: flex;
-    gap: 10px;
-    white-space: nowrap;
-
-    .language-option {
-      display: flex;
-      align-items: center;
-      padding: 6px 10px;
-      cursor: pointer;
-      color: #000;
-      font-weight: 500;
-      transition: background 0.2s ease;
-
-      .flag-icon {
-        width: 24px;
-        height: 16px;
-        margin-right: 6px;
-        object-fit: cover;
-        border: 1px solid #ddd;
-        border-radius: 0;
-      }
-
-      &:hover {
-        background: #f5f5f5;
-      }
-    }
-  }
+  justify-content: center;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1000;
 }
 
+.toggle-lang-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-/* CSS CAROUSSEL */
+.toggle-lang-btn:hover {
+  opacity: 0.8;
+}
 
+.flag-icon {
+  width: 40px;
+  height: 32px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.language-menu-card {
+  position: absolute;
+  left: 0;
+  top: 40px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 5px 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: #000;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.language-option:hover {
+  background: #f5f5f5;
+}
+
+/* ✅ Carousel bien centré */
 .carousel-container {
   position: relative;
   width: 100%;
   max-width: 800px;
-  margin: 20px auto;
+  margin: 0 auto;
   overflow: hidden;
   border-radius: 10px;
 }
 
 .carousel-track {
   display: flex;
-  transition: transform 0.5s ease-in-out; /* Animation glisse */
+  transition: transform 0.5s ease-in-out;
 }
 
 .carousel-item {
-  min-width: 100%; /* Chaque slide prend 100% du conteneur */
+  min-width: 100%;
   position: relative;
 }
 
@@ -329,327 +302,39 @@
 
 .carousel-btn:hover { background-color: rgba(0,0,0,0.7); }
 
-
-@media only screen and (max-width: 600px) {
-
-  .full-screen-map {
-    position: absolute;
-    top: 0;
-    left: 0;       // largeur de la sidebar
-    right: 0;
-    bottom: 0;
-    margin: 0;
-    padding: 0;
-    height: 100%; // espace restant à droite de la sidebar
-    overflow: hidden;
-  }
-
-  .language-switcher {
-    position: fixed;
-    top: 20px;
-    left: 80px;
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-
-    .toggle-lang-btn {
-      background: transparent;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      &:hover {
-        opacity: 0.8; // léger effet au survol
-      }
-
-      .flag-icon {
-        width: 28px;
-        height: 20px;
-        object-fit: cover;
-        border: 1px solid #ddd; // contour fin pour démarquer
-        border-radius: 0;       // carré, pas rond
-      }
-    }
-
-    .language-menu-card {
-      position: absolute;
-      top: -10px;
-      left: 100%;
-      margin-left: 10px;
-      background: #ffffff;
-      border: 1px solid #ccc;
-      border-radius: 5px; // légère arrondie pour le menu, pas les drapeaux
-      padding: 5px 0;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-      display: flex;
-      gap: 10px;
-      white-space: nowrap;
-
-      .language-option {
-        display: flex;
-        align-items: center;
-        padding: 6px 10px;
-        cursor: pointer;
-        color: #000;
-        font-weight: 500;
-        transition: background 0.2s ease;
-
-        .flag-icon {
-          width: 24px;
-          height: 16px;
-          margin-right: 6px;
-          object-fit: cover;
-          border: 1px solid #ddd;
-          border-radius: 0;
-        }
-
-        &:hover {
-          background: #f5f5f5;
-        }
-      }
-    }
-  }
-
-  /* Chat modal reste au-dessus */
-  .chat-modal {
-    z-index: 9999 !important;
-    position: fixed !important;
-    bottom: 20px;
-    right: 20px;
-  }
-
-  :host {
-    flex-direction: column;
-  }
-
-  /* Affiche le texte des menus */
-  .menu-text {
-    display: inline;
-    color: white;
-  }
-
-  .menu-icon {
-    color: white;
-  }
-
-  .hide-on-mobile-map {
-    display: none;
-  }
-
-  /* Sidebar horizontal en haut */
+/* ===== MOBILE (<600px) ===== */
+@media (max-width: 599px) {
   .sidebar {
     flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
     width: 100%;
     height: 60px;
+    min-width: 0;
     padding: 0 16px;
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 100;
-  }
-
-  .logo, .site-logo {
-    margin: 0;
-    height: 50px;
-    width: auto;
-  }
-
-  .menu-toggle {
-    display: block;
-    font-size: 30px;
-    cursor: pointer;
-    color: #4caf50;
-    margin-right: 20px;
-  }
-
-  .sidebar-menu {
-    display: none;
-    position: absolute;
-    top: 60px; /* sous la barre */
-    right: 15px;
-    background: #222;
-    flex-direction: column;
-    width: 210px;
-    padding: 10px 0;
-    border-radius: 0 0 8px 8px;
-    z-index: 2000;
-  }
-
-  .sidebar-menu.active {
-    display: flex;
-  }
-
-  .sidebar-menu li {
-    margin: 10px 15px;
-  }
-
-  .sidebar-menu a {
-    font-size: 18px;
-  }
-
-  .menu-icon {
-    color: white;
-  }
-
-  /* Main content prend tout le reste de la page sous la sidebar */
-  .main-content {
-    margin-left: 0;
-    margin-top: 60px; /* hauteur de la sidebar */
-    width: 100%;
-    height: calc(100vh - 60px);
-    padding: 0;
-    overflow: hidden;
-  }
-
-  /* Map section occupe tout l’espace */
-  .map-section, .map-container {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-  }
-
-  /* Ajustement boutons map */
-  .map-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 5px;
-    position: absolute;
-    top: 10px;
-    left: 0;
-    right: 0;
-    z-index: 2;
-  }
-
-  .carousel-container {
-    position: relative;
-    width: 100%;
-    max-width: 300px;
-    margin: 20px auto;
-    overflow: hidden;
-    border-radius: 10px;
-  }
-
-  .carousel-caption {
-    position: absolute;
-    bottom: 10px;
-    left: 20px;
-    right: 20px;
-    background: rgba(0,0,0,0.5);
-    color: #fff;
-    padding: 2px;
-    border-radius: 5px;
-    font-size: 0.7rem;
-  }
-}
-
-
-
-/* ===== TABLETTES (601px → 1024px) ===== */
-@media only screen and (max-width: 1300px) and (min-width: 601px) {
-
-  .full-screen-map {
-    position: absolute;
-    top: 0;
-    left: 0;       // largeur de la sidebar
-    right: 0;
-    bottom: 0;
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    width: 100%; // espace restant à droite de la sidebar
-    overflow: hidden;
-  }
-
-  /* Sidebar verticale réduite */
-  .sidebar {
-    width: 60px;
-    padding: 10px 0;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .logo,
   .site-logo {
-    width: 50px;
-    height: auto;
-    margin: 0 auto;
+    height: 50px;
+    width: auto;
+    margin: 0;
   }
 
-  .sidebar-menu a {
-    font-size: 32px;
-  }
-
-  .sidebar-menu li {
-    margin: 50px 0;
-  }
-
-  .menu-icon {
-    color: white;
-  }
-
-
-
-  /* Footer compact */
-  .footer {
-    padding: 16px;
-    font-size: 14px;
-  }
-
-  /* Chat modal reste au-dessus */
-  .chat-modal {
-    z-index: 9999 !important;
-    position: fixed !important;
-    bottom: 20px;
-    right: 20px;
-  }
-
-  .carousel-container {
-    max-width: 600px;
-    max-height: 400px;
-    margin: 15px auto;
-    border-radius: 8px;
-  }
-
-  .carousel-caption {
-    font-size: 0.9rem;
-    padding: 6px;
-    bottom: 15px;
-    left: 15px;
-    right: 15px;
-  }
-}
-
-/* ===== TABLETTES FORMAT PORTRAIT (≤ 800px) ===== */
-@media only screen and (max-width: 800px) and (min-width: 601px) {
-
-  /* Bouton hamburger en bas à gauche */
-  .menu-toggle {
-    display: block;
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    font-size: 30px;
-    cursor: pointer;
-    color: #4caf50;
-    z-index: 4000; /* Toujours au-dessus du contenu */
-  }
-
-  /* Menu qui s'affiche au-dessus du bouton hamburger */
   .sidebar-menu {
-    display: none;
-    position: fixed;
-    bottom: 60px; /* juste au-dessus du bouton */
-    left: 20px;
-    background: #222;
     flex-direction: column;
+    position: fixed;
+    top: 60px;
+    right: 0;
+    background: #222;
     width: 200px;
     padding: 10px 0;
-    border-radius: 8px;
-    z-index: 3000;
+    border-radius: 0 0 8px 8px;
+    display: none;
+    z-index: 1000;
   }
 
   .sidebar-menu.active {
@@ -660,23 +345,54 @@
     margin: 10px 15px;
   }
 
-  .sidebar-menu a {
-    font-size: 20px;
+  .sidebar-menu.active .menu-text {
+    display: inline;
+    margin-left: 8px;
     color: white;
+    font-size: 16px;
   }
 
-  .menu-text {
-    display: inline-block;
-    color: white;
-    margin-left: 8px;
+  .sidebar-menu a {
+    display: flex;
+    font-size: 18px;
+    align-items: center;
+  }
+
+  .sidebar-menu .menu-icon {
+    font-size: 20px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    margin-top: 60px;
+    justify-content: flex-start; /* ✅ évite que le contenu soit trop centré sur mobile */
+  }
+
+  .menu-toggle {
+    display: flex;
+    margin-right: 25px;
+    z-index: 1001;
+  }
+
+  .full-screen-map {
+    left: 0;
+    width: 100%;
   }
 
   .language-switcher {
-    top: 80px;
-    left: 30px;
-    transform: translateX(-50%);
-    z-index: 4000;
+    position: absolute;
+    top: 17px;
+    left: 80px;
+    margin-bottom: 0;
+  }
+
+  .language-menu-card {
+    top: 35px;
+    left: 0;
+  }
+
+  .flag-icon {
+    width: 30px;
+    height: 20px;
   }
 }
-
-

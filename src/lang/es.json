@@ -14,6 +14,8 @@
   "speak": "🎙️ Hablar",
   "speaking": "Escuchando...",
 
+  "select_city_first": "Por favor, seleccione una ciudad primero.",
+  "remove_verbs": "eliminar,borrar,ocultar",
   "verbs": "mostrar,ver",
   "city_verb": "buscar",
   "ok_city": "Ok, te muestro {city}.",
@@ -25,6 +27,61 @@
   "ask_question": "Ingrese su solicitud aquí.",
   "text_slide_1": "Descubre todas las actividades que puedes hacer a tu alrededor.",
   "text_slide_2": "Obtén toda la información sobre actividades/lugares interesantes para ti.",
-  "text_slide_3": "Un asistente de voz está disponible para ayudarte en tus búsquedas."
+  "text_slide_3": "Un asistente de voz está disponible para ayudarte en tus búsquedas.",
+
+  "routed_car": "Coche",
+  "routed_foot": "A pie",
+  "routed_bike": "Bicicleta",
+
+  "route_start": "Itinerario",
+  "route_cancel": "Cancelar Itinerario",
+  "show_steps": "Ver pasos",
+  "hide_steps": "Ocultar pasos",
+  "route_details": "Detalles de la ruta",
+  "total_distance": "Distancia total",
+  "total_duration": "Duración total",
+  "meters": "m",
+  "km": "km",
+  "minutes": "min",
+  "no_steps": "No hay pasos disponibles.",
+  "enable_location": "Activar mi ubicación",
+  "disable_location": "Desactivar mi ubicación",
+  "on": "en",
+
+  "maneuver_depart": "Salida",
+  "maneuver_arrive": "Llegada",
+  "maneuver_turn": "Girar",
+  "maneuver_new name": "Continuar",
+  "maneuver_merge": "Incorporarse",
+  "maneuver_on ramp": "Tomar la rampa",
+  "maneuver_off ramp": "Salir de la rampa",
+  "maneuver_fork": "Bifurcación",
+  "maneuver_end of road": "Fin de la carretera",
+  "maneuver_roundabout": "Rotonda",
+  "maneuver_rotary": "Rotonda",
+  "maneuver_exit rotary": "Salida de rotonda",
+  "maneuver_roundabout turn": "Girar en la rotonda",
+  "maneuver_notification": "Notificación",
+
+  "modifier_right": "a la derecha",
+  "modifier_left": "a la izquierda",
+  "modifier_sharp right": "giro brusco a la derecha",
+  "modifier_sharp left": "giro brusco a la izquierda",
+  "modifier_slight right": "ligeramente a la derecha",
+  "modifier_slight left": "ligeramente a la izquierda",
+  "modifier_u turn": "media vuelta",
+  "modifier_straight": "todo recto",
+
+  "phone": "Teléfono",
+  "hours": "Horario",
+  "type": "Tipo",
+
+  "religion": "Religión",
+
+  "church": "Iglesia",
+  "restaurant": "Restaurante",
+  "green_space": "Espacio verde",
+  "water": "Punto de agua",
+  "position": "Tu posición"
 
 }

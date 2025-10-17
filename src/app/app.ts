@@ -69,10 +69,10 @@ export class AppComponent {
   }
 
   ngOnChanges(){
-    // if (changes['currentLanguage'] && !changes['currentLanguage'].firstChange) {
-    //   console.log("CHANGEMENT");
-    //   this.loadTranslations(this.currentLanguage);
-    // }
+  // if (changes['currentLanguage'] && !changes['currentLanguage'].firstChange) {
+  //   console.log("CHANGEMENT");
+  //   this.loadTranslations(this.currentLanguage);
+  // }
   }
 
 

@@ -14,6 +14,7 @@ import { HttpClient } from '@angular/common/http';
 import {NgClass, NgForOf, NgIf, NgStyle} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import ol from 'ol/dist/ol';
+import {environment} from '../../environnements/environnement';
 
 @Component({
   selector: 'app-voice',
@@ -26,20 +27,18 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /*********************************************************************
 
-                        Initialisation des variables
+   Initialisation des variables
 
    *********************************************************************/
 
   @Input() mapComponent!: MapComponent;
   @Input() translations: Record<string, string> = {};
-  @Input() currentLanguage: string = 'fr';
+  @Input() currentLanguage: string = 'en';
   @ViewChild('chatModal', { static: false }) chatModal!: ElementRef<HTMLDivElement>;
 
 
   protected showChat = true;
-  protected chatMessages: { user: 'user' | 'ai'; text: string }[] = [
-    { user: 'ai', text: this.translations['ask_question'] || 'Entrez votre demande ici.'}
-  ];
+  protected chatMessages: { user: 'user' | 'ai'; text: string }[] = [];
   protected userMessage = '';
   isMinimized = false;
 
@@ -69,7 +68,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /*********************************************************************
 
-                          Fonctions système (Ng)
+   Fonctions système (Ng)
 
    *********************************************************************/
 
@@ -80,6 +79,10 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit() {
+    this.chatMessages = [
+      { user: 'ai', text: this.translations['ask_question'] || 'Entrez votre demande ici.' }
+    ];
+
     this.loadWords(this.currentLanguage);
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -130,7 +133,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /*********************************************************************
 
-                  Fonctions associées au lexique
+   Fonctions associées au lexique
 
    *********************************************************************/
 
@@ -168,7 +171,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /*********************************************************************
 
-                  Fonctions d'interaction fenêtre
+   Fonctions d'interaction fenêtre
 
    *********************************************************************/
 
@@ -315,7 +318,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /*********************************************************************
 
-                    Fonctions associées au Chat IA
+   Fonctions associées au Chat IA
 
    *********************************************************************/
 
@@ -346,7 +349,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       if (dB > this.rmsThreshold) {
         const formData = new FormData();
         formData.append('audio', blob, 'listen.webm');
-        fetch('https://192.168.1.10:5000/voice', { method: 'POST', body: formData })
+        fetch(`${environment.apiUrl}/voice`, { method: 'POST', body: formData })
           .then(response => response.ok ? response.json() : { texte: '' })
           .catch(() => { return { texte: '' }; })
           .then(res => {
@@ -393,7 +396,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'voice.webm');
 
-      this.http.post<any>('https://192.168.1.10:5000/voice', formData).subscribe(res => {
+      this.http.post<any>(`${environment.apiUrl}/voice`, formData).subscribe(res => {
         if (!this.mapComponent) return;
 
         if (res.texte?.trim()) {
@@ -403,13 +406,14 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
             this.chatMessages.push({ user: 'user', text: msg });
 
             const verbs = this.translations['verbs']?.split(',') || [];
+            const removeVerbs = this.translations['remove_verbs']?.split(',') || [];
             const cityVerb = this.translations['city_verb'] || 'search';
             const lowerMsg = msg.toLowerCase();
 
             if (lowerMsg.startsWith(cityVerb)) {
               const cityName = lowerMsg.replace(cityVerb, '').trim();
               if (cityName) {
-                this.mapComponent.showCity(cityName, (found: boolean) => {
+                this.mapComponent.layerService.showCity(cityName, (found: boolean) => {
                   const text = (found
                       ? this.translations['ok_city']
                       : this.translations['not_found_city']
@@ -422,19 +426,40 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
               const detectedAction = this.detectAction(lowerMsg);
               if (detectedAction) {
                 const hasVerb = verbs.some(v => lowerMsg.includes(v));
+                const hasRemoveVerb = removeVerbs.some(v => lowerMsg.includes(v));
+
+                let methodName: string | undefined;
+
                 if (hasVerb) {
-                  const methodName = 'show' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
-                  if (typeof (this.mapComponent as any)[methodName] === 'function') {
+                  methodName = 'show' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+                } else if (hasRemoveVerb) {
+                  methodName = 'hide' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+                }
+
+                if (methodName && this.mapComponent && typeof (this.mapComponent as any)[methodName] === 'function') {
+                  (this.mapComponent as any)[methodName]();
+
+                  // Sauvegarde pour actions ultérieures
+                  this.mapComponent.lastAction = () => {
                     (this.mapComponent as any)[methodName]();
+                  };
+                  this.mapComponent.layerService.selectedLayerAction = methodName;
+
+                  if (this.mapComponent.layerService.showFilterCard && this.mapComponent.layerService.selectedLayerAction) {
+                    this.mapComponent.layerService.currentRadius = this.mapComponent.layerService.layerRadii[this.mapComponent.layerService.selectedLayerAction] ?? 1;
                   }
+
                   let displayText = lowerMsg;
-                  verbs.forEach(v => displayText = displayText.replace(new RegExp(`\\b${v}\\b`, 'gi'), '').trim());
+                  verbs.concat(removeVerbs).forEach(v => displayText = displayText.replace(new RegExp(`\\b${v}\\b`, 'gi'), '').trim());
                   displayText = displayText.replace(/\s+/g, ' ');
 
-                  const prefix = this.translations['show_prefix'] || 'Je vous affiche:';
+                  const prefix = hasVerb
+                    ? this.translations['show_prefix'] || 'Je vous affiche:'
+                    : this.translations['hide_prefix'] || 'J’ai masqué:';
+
                   this.chatMessages.push({ user: 'ai', text: `${prefix} ${displayText}` });
                 } else {
-                  this.chatMessages.push({ user: 'ai', text: this.translations['missing_verb'] });
+                  this.chatMessages.push({ user: 'ai', text: this.translations['missing_verb'] + verbs.concat(removeVerbs) });
                 }
               } else {
                 this.chatMessages.push({ user: 'ai', text: this.translations['not_understood'] });
@@ -478,9 +503,9 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   sendMessage() {
-    if (!this.userMessage.trim()) return;
+    if (!this.userMessage?.trim()) return;
 
-    if (!this.mapComponent || !this.mapComponent['map']) {
+    if (!this.mapComponent) {
       const mapMsg = this.translations['show_map_first']
         || 'Please display the map first to use city or action verbs.';
       this.chatMessages.push({ user: 'ai', text: mapMsg });
@@ -492,59 +517,99 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
     this.chatMessages.push({ user: 'user', text: msg });
 
     const lowerMsg = msg.toLowerCase();
-    const verbs = this.translations['verbs']?.split(',') || [];
-    const cityVerb = this.translations['city_verb'] || 'search';
+    const verbs: string[] = (this.translations['verbs']?.split(',') || []).map(v => v.trim());
+    const removeVerbs: string[] = (this.translations['remove_verbs']?.split(',') || []).map(v => v.trim());
+    const cityVerb = this.translations['city_verb']?.toLowerCase() || 'search';
 
+    // Gestion des commandes type "search city"
     if (lowerMsg.startsWith(cityVerb)) {
-      const cityName = lowerMsg.replace(cityVerb, '').trim();
-      if (cityName && this.mapComponent) {
-        this.mapComponent.showCity(cityName, (found: boolean) => {
-          const text = (found
-              ? this.translations['ok_city']
-              : this.translations['not_found_city']
-          )?.replace('{city}', cityName) || msg;
+      const cityName = lowerMsg.slice(cityVerb.length).trim();
+      if (cityName) {
+        this.mapComponent.layerService.showCity(cityName, (found: boolean) => {
+          const text = found
+            ? (this.translations['ok_city']?.replace('{city}', cityName) || `Ville trouvée: ${cityName}`)
+            : (this.translations['not_found_city']?.replace('{city}', cityName) || `Ville non trouvée: ${cityName}`);
           this.chatMessages.push({ user: 'ai', text });
         });
       } else {
-        this.chatMessages.push({ user: 'ai', text: this.translations['not_understood'] });
+        this.chatMessages.push({ user: 'ai', text: this.translations['not_understood'] || "Je n'ai pas compris." });
       }
+      this.userMessage = '';
+      return;
     }
-    else {
 
-      if (!this.mapComponent.pinLayer.getSource()?.getFeatures().length)  {
-        this.chatMessages.push({ user: 'ai', text: 'Veuillez sélectionner une ville avant.' });
-        this.userMessage = '';
-        return;
-      }
+    const pinFeatures = this.mapComponent.mapService.pinLayer?.getSource()?.getFeatures() || [];
+    if (!pinFeatures.length) {
+      this.chatMessages.push({ user: 'ai', text: this.translations['select_city_first'] || 'Veuillez sélectionner une ville avant.' });
+      this.userMessage = '';
+      return;
+    }
 
-      const detectedAction = this.detectAction(lowerMsg);
+    const detectedAction = this.detectAction(lowerMsg);
+    if (!detectedAction) {
+      this.chatMessages.push({ user: 'ai', text: this.translations['not_understood'] || "Je n'ai pas compris." });
+      this.userMessage = '';
+      return;
+    }
 
-      if (detectedAction) {
-        const hasVerb = verbs.some(v => lowerMsg.includes(v));
-        if (hasVerb) {
-          const methodName = 'show' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
-          if (this.mapComponent && typeof (this.mapComponent as any)[methodName] === 'function') {
-            (this.mapComponent as any)[methodName]();
-          }
+    const hasVerb = verbs.some(v => lowerMsg.includes(v));
+    const hasRemoveVerb = removeVerbs.some(v => lowerMsg.includes(v));
 
-          this.mapComponent.lastAction = () => {
-            (this.mapComponent as any)[methodName]();
-          };
+    if (!hasVerb && !hasRemoveVerb) {
+      this.chatMessages.push({ user: 'ai', text: (this.translations['missing_verb'] || 'Verbe manquant: ') + verbs.concat(removeVerbs).join(', ') });
+      this.userMessage = '';
+      return;
+    }
 
-          let displayText = lowerMsg;
-          verbs.forEach(v => displayText = displayText.replace(new RegExp(`\\b${v}\\b`, 'gi'), '').trim());
-          displayText = displayText.replace(/\s+/g, ' ');
+    let methodName: string | undefined;
+    if (hasVerb) {
+      methodName = 'show' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+    } else if (hasRemoveVerb) {
+      methodName = 'hide' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+    }
 
-          const prefix = this.translations['show_prefix'] || 'Je vous affiche:';
-          this.chatMessages.push({ user: 'ai', text: `${prefix} ${displayText}` });
-        } else {
-          this.chatMessages.push({ user: 'ai', text: this.translations['missing_verb'] + verbs });
+    if (methodName && this.mapComponent && typeof (this.mapComponent.layerService as any)[methodName] === 'function') {
+      (this.mapComponent.layerService as any)[methodName]();
+
+      // Si c'est un "show", on garde lastAction
+      if (hasVerb) {
+        this.mapComponent.lastAction = () => (this.mapComponent.layerService as any)[methodName]();
+        this.mapComponent.layerService.selectedLayerAction = methodName;
+        if (this.mapComponent.layerService.showFilterCard && this.mapComponent.layerService.selectedLayerAction) {
+          this.mapComponent.layerService.currentRadius = this.mapComponent.layerService.layerRadii[this.mapComponent.layerService.selectedLayerAction] ?? 1;
         }
-      } else {
-        this.chatMessages.push({ user: 'ai', text: this.translations['not_understood'] });
       }
+
+      // Si c'est un "hide", on met à jour selectedLayerAction sur la première couche restante
+      if (hasRemoveVerb) {
+        const remainingActions = Array.from(this.mapComponent.layerService.activeLayers);
+        this.mapComponent.layerService.selectedLayerAction = remainingActions[0] || '';
+        // Mettre à jour le radius pour le select
+        if (this.mapComponent.layerService.selectedLayerAction) {
+          this.mapComponent.layerService.currentRadius = this.mapComponent.layerService.layerRadii[this.mapComponent.layerService.selectedLayerAction] ?? 1;
+        }
+      }
+
+      let displayText = lowerMsg;
+      verbs.concat(removeVerbs).forEach(v => {
+        displayText = displayText.replace(new RegExp(`\\b${v}\\b`, 'gi'), '').trim();
+      });
+      displayText = displayText.replace(/\s+/g, ' ');
+
+      const prefix = hasVerb
+        ? this.translations['show_prefix'] || 'Je vous affiche:'
+        : this.translations['hide_prefix'] || 'J’ai masqué:';
+
+      this.chatMessages.push({ user: 'ai', text: `${prefix} ${displayText}` });
+    } else {
+      this.chatMessages.push({ user: 'ai', text: this.translations['not_understood'] || "Action inconnue." });
     }
 
     this.userMessage = '';
   }
+
+
+
+
+
 }

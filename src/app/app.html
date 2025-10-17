@@ -4,6 +4,32 @@
     <img src="images/site-logo.png" alt="Logo" class="site-logo"/>
   </div>
 
+  <!-- ✅ Sélecteur de langue intégré à la sidebar -->
+  <div class="language-switcher">
+    <button class="toggle-lang-btn" (click)="toggleLanguageMenu()">
+      <img [src]="'/images/flags/' + currentLanguage + '.png'"
+           [alt]="currentLanguage"
+           class="flag-icon">
+    </button>
+
+    @if (showLanguageMenu){
+      <div class="language-menu-card">
+        <div class="language-option" (click)="changeLanguage('fr')">
+          <img src="/images/flags/fr.png" alt="Français" class="flag-icon">
+          <span>Français</span>
+        </div>
+        <div class="language-option" (click)="changeLanguage('en')">
+          <img src="/images/flags/en.png" alt="English" class="flag-icon">
+          <span>English</span>
+        </div>
+        <div class="language-option" (click)="changeLanguage('es')">
+          <img src="/images/flags/es.png" alt="Español" class="flag-icon">
+          <span>Español</span>
+        </div>
+      </div>
+    }
+  </div>
+
   <div class="menu-toggle" (click)="toggleMenu()">&#9776;</div>
 
   <ul class="sidebar-menu" [class.active]="menuActive">
@@ -27,32 +53,6 @@
     </li>
   </ul>
 </nav>
-
-<!-- Sélecteur de langue avec drapeau dynamique -->
-<div class="language-switcher">
-  <button class="toggle-lang-btn" (click)="toggleLanguageMenu()">
-    <img [src]="'/images/flags/' + currentLanguage + '.png'"
-         [alt]="currentLanguage"
-         class="flag-icon">
-  </button>
-
-  @if (showLanguageMenu){
-    <div class="language-menu-card">
-      <div class="language-option" (click)="changeLanguage('fr')">
-        <img src="/images/flags/fr.png" alt="Français" class="flag-icon">
-        <span>Français</span>
-      </div>
-      <div class="language-option" (click)="changeLanguage('en')">
-        <img src="/images/flags/en.png" alt="English" class="flag-icon">
-        <span>English</span>
-      </div>
-      <div class="language-option" (click)="changeLanguage('es')">
-        <img src="/images/flags/es.png" alt="Español" class="flag-icon">
-        <span>Español</span>
-      </div>
-    </div>
-  }
-</div>
 
 
 <!-- Main Content -->
@@ -82,7 +82,7 @@
   }
 
   @if (showMap){
-    <app-map #mapRef [translations]="translations" [currentLanguage]="currentLanguage"></app-map>
+    <app-map #mapRef [translations]="translations" [currentLanguage]="currentLanguage" [showMap]="showMap"></app-map>
   }
 </div>
 

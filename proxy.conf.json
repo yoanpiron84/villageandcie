@@ -1,8 +1,11 @@
 {
   "/api": {
     "target": "https://nominatim.openstreetmap.org",
-    "secure": true,
+    "secure": false,
     "changeOrigin": true,
-    "pathRewrite": { "^/api": "" }
+    "pathRewrite": { "^/api": "" },
+    "headers": {
+      "User-Agent": "angular-osm-app/1.0 (yoan.p2002@gmail.com)"
+    }
   }
 }
