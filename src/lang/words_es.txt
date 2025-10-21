@@ -3,3 +3,4 @@ green = [verde, verdes, espacio verde, parque, jardines, jardín];
 restaurant = [restaurante, resto, snack, cafetería, cantina];
 city = [ciudad, pueblo, localidad, municipio];
 church = [iglesia, catedral];
+hotel = ['hotel', 'hoteles'];

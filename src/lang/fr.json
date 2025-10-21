@@ -82,5 +82,15 @@
   "restaurant": "Restaurant",
   "green_space": "Espace vert",
   "water": "Point d'eau",
-  "position": "Votre position"
+  "position": "Votre position",
+
+
+  "denomination": "Dénomination",
+  "building": "Bâtiment",
+  "address": "Adresse",
+  "email": "Email",
+  "website": "Site web",
+  "service_times": "Horaires",
+  "cluster_churches": "Nombre d'églises dans ce cluster"
+
 }

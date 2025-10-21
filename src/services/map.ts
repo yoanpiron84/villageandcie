@@ -9,7 +9,10 @@ import VectorSource from 'ol/source/Vector';
 import {Fill, Icon, Stroke, Style} from 'ol/style';
 import CircleStyle from 'ol/style/Circle';
 import Point from 'ol/geom/Point';
-import {InteractionService} from './interaction';
+import {Cluster} from 'ol/source';
+import Text from 'ol/style/Text';
+
+import ClusterSource from 'ol/source/Cluster';
 
 @Injectable({ providedIn: 'root' })
 export class MapService {
@@ -28,8 +31,13 @@ export class MapService {
   greenLayer: VectorLayer<VectorSource>;
   restaurantLayer: VectorLayer<VectorSource>;
   churchLayer: VectorLayer<VectorSource>;
+  hotelLayer: VectorLayer<VectorSource>;
+
+
+
   routePointLayer: VectorLayer<VectorSource>;
   routeLineLayer: VectorLayer<VectorSource>;
+
 
   // Position utilisateur centrale
   userPosition: { lat: number; lon: number } | null = null;
@@ -38,7 +46,20 @@ export class MapService {
 
     // === SOURCES ===
     const restaurantSource = new VectorSource();
+
     const churchSource = new VectorSource();
+    const churchClusterSource = new ClusterSource({
+      distance: 40,
+      source: churchSource
+    });
+
+
+    const hotelSource = new VectorSource();
+    const hotelClusterSource = new Cluster({
+      distance: 40,
+      source: hotelSource
+    });
+
 
     // === STYLES ===
     const treeStyle = new Style({
@@ -156,10 +177,31 @@ export class MapService {
     });
 
     // Églises
+
+    // this.churchLayer = new VectorLayer({
+    //   source: churchSource,
+    //   style: (feature, resolution) => {
+    //     const scale = Math.min(0.03, 1 / (resolution * 5));
+    //     return new Style({
+    //       image: new Icon({
+    //         src: '/images/church.png',
+    //         scale,
+    //         anchor: [0.5, 1],
+    //         crossOrigin: 'anonymous'
+    //       })
+    //     });
+    //   }
+    // });
+
     this.churchLayer = new VectorLayer({
-      source: churchSource,
+      source: churchClusterSource,
       style: (feature, resolution) => {
-        const scale = Math.min(0.15, 1.2 / (resolution * 2));
+        const features = feature.get('features');
+        const size = features.length;
+
+        const baseScale = Math.min(0.12, 0.8 / (resolution * 2));
+        const scale = size > 1 ? baseScale * Math.min(size, 3) : baseScale;
+
         return new Style({
           image: new Icon({
             src: '/images/church.png',
@@ -170,6 +212,74 @@ export class MapService {
         });
       }
     });
+
+
+
+    this.hotelLayer = new VectorLayer({
+      source: hotelClusterSource,
+      declutter: true,
+      style: (feature, resolution) => {
+        const features = feature.get('features');
+
+        if (!features || !features.length) {
+          // Fallback en cas d'erreur ou de cluster vide
+          return new Style({
+            image: new CircleStyle({
+              radius: 6,
+              fill: new Fill({ color: 'gray' }),
+              stroke: new Stroke({ color: '#333', width: 1 })
+            }),
+            text: new Text({
+              text: '?',
+              font: 'bold 12px sans-serif',
+              fill: new Fill({ color: '#fff' }),
+              stroke: new Stroke({ color: '#000', width: 2 })
+            })
+          });
+        }
+
+        const count = features.length;
+
+        if (count === 1) {
+          const hotelFeature = features[0];
+          const tags = hotelFeature.get('tags') || {};
+          const name = tags.name || '';
+
+          const scale = Math.min(0.05, 0.6 / (resolution * 4));
+          return new Style({
+            image: new Icon({
+              src: '/images/hotel.png',
+              scale,
+              anchor: [0.5, 1],
+              crossOrigin: 'anonymous'
+            }),
+            text: new Text({
+              text: name,
+              offsetY: -25,
+              font: '12px sans-serif',
+              fill: new Fill({ color: '#333' }),
+              stroke: new Stroke({ color: '#fff', width: 2 })
+            })
+          });
+        } else {
+          const radius = 10 + Math.min(count, 20);
+          return new Style({
+            image: new CircleStyle({
+              radius,
+              fill: new Fill({ color: 'rgba(0, 0, 255, 0.4)' }),
+              stroke: new Stroke({ color: '#004080', width: 2 })
+            }),
+            text: new Text({
+              text: count.toString(),
+              font: 'bold 13px sans-serif',
+              fill: new Fill({ color: '#fff' }),
+              stroke: new Stroke({ color: '#000', width: 3 })
+            })
+          });
+        }
+      }
+    });
+
 
 
     this.routePointLayer = new VectorLayer({ source: new VectorSource() });
@@ -186,6 +296,7 @@ export class MapService {
         this.greenLayer,
         this.restaurantLayer,
         this.churchLayer,
+        this.hotelLayer,
         this.pinLayer
       ],
       view: new View({

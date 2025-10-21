@@ -9,6 +9,8 @@ import View from 'ol/View';
 import {Feature} from 'ol';
 import Point from 'ol/geom/Point';
 import {Icon, Style} from 'ol/style';
+import {Cluster} from 'ol/source';
+import ClusterSource from 'ol/source/Cluster';
 
 @Injectable({ providedIn: 'root' })
 export class LayerService {
@@ -75,36 +77,125 @@ export class LayerService {
   }
 
   public convertOverpassToGeoJSON(data: any) {
-    const geojson = { type: 'FeatureCollection', features: [] as any[] };
+    const geojson: any = { type: 'FeatureCollection', features: [] };
+
+    // On crée un dictionnaire pour retrouver les éléments par id (pour assembler les membres de relation)
+    const elementsById = new Map<number, any>();
+    data.elements.forEach((el: any) => elementsById.set(el.id, el));
 
     data.elements.forEach((element: any) => {
       if (element.type === 'node') {
         geojson.features.push({
           type: 'Feature',
-          geometry: { type: 'Point', coordinates: [element.lon, element.lat] },
+          geometry: {
+            type: 'Point',
+            coordinates: [element.lon, element.lat]
+          },
           properties: { id: element.id, tags: element.tags || {} }
         });
         return;
       }
-      if (!element.geometry) return;
-      const coords = element.geometry.map((g: any) => [g.lon, g.lat]);
-      if (element.tags?.waterway) {
-        geojson.features.push({
-          type: 'Feature',
-          geometry: { type: 'LineString', coordinates: coords },
-          properties: { id: element.id, type: 'waterway', tags: element.tags || {} }
+
+      if (element.type === 'way') {
+        if (!element.geometry) return;
+        const coords = element.geometry.map((g: { lon: number, lat: number }) => [g.lon, g.lat]);
+
+        // Si c'est un polygone fermé (premier et dernier points identiques), on le traite comme Polygon
+        const isPolygon = coords.length >= 4 &&
+          coords[0][0] === coords[coords.length -1][0] &&
+          coords[0][1] === coords[coords.length -1][1];
+
+        if (isPolygon) {
+          geojson.features.push({
+            type: 'Feature',
+            geometry: { type: 'Polygon', coordinates: [coords] },
+            properties: { id: element.id, tags: element.tags || {} }
+          });
+
+          const lons = coords.map((c: [number, number]) => c[0]);
+          const lats = coords.map((c: [number, number]) => c[1]);
+          const centerLon = (Math.min(...lons) + Math.max(...lons)) / 2;
+          const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+
+          geojson.features.push({
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [centerLon, centerLat]
+            },
+            properties: {
+              id: element.id,
+              isIconPoint: true,
+              tags: element.tags || {}
+            }
+          });
+        } else {
+          // Sinon c'est une ligne
+          geojson.features.push({
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: coords },
+            properties: { id: element.id, tags: element.tags || {} }
+          });
+        }
+        return;
+      }
+
+      if (element.type === 'relation' && element.tags?.type === 'multipolygon') {
+        if (!element.members) return;
+
+        const outers: any[] = [];
+        const inners: any[] = [];
+
+        element.members.forEach((member: any) => {
+          if (!member || !member.geometry) return;
+
+          const coords = member.geometry.map((g: any) => [g.lon, g.lat]);
+          if (member.role === 'outer') outers.push(coords);
+          else if (member.role === 'inner') inners.push(coords);
         });
-      } else if ((element.type === 'way' || element.type === 'relation') && coords.length >= 3) {
+
+        if (outers.length === 0) return;
+
+        const polygons = outers.map(outer => [outer, ...inners]);
+
         geojson.features.push({
           type: 'Feature',
-          geometry: { type: 'Polygon', coordinates: [coords] },
-          properties: { id: element.id, type: 'area', tags: element.tags || {} }
+          geometry: {
+            type: polygons.length > 1 ? 'MultiPolygon' : 'Polygon',
+            coordinates: polygons.length > 1 ? polygons : polygons[0]
+          },
+          properties: { id: element.id, tags: element.tags || {} }
+        });
+
+        // Optionnel : ajoute une feature Point pour l'icône, au centre de la relation
+        // Calculer le centre de la bounding box de la géométrie
+        // ici on utilise le premier polygon uniquement pour le point d'icône
+
+        const flatCoords = outers[0]; // prendre le premier contour extérieur
+        type Coord = [number, number];
+        const lons = flatCoords.map((c: Coord) => c[0]);
+        const lats = flatCoords.map((c: Coord) => c[1]);
+
+        const centerLon = (Math.min(...lons) + Math.max(...lons)) / 2;
+        const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+
+        console.log(centerLat, centerLon);
+        console.log(geojson.features);
+        geojson.features.push({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [centerLon, centerLat] },
+          properties: { id: element.id, isIconPoint: true, tags: element.tags || {} }
         });
       }
     });
 
-    return new GeoJSON().readFeatures(geojson, { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' });
+    // Conversion finale en features OL
+    return new GeoJSON().readFeatures(geojson, {
+      dataProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:3857'
+    });
   }
+
 
   zoomToResult(result: any) {
     const lon = parseFloat(result.lon);
@@ -288,14 +379,70 @@ export class LayerService {
 
     this.fetchOverpassData(query).then((result: any) => {
       const features = this.convertOverpassToGeoJSON(result);
-      features.forEach((f: any) => { f.set('name', f.get('tags')?.name || 'Église'); });
-      const source = this.mapService.churchLayer.getSource();
-      source?.clear();
-      source?.addFeatures(features);
+      // features.forEach((f: any) => { f.set('name', f.get('tags')?.name || 'Église'); });
+      const iconPoints = features.filter(f => {
+        const geom = f.getGeometry();
+        return geom instanceof Point || f.get('isIconPoint');
+      });
+
+      iconPoints.forEach((f: any) => {
+        const tags = f.getProperties().tags || {};
+        f.set('tags', tags);
+      });
+
+      const rawSource = (this.mapService.churchLayer.getSource() as ClusterSource)?.getSource();
+      rawSource?.clear();
+      rawSource?.addFeatures(iconPoints);
+
+
+
       this.activeLayers.add('showChurch');
       this.selectedLayerAction = 'showChurch';
     }).catch(err => console.error('Erreur Overpass API (church):', err));
   }
 
   public hideChurch() { const source = this.mapService.churchLayer.getSource(); source?.clear(); this.activeLayers.delete('showChurch'); this.selectedLayerAction = Array.from(this.activeLayers)[0] || ''; }
+
+
+
+  public showHotel() {
+    if (!this.mapService.userPosition) return;
+    const { lat, lon } = this.mapService.userPosition;
+    const r = (this.layerRadii['showHotel'] || 1) * 1000;
+
+    const query = `[out:json];
+    (
+      node["tourism"="hotel"](around:${r},${lat},${lon});
+      way["tourism"="hotel"](around:${r},${lat},${lon});
+      relation["tourism"="hotel"](around:${r},${lat},${lon});
+    );
+    out geom;`;
+
+    console.log(query);
+
+    this.fetchOverpassData(query).then((result: any) => {
+      const features = this.convertOverpassToGeoJSON(result);
+      features.forEach((f: any) => {
+        f.set('name', f.get('tags')?.name || 'Hôtel');
+      });
+      const clusterSource = this.mapService.hotelLayer.getSource() as Cluster;
+      const hotelSource = clusterSource.getSource();
+      if (hotelSource) {
+        hotelSource.clear();
+        hotelSource.addFeatures(features);
+      }
+
+      this.activeLayers.add('showHotel');
+      this.selectedLayerAction = 'showHotel';
+    }).catch(err => console.error('Erreur Overpass API (hotel):', err));
+  }
+
+  public hideHotel() {
+    const source = this.mapService.hotelLayer.getSource();
+    source?.clear();
+    this.activeLayers.delete('showHotel');
+    this.selectedLayerAction = Array.from(this.activeLayers)[0] || '';
+  }
+
+
 }

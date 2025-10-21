@@ -83,12 +83,20 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "./proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "angular-osm-app:build:production"
             },
             "development": {
-              "buildTarget": "angular-osm-app:build:development"
+              "buildTarget": "angular-osm-app:build:development",
+              "ssl": true,
+              "sslKey": "./cert.key",
+              "sslCert": "./cert.pem",
+              "host": "0.0.0.0",
+              "port": 4200
             }
           },
           "defaultConfiguration": "development"

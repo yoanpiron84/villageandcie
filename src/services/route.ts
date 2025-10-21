@@ -193,73 +193,16 @@ export class RouteService {
   updateRouteFromPin(pinCoord: [number, number]) {
     if (!this.lastRoutePoints?.length) return;
 
-    const end: [number, number] = this.lastRoutePoints[this.lastRoutePoints.length - 1];
-    const newStart: [number, number] = pinCoord;
+    const destination: [number, number] = this.lastRoutePoints[this.lastRoutePoints.length - 1];
 
-    // Redéfinir le tracé depuis le pin (pour test)
-    this.lastRoutePoints = [newStart, end];
+    // Mettre à jour la position de l'utilisateur/pin
+    this.mapService.userPosition = { lat: pinCoord[1], lon: pinCoord[0] };
 
-    const coordsStr = `${newStart[0]},${newStart[1]};${end[0]},${end[1]}`;
-    const url = `https://routing.openstreetmap.de/${this.routeMode}/route/v1/driving/${coordsStr}?overview=full&geometries=geojson&steps=true&annotations=true&continue_straight=false`;
-
-    this.http.get<any>(url).subscribe({
-      next: (data) => {
-        if (!data.routes?.length) return;
-        const route = data.routes[0];
-
-        // Mettre à jour le tracé (layer)
-        if (!this.routeLineLayer) {
-          this.routeLineLayer = new VectorLayer({
-            source: new VectorSource(),
-            style: new Style({ stroke: new Stroke({ color: 'gray', width: 4 }) })
-          });
-          this.mapService.map.addLayer(this.routeLineLayer);
-        }
-        const lineFeatures = new GeoJSON().readFeatures(
-          { type: 'Feature', geometry: route.geometry },
-          { dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857' }
-        );
-        this.routeLineLayer.getSource()?.clear();
-        this.routeLineLayer.getSource()?.addFeatures(lineFeatures);
-
-        // Mettre à jour les steps: première step -> completed, nextStepIndex = 1 si possible
-        const steps = route.legs[0].steps || [];
-        const mappedSteps: RouteStep[] = steps.map((s: any, i: number) => ({ ...s, completed: i === 0 }));
-
-        const nextIdx = mappedSteps.length > 1 ? 1 : 0;
-
-        this.routeInfo = {
-          distance: route.distance,
-          duration: route.duration,
-          steps: mappedSteps,
-          nextStepIndex: nextIdx
-        };
-
-        this.advanceToNextStep();
-      },
-      error: (err) => console.error('Erreur OSRM:', err)
-    });
+    // Relancer la récupération de la route depuis la nouvelle position
+    this.fetchRouteWithUserPosition(destination);
   }
 
-  getDistanceToNextStep(index: number): number {
-    const steps = this.routeInfo?.steps;
-    if (!steps) return 0;
 
-    // index dans le slice:1 → index réel = index + 1
-    const realIndex = index + 1;
-
-    // Distance jusqu'à l'étape suivante
-    if (realIndex + 1 < steps.length) {
-      // Somme des distances de l'étape actuelle + distance des étapes intermédiaires ?
-      let distance = 0;
-      for (let i = realIndex; i < realIndex + 1; i++) {
-        distance += steps[i].distance ?? 0;
-      }
-      return distance;
-    }
-
-    return 0;
-  }
 
 
   fetchRouteWithUserPosition(destination: [number, number]) {
@@ -289,7 +232,7 @@ export class RouteService {
         if (!this.routeLineLayer) {
           this.routeLineLayer = new VectorLayer({
             source: new VectorSource(),
-            style: () => new Style({ stroke: new Stroke({ color: 'gray', width: 4 }) })
+            style: () => new Style({ stroke: new Stroke({ color: 'blue', width: 4 }) })
           });
           this.mapService.map.addLayer(this.routeLineLayer);
         }
@@ -320,20 +263,60 @@ export class RouteService {
         this.routePointLayer.getSource()?.clear();
         this.routePointLayer.getSource()?.addFeatures([startPoint, endPoint]);
 
-        // Simple animation test : colorie successivement les segments (optionnel)
-        let currentStepIndex = 0;
-        const updateStepColor = () => {
-          if (!this.routeLineLayer) return;
-          const features = this.routeLineLayer.getSource()?.getFeatures() || [];
-          features.forEach((f, i) => {
-            f.setStyle(new Style({ stroke: new Stroke({ color: i === currentStepIndex ? 'green' : 'gray', width: 4 }) }));
-          });
-          currentStepIndex++;
-          if (currentStepIndex < features.length) {
-            setTimeout(updateStepColor, 1000);
+        let tooltipEl = document.querySelector('.tooltip-card-itineraire') as HTMLElement;
+        if (!tooltipEl) {
+          tooltipEl = document.createElement('div');
+          tooltipEl.className = 'tooltip-card-itineraire';
+          document.body.appendChild(tooltipEl);
+        }
+
+        const tooltipOverlay = new Overlay({
+          element: tooltipEl,
+          offset: [10, 0],
+          positioning: 'bottom-left'
+        });
+        if (!this.mapService.map.getOverlays().getArray().includes(tooltipOverlay)) {
+          this.mapService.map.addOverlay(tooltipOverlay);
+        }
+
+        Promise.all([
+          this.reverseGeocode(start[1], start[0]),
+          this.reverseGeocode(end[1], end[0])
+        ]).then(([startName, endName]) => {
+          if (this.routeHoverListener) {
+            this.mapService.map.un('pointermove', this.routeHoverListener);
           }
-        };
-        updateStepColor();
+
+          this.routeHoverListener = (evt: any) => {
+            const feature = this.mapService.map.forEachFeatureAtPixel(
+              evt.pixel,
+              f => f,
+              {
+                layerFilter: l =>
+                  l === this.routePointLayer || l === this.routeLineLayer,
+                hitTolerance: 6
+              }
+            );
+            if (!feature) {
+              tooltipEl.style.display = 'none';
+              tooltipOverlay.setPosition(undefined);
+              return;
+            }
+
+            if (feature === startPoint) {
+              tooltipEl.innerHTML = `🚗 <b>Départ</b><br>${startName || 'Chargement...'}<br><small>[Votre position]</small>`;
+            } else if (feature === endPoint) {
+              tooltipEl.innerHTML = `🏁 <b>Arrivée</b><br>${endName || 'Chargement...'}<br><small>X: ${end[0]} | Y: ${end[1]}</small>`;
+            } else if (feature.getGeometry()?.getType() === 'LineString' && this.routeInfo) {
+              tooltipEl.innerHTML = `📏 ${(this.routeInfo.distance / 1000).toFixed(2)} km<br>🕒 ${Math.floor(this.routeInfo.duration / 60)} min`;
+            }
+
+            tooltipOverlay.setPosition(evt.coordinate);
+            tooltipEl.style.display = 'block';
+          };
+
+          this.mapService.map.on('pointermove', this.routeHoverListener);
+        });
       },
       error: (err) => console.error('Erreur OSRM:', err)
     });
@@ -367,7 +350,7 @@ export class RouteService {
         if (!this.routeLineLayer) {
           this.routeLineLayer = new VectorLayer({
             source: new VectorSource(),
-            style: new Style({ stroke: new Stroke({ color: 'red', width: 4 }) })
+            style: new Style({ stroke: new Stroke({ color: 'blue', width: 4 }) })
           });
           this.mapService.map.addLayer(this.routeLineLayer);
         }
