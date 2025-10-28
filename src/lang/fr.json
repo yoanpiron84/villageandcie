@@ -1,4 +1,6 @@
 {
+  "+---------------------- GENERAL --------------------+": "",
+
   "home": "Accueil",
   "map": "Carte",
   "chat": "Discussion IA",
@@ -28,6 +30,9 @@
   "text_slide_1": "Découvrez toutes les activités possibles à faire autour de vous.",
   "text_slide_2": "Obtenez toutes les informations relatives aux activités / lieux intéressants pour vous.",
   "text_slide_3": "Une assistance vocale est disponible pour vous aider dans vos recherches.",
+
+
+  "+---------------------- ITINERAIRE --------------------+": "",
 
   "routed_car": "Voiture",
   "routed_foot": "À pied",
@@ -72,25 +77,73 @@
   "modifier_u turn": "demi-tour",
   "modifier_straight": "tout droit",
 
+  "go_here": "Y Aller",
+
+  "+---------------------- INFORMATIONS --------------------+": "",
   "phone": "Téléphone",
   "hours": "Horaires",
   "type": "Type",
-
-  "religion": "Religion",
-
-  "church": "Église",
-  "restaurant": "Restaurant",
-  "green_space": "Espace vert",
-  "water": "Point d'eau",
-  "position": "Votre position",
-
-
-  "denomination": "Dénomination",
-  "building": "Bâtiment",
   "address": "Adresse",
   "email": "Email",
   "website": "Site web",
   "service_times": "Horaires",
-  "cluster_churches": "Nombre d'églises dans ce cluster"
 
+  "hotel": "Hôtels",
+  "church": "Églises",
+  "restaurant": "Restaurants",
+  "green_space": "Espaces verts",
+  "water": "Points d'eau",
+  "position": "Votre position",
+  "openingHours": "Horaires d'ouverture",
+
+
+  "+---------------------- EGLISES --------------------+": "",
+
+  "religion": "Religion",
+  "cluster_churches": "Nombre d'églises dans ce cluster",
+
+
+  "+---------------------- HOTELS --------------------+": "",
+
+  "denomination": "Dénomination",
+  "building": "Bâtiment",
+  "stars": "Étoiles",
+
+  "+---------------------- ALIMENTAIRE --------------------+": "",
+
+  "cluster_alimentaire": "Commerces alimentaires dans ce cluster",
+  "alimentaire": "Commerce alimentaire",
+
+  "brand": "Enseigne",
+  "delivery": "Livraison",
+  "takeaway": "À emporter",
+
+  "bakery": "Boulangeries",
+  "butcher": "Boucheries",
+  "greengrocer": "Primeurs",
+  "supermarket": "Supermarchés",
+  "convenience": "Épiceries",
+  "kiosk": "Kiosques",
+  "cafe": "Cafés",
+  "tea": "Salons de thé",
+  "fast_food": "Fast Foods",
+  "pub": "Pubs",
+  "bar": "Bars",
+  "food_court": "Aires de restauration",
+  "ice_cream": "Glaciers",
+  "chocolate": "Chocolateries",
+  "confectionery": "Confiseries",
+  "wine": "Cavistes",
+  "beer": "Magasins de bières",
+  "spirits": "Spiritueux",
+  "deli": "Épiceries fine",
+  "cheese": "Fromageries",
+  "seafood": "Poissonneries",
+  "pastry": "Pâtisseries",
+  "honey": "Miels",
+  "organic": "Magasins bio",
+  "spices": "Épices",
+  "pasta": "Pâtes",
+
+  "number_cluster": "Nombre de {type}: {count}"
 }

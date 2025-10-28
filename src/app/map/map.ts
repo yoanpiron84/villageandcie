@@ -58,9 +58,6 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
   ngOnInit(): void {
     this.interactionService.translations = this.translations;
 
-    // Commence à suivre la position GPS dès le départ
-    this.routeService.watchUserPosition();
-
     // Abonnement clic carte
     this.mapService.map.on('click', (event) => {
       const [lon, lat] = toLonLat(event.coordinate);
@@ -148,6 +145,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
 
     if(changes['translations']){
       this.interactionService.updateTranslations(this.translations);
+      this.layerService.translations = this.translations;
+      this.layerService.initLayerLabels();
     }
   }
 

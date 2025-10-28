@@ -13,6 +13,8 @@ import {Cluster} from 'ol/source';
 import Text from 'ol/style/Text';
 
 import ClusterSource from 'ol/source/Cluster';
+import {environment} from '../environnements/environnement';
+import {Feature} from 'ol';
 
 @Injectable({ providedIn: 'root' })
 export class MapService {
@@ -32,6 +34,7 @@ export class MapService {
   restaurantLayer: VectorLayer<VectorSource>;
   churchLayer: VectorLayer<VectorSource>;
   hotelLayer: VectorLayer<VectorSource>;
+  alimentaireLayer: Record<string, VectorLayer<ClusterSource>> = {};
 
 
 
@@ -41,6 +44,56 @@ export class MapService {
 
   // Position utilisateur centrale
   userPosition: { lat: number; lon: number } | null = null;
+
+  public initAlimentaireLayers(): void {
+    this.alimentaireLayer = {};
+
+    Object.keys(environment.iconMap).forEach((shopKey) => {
+      const source = new VectorSource();
+
+      const clusterSource = new Cluster({
+        distance: 20,
+        source,
+        geometryFunction: (feature: Feature) => {
+          const geom = feature.getGeometry();
+          if (geom instanceof Point) return geom; // OK, cluster ce point
+          return null; // NE PAS cluster les autres types
+        }
+      });
+
+
+      this.alimentaireLayer[shopKey] = new VectorLayer({
+        source: clusterSource,
+        visible: true,
+        style: (clusterFeature, resolution) => {
+          const features: Feature[] = clusterFeature.get('features') || [];
+          if (features.length === 0) return undefined;
+
+          // Toutes les features doivent avoir la même icône pour cluster
+          const typeSet = new Set(features.map(f => f.get('icon')));
+          if (typeSet.size > 1) return undefined;
+
+          const size = features.length;
+          const baseScale = Math.min(0.08, 0.5 / (resolution * 2));
+          const scale = size > 1 ? baseScale * (1 + Math.log(size)) : baseScale;
+
+          const iconSrc: string = features[0]?.get('icon') || environment.iconMap['alimentaire'];
+          if (!iconSrc) return undefined;
+
+          return new Style({
+            image: new Icon({
+              src: iconSrc,
+              scale,
+              anchor: [0.5, 1],
+              crossOrigin: 'anonymous'
+            })
+          });
+        }
+      });
+    });
+  }
+
+
 
   constructor() {
 
@@ -56,8 +109,14 @@ export class MapService {
 
     const hotelSource = new VectorSource();
     const hotelClusterSource = new Cluster({
-      distance: 40,
+      distance: 30,
       source: hotelSource
+    });
+
+    const alimentaireSource = new VectorSource();
+    const alimentaireClusterSource = new Cluster({
+      distance: 30,
+      source: alimentaireSource
     });
 
 
@@ -178,21 +237,6 @@ export class MapService {
 
     // Églises
 
-    // this.churchLayer = new VectorLayer({
-    //   source: churchSource,
-    //   style: (feature, resolution) => {
-    //     const scale = Math.min(0.03, 1 / (resolution * 5));
-    //     return new Style({
-    //       image: new Icon({
-    //         src: '/images/church.png',
-    //         scale,
-    //         anchor: [0.5, 1],
-    //         crossOrigin: 'anonymous'
-    //       })
-    //     });
-    //   }
-    // });
-
     this.churchLayer = new VectorLayer({
       source: churchClusterSource,
       style: (feature, resolution) => {
@@ -217,75 +261,53 @@ export class MapService {
 
     this.hotelLayer = new VectorLayer({
       source: hotelClusterSource,
-      declutter: true,
       style: (feature, resolution) => {
         const features = feature.get('features');
+        const size = features.length;
 
-        if (!features || !features.length) {
-          // Fallback en cas d'erreur ou de cluster vide
-          return new Style({
-            image: new CircleStyle({
-              radius: 6,
-              fill: new Fill({ color: 'gray' }),
-              stroke: new Stroke({ color: '#333', width: 1 })
-            }),
-            text: new Text({
-              text: '?',
-              font: 'bold 12px sans-serif',
-              fill: new Fill({ color: '#fff' }),
-              stroke: new Stroke({ color: '#000', width: 2 })
-            })
-          });
-        }
+        // Même logique que churchLayer : ajuster l’échelle selon le zoom et la densité
+        const baseScale = Math.min(0.08, 0.5 / (resolution * 2));
+        const scale = size > 1 ? baseScale * (1 + Math.log(size)) : baseScale;
 
-        const count = features.length;
-
-        if (count === 1) {
-          const hotelFeature = features[0];
-          const tags = hotelFeature.get('tags') || {};
-          const name = tags.name || '';
-
-          const scale = Math.min(0.05, 0.6 / (resolution * 4));
-          return new Style({
-            image: new Icon({
-              src: '/images/hotel.png',
-              scale,
-              anchor: [0.5, 1],
-              crossOrigin: 'anonymous'
-            }),
-            text: new Text({
-              text: name,
-              offsetY: -25,
-              font: '12px sans-serif',
-              fill: new Fill({ color: '#333' }),
-              stroke: new Stroke({ color: '#fff', width: 2 })
-            })
-          });
-        } else {
-          const radius = 10 + Math.min(count, 20);
-          return new Style({
-            image: new CircleStyle({
-              radius,
-              fill: new Fill({ color: 'rgba(0, 0, 255, 0.4)' }),
-              stroke: new Stroke({ color: '#004080', width: 2 })
-            }),
-            text: new Text({
-              text: count.toString(),
-              font: 'bold 13px sans-serif',
-              fill: new Fill({ color: '#fff' }),
-              stroke: new Stroke({ color: '#000', width: 3 })
-            })
-          });
-        }
+        return new Style({
+          image: new Icon({
+            src: '/images/hotel.png',
+            scale,
+            anchor: [0.5, 1],
+            crossOrigin: 'anonymous'
+          })
+        });
       }
     });
 
+    // --- Couche alimentaire avec style dynamique ---
+    // this.alimentaireLayer = new VectorLayer({
+    //   source: alimentaireClusterSource,
+    //   style: (feature, resolution) => {
+    //     const features = feature.get('features');
+    //     const size = features.length;
+    //
+    //     // Même logique que pour hotelLayer
+    //     const baseScale = Math.min(0.08, 0.5 / (resolution * 2));
+    //     const scale = size > 1 ? baseScale * (1 + Math.log(size)) : baseScale;
+    //
+    //     return new Style({
+    //       image: new Icon({
+    //         src: '/images/alimentaire.png', // ton icône (ex: 🛒, 🍞, etc.)
+    //         scale,
+    //         anchor: [0.5, 1],
+    //         crossOrigin: 'anonymous'
+    //       })
+    //     });
+    //   }
+    // });
 
 
     this.routePointLayer = new VectorLayer({ source: new VectorSource() });
     this.routeLineLayer = new VectorLayer({ source: new VectorSource() });
     this.searchLayer = new VectorLayer({ source: new VectorSource() });
 
+    this.initAlimentaireLayers();
 
     this.map = new Map({
       layers: [
@@ -297,6 +319,7 @@ export class MapService {
         this.restaurantLayer,
         this.churchLayer,
         this.hotelLayer,
+        ...Object.values(this.alimentaireLayer),
         this.pinLayer
       ],
       view: new View({
@@ -307,5 +330,6 @@ export class MapService {
       }),
       controls: []
     });
+
   }
 }

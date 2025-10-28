@@ -4,3 +4,4 @@ restaurant = [restaurante, resto, snack, cafetería, cantina];
 city = [ciudad, pueblo, localidad, municipio];
 church = [iglesia, catedral];
 hotel = ['hotel', 'hoteles'];
+alimentaire = [ alimentario, supermercado, tienda, panadería, carnicería, pescadería, frutería, tienda ecológica, mini mercado, quiosco, café, cafetería, salón de té, comida rápida, pub, bar, zona de comida, heladería, chocolatería, dulcería, vinoteca, tienda de cervezas, charcutería, quesería, pastelería, mielería, tienda de especias, tienda de pasta ]

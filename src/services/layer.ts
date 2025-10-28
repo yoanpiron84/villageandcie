@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable, Input, OnInit, SimpleChanges} from '@angular/core';
 import { MapService } from './map';
 import { fromLonLat } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
@@ -12,6 +12,10 @@ import {Icon, Style} from 'ol/style';
 import {Cluster} from 'ol/source';
 import ClusterSource from 'ol/source/Cluster';
 
+import {environment} from '../environnements/environnement';
+import VectorLayer from 'ol/layer/Vector';
+
+
 @Injectable({ providedIn: 'root' })
 export class LayerService {
   public activeLayers: Set<string> = new Set();
@@ -21,18 +25,35 @@ export class LayerService {
   public showFilterCard = false;
   public canApplyFilter = true;
   coords: string = '';
+  @Input() translations: Record<string, string> = {};
+  @Input() currentLanguage: string = 'fr';
 
-  layerLabels: Record<string, string> = {
-    showRestaurant: 'Restaurants',
-    showWater: 'Points d\'eau',
-    showChurch: 'Églises & Cathédrales',
-    showGreen: 'Espaces verts',
-    // ajoute les autres actions/layers ici
-  };
+  layerLabels: Record<string, string> = {};
 
   public overpassCache: Map<string, any> = new Map();
 
   constructor(private mapService: MapService, private searchService: SearchService, private http: HttpClient) {}
+
+  public initLayerLabels() {
+    // labels généraux
+    this.layerLabels = {
+      showRestaurant: this.translations["restaurant"] || 'Restaurant',
+      showWater: this.translations["water"] || 'Points d\'eau',
+      showChurch: this.translations["church"] || 'Église',
+      showGreen: this.translations["green_space"] || 'Espaces verts',
+      showHotel: this.translations["hotel"] || 'Hôtels',
+    };
+
+    // labels alimentaires dynamiques depuis environment
+    const lang = this.currentLanguage || 'fr';
+    const shopMap = environment.shopTagMap[lang];
+    Object.entries(shopMap).forEach(([label, keyInternal]) => {
+      const actionKey = `showAlimentaire('${keyInternal}')`;
+      this.layerLabels[actionKey] = this.translations[keyInternal] || keyInternal.charAt(0).toUpperCase() + keyInternal.slice(1);
+    });
+
+  }
+
 
   public toggleFilterCard() {
     this.showFilterCard = !this.showFilterCard;
@@ -49,7 +70,12 @@ export class LayerService {
 
     if (typeof (this as any)[this.selectedLayerAction] === 'function') {
       (this as any)[this.selectedLayerAction]();
+    } else if (this.selectedLayerAction.startsWith("showAlimentaire(")){
+      const param = this.selectedLayerAction.match(/\(([^)]+)\)/)?.[1]?.replace(/['"]/g, '') || 'alimentaire';
+      const lang = this.currentLanguage;
+      this.showAlimentaire(param, lang, false);
     }
+
 
     this.canApplyFilter = false;
     setTimeout(() => this.canApplyFilter = true, 3000);
@@ -75,6 +101,7 @@ export class LayerService {
       });
     });
   }
+
 
   public convertOverpassToGeoJSON(data: any) {
     const geojson: any = { type: 'FeatureCollection', features: [] };
@@ -179,8 +206,6 @@ export class LayerService {
         const centerLon = (Math.min(...lons) + Math.max(...lons)) / 2;
         const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
 
-        console.log(centerLat, centerLon);
-        console.log(geojson.features);
         geojson.features.push({
           type: 'Feature',
           geometry: { type: 'Point', coordinates: [centerLon, centerLat] },
@@ -251,7 +276,7 @@ export class LayerService {
   public showWater() {
     if (!this.mapService.userPosition) return;
     const { lat, lon } = this.mapService.userPosition;
-    const r = (this.layerRadii['showWater'] || 1) * 1000;
+    const r = (this.layerRadii['showWater'] || 0.5) * 1000;
     const delta = r / 111320;
     const minLat = lat - delta, maxLat = lat + delta, minLon = lon - delta, maxLon = lon + delta;
 
@@ -276,7 +301,7 @@ export class LayerService {
   public showGreen() {
     if (!this.mapService.userPosition) return;
     const { lat, lon } = this.mapService.userPosition;
-    const r = (this.layerRadii['showGreen'] || 1) * 1000;
+    const r = (this.layerRadii['showGreen'] || 0.5) * 1000;
     const delta = r / 111320;
     const minLat = lat - delta, maxLat = lat + delta, minLon = lon - delta, maxLon = lon + delta;
 
@@ -345,7 +370,7 @@ export class LayerService {
   public showRestaurant() {
     if (!this.mapService.userPosition) return;
     const { lat, lon } = this.mapService.userPosition;
-    const r = (this.layerRadii['showRestaurant'] || 1) * 1000;
+    const r = (this.layerRadii['showRestaurant'] || 0.5) * 1000;
 
     const query = `[out:json];
       (node["amenity"="restaurant"](around:${r},${lat},${lon});
@@ -369,7 +394,7 @@ export class LayerService {
   public showChurch() {
     if (!this.mapService.userPosition) return;
     const { lat, lon } = this.mapService.userPosition;
-    const r = (this.layerRadii['showChurch'] || 1) * 1000;
+    const r = (this.layerRadii['showChurch'] || 0.5) * 1000;
 
     const query = `[out:json];
       (node["amenity"="place_of_worship"](around:${r},${lat},${lon});
@@ -401,14 +426,25 @@ export class LayerService {
     }).catch(err => console.error('Erreur Overpass API (church):', err));
   }
 
-  public hideChurch() { const source = this.mapService.churchLayer.getSource(); source?.clear(); this.activeLayers.delete('showChurch'); this.selectedLayerAction = Array.from(this.activeLayers)[0] || ''; }
+  public hideChurch() {
+
+    const clusterSource = this.mapService.churchLayer.getSource() as ClusterSource;
+    const rawSource = clusterSource?.getSource();
+
+    // Clear les deux : ClusterSource et Raw Source
+    clusterSource?.clear();
+    rawSource?.clear();
+
+    this.activeLayers.delete('showChurch');
+    this.selectedLayerAction = Array.from(this.activeLayers)[0] || '';
+  }
 
 
 
   public showHotel() {
     if (!this.mapService.userPosition) return;
     const { lat, lon } = this.mapService.userPosition;
-    const r = (this.layerRadii['showHotel'] || 1) * 1000;
+    const r = (this.layerRadii['showHotel'] || 0.5) * 1000;
 
     const query = `[out:json];
     (
@@ -418,31 +454,231 @@ export class LayerService {
     );
     out geom;`;
 
-    console.log(query);
-
     this.fetchOverpassData(query).then((result: any) => {
       const features = this.convertOverpassToGeoJSON(result);
-      features.forEach((f: any) => {
-        f.set('name', f.get('tags')?.name || 'Hôtel');
+
+      // Ne garder que les points (ou les entités marquées comme icônes)
+      const iconPoints = features.filter(f => {
+        const geom = f.getGeometry();
+        return geom instanceof Point || f.get('isIconPoint');
       });
-      const clusterSource = this.mapService.hotelLayer.getSource() as Cluster;
-      const hotelSource = clusterSource.getSource();
-      if (hotelSource) {
-        hotelSource.clear();
-        hotelSource.addFeatures(features);
-      }
+
+      iconPoints.forEach((f: any) => {
+        const props = f.getProperties();
+        const tags = props.tags || {};
+
+        // Stocker les tags bruts pour plus tard
+        f.set('tags', tags);
+
+        // Définir un nom lisible selon ce qu'on trouve dans les tags
+        const name = tags['name'] || tags['brand'] || tags['operator'] || 'Hôtel';
+        f.set('name', name);
+      });
+
+      // Injection dans la source brute du cluster
+      const rawSource = (this.mapService.hotelLayer.getSource() as ClusterSource)?.getSource();
+      rawSource?.clear();
+      rawSource?.addFeatures(iconPoints);
 
       this.activeLayers.add('showHotel');
       this.selectedLayerAction = 'showHotel';
     }).catch(err => console.error('Erreur Overpass API (hotel):', err));
   }
 
+
+
   public hideHotel() {
-    const source = this.mapService.hotelLayer.getSource();
-    source?.clear();
+    const clusterSource = this.mapService.hotelLayer.getSource() as ClusterSource;
+    const rawSource = clusterSource?.getSource();
+
+    // Clear les deux : ClusterSource et Raw Source
+    clusterSource?.clear();
+    rawSource?.clear();
+
     this.activeLayers.delete('showHotel');
     this.selectedLayerAction = Array.from(this.activeLayers)[0] || '';
   }
+
+  // public showAlimAction(param: string, lang: string){
+  //
+  //   const lowerParam = param.toLowerCase();
+  //
+  //   const shopMap = environment.shopTagMap[lang] as Record<string, string>;
+  //
+  //   this.showAlimentaire(shopMap[param])
+  // }
+
+
+  public showAlimentaire(param: string, lang: string, firstTime: boolean) {
+    if (!this.mapService.userPosition) return;
+    const { lat, lon } = this.mapService.userPosition;
+
+    const lowerParam = param.toLowerCase();
+
+    // Dictionnaire depuis environnement
+    const shopMapLang = environment.shopTagMap[lang] || {};
+    const iconMap = environment.iconMap;
+
+    // Déterminer le filtre
+    const shopFilter = firstTime ? shopMapLang[lowerParam] || lowerParam : lowerParam;
+
+    // Sélection des couches à afficher
+    let layersToShow: VectorLayer<any>[] = []
+    if (shopFilter === 'alimentaire') {
+      layersToShow = Object.values(this.mapService.alimentaireLayer);
+    } else {
+      const layer = this.mapService.alimentaireLayer?.[shopFilter];
+      if (layer) layersToShow.push(layer);
+    }
+
+    if (!layersToShow.length) {
+      console.warn(`Aucune couche trouvée pour '${shopFilter}'`);
+      return;
+    }
+
+    const actionKey = `showAlimentaire('${shopFilter}')`;
+    const radiusMeters = (this.layerRadii[actionKey] || 0.5) * 1000;
+
+    // Construire la requête Overpass avec les tags depuis environment
+    let shopQuery = shopFilter;
+    if (shopFilter === 'alimentaire') {
+      shopQuery = Object.values(shopMapLang).join('|');
+    }
+    if (shopQuery === 'organic') {
+      shopQuery = '."]["organic"~"^(yes|only)$';
+    }
+
+    if (shopQuery === 'beer') {
+      shopQuery = '(beer|brewery)';
+    }
+
+
+    let query: string;
+
+    if (shopFilter === 'pastry') {
+      // Pour les pâtisseries : récupérer shop=bakery ET pastry=yes
+      query = `[out:json];
+      (
+        nwr[shop=bakery][pastry=yes](around:${radiusMeters},${lat},${lon});
+      );
+      out geom;`;
+
+      /*
+      /!\ à maintenir: Cette ligne permet de forcer l'affectation du type de la couche à celle de la boulangerie pour que les pâtisseries
+      puissent être affichées car sinon il n'existe pas de couche "pastry" à proprement parler donc l'icon à l'initialisation
+      va être supprimé et rien ne s'affichera
+       */
+      layersToShow = [this.mapService.alimentaireLayer['bakery']];
+    } else {
+      query = `[out:json];
+      (
+        nwr[~"^(shop|amenity)$"~"${shopQuery}"](around:${radiusMeters},${lat},${lon});
+      );
+      out geom;`;
+    }
+
+    console.log(query);
+
+    this.fetchOverpassData(query)
+      .then((result: any) => {
+        const features = this.convertOverpassToGeoJSON(result);
+
+        // NE PAS passer au cluster les Polygons/Lines → que les Points
+        const iconPoints = features.filter(f => f.getGeometry() instanceof Point);
+
+        iconPoints.forEach(f => {
+          const tags = f.get('tags') || {};
+          f.set('tags', tags);
+
+          // Détermination du nom
+          f.set('name', tags['name'] || tags['brand'] || this.translations[shopFilter] || 'Commerce alimentaire');
+
+          // Détermination du type précis pour l’icône
+          const shopType = (tags['shop'] || tags['amenity'] || shopFilter || '').toLowerCase();
+
+
+          // On cherche une icône spécifique
+          let icon: string;
+
+          switch (shopFilter) {
+            case 'bakery':
+              icon = (iconMap as Record<string, string>)[shopType];
+              break;
+            case 'organic':
+              icon = (iconMap as Record<string, string>)['organic'];
+              break;
+            default:
+              if (tags['pastry'] === 'yes') {
+                icon = (iconMap as Record<string, string>)['pastry'];
+              } else {
+                icon = (iconMap as Record<string, string>)[shopType];
+              }
+              break;
+          }
+
+
+          if (icon === undefined) {
+            if (!tags['shop'] && !tags['amenity']) {
+              icon = iconMap['alimentaire'];
+            } else {
+              icon = '';
+            }
+          }
+
+          f.set('icon', icon);
+        });
+
+        layersToShow.forEach(layer => {
+          const rawSource = (layer.getSource() as ClusterSource)?.getSource();
+          rawSource?.clear();
+
+          const layerKey = Object.entries(this.mapService.alimentaireLayer)
+            .find(([key, l]) => l === layer)?.[0];
+
+          const featuresForLayer = layerKey === 'alimentaire'
+            ? iconPoints
+            : iconPoints.filter(f => {
+              const tags = f.get('tags') || {};
+              const shopTag = (tags.shop || tags.amenity || '').toLowerCase();
+              if (layerKey === 'organic') return /^(yes|only)$/i.test(tags.organic || '');
+              return shopTag === layerKey;
+            });
+
+          rawSource?.addFeatures(featuresForLayer);
+        });
+
+        // Enregistrement de l’action active
+        this.activeLayers.add(actionKey);
+        this.selectedLayerAction = actionKey;
+        this.layerRadii[actionKey] ??= 0.5;
+        this.currentRadius = this.layerRadii[actionKey];
+      })
+      .catch(err => console.error('Erreur Overpass API (alimentaire):', err));
+
+  }
+
+  public hideAlimentaire(type: string) {
+    if (type === 'alimentaire') {
+      Object.values(this.mapService.alimentaireLayer).forEach(layer => {
+        const source = (layer.getSource() as ClusterSource)?.getSource();
+        source?.clear();
+      });
+      Object.keys(this.mapService.alimentaireLayer).forEach(key => {
+        this.activeLayers.delete(`showAlimentaire('${key}')`);
+      });
+      this.activeLayers.delete(`showAlimentaire('alimentaire')`);
+    } else {
+      const layer = this.mapService.alimentaireLayer[type];
+      if (!layer) return;
+      const source = (layer.getSource() as ClusterSource)?.getSource();
+      source?.clear();
+      this.activeLayers.delete(`showAlimentaire('${type}')`);
+    }
+    this.selectedLayerAction = Array.from(this.activeLayers)[0] || '';
+  }
+
+
+
 
 
 }

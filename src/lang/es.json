@@ -1,9 +1,11 @@
 {
+  "+---------------------- GENERAL --------------------+": "",
+
   "home": "Inicio",
   "map": "Mapa",
-  "chat": "Chat",
+  "chat": "Chat IA",
   "water_points": "Mostrar puntos de agua",
-  "green_spaces": "Mostrar espacios verdes",
+  "green_spaces": "Mostrar zonas verdes",
   "welcome": "Bienvenido a",
   "subtitle": "Descubre pueblos y lugares cerca de ti.",
   "search_placeholder": "Buscar...",
@@ -14,27 +16,30 @@
   "speak": "🎙️ Hablar",
   "speaking": "Escuchando...",
 
-  "select_city_first": "Por favor, seleccione una ciudad primero.",
-  "remove_verbs": "eliminar,borrar,ocultar",
-  "verbs": "mostrar,ver",
+  "select_city_first": "Por favor, selecciona primero una ciudad.",
+  "remove_verbs": "quitar,eliminar,ocultar",
+  "verbs": "mostrar,ver,enseñar",
   "city_verb": "buscar",
-  "ok_city": "Ok, te muestro {city}.",
+  "ok_city": "De acuerdo, mostrando {city}.",
   "not_found_city": "Lo siento, no encontré la ciudad \"{city}\".",
-  "show_prefix": "Te muestro:",
-  "missing_verb": "Por favor, use un verbo de acción entre: ",
+  "show_prefix": "Mostrando:",
+  "missing_verb": "Por favor introduce un verbo de acción entre: ",
   "not_understood": "No entendí tu solicitud.",
-  "show_map_first": "Por favor, muestra primero el mapa para usar ciudades o verbos de acción.",
-  "ask_question": "Ingrese su solicitud aquí.",
-  "text_slide_1": "Descubre todas las actividades que puedes hacer a tu alrededor.",
-  "text_slide_2": "Obtén toda la información sobre actividades/lugares interesantes para ti.",
+  "show_map_first": "Por favor abre el mapa antes de usar ciudades o verbos de acción.",
+  "ask_question": "Introduce tu solicitud aquí.",
+  "text_slide_1": "Descubre todas las actividades posibles a tu alrededor.",
+  "text_slide_2": "Obtén toda la información sobre actividades y lugares de interés para ti.",
   "text_slide_3": "Un asistente de voz está disponible para ayudarte en tus búsquedas.",
+
+
+  "+---------------------- ITINERAIRE --------------------+": "",
 
   "routed_car": "Coche",
   "routed_foot": "A pie",
   "routed_bike": "Bicicleta",
 
-  "route_start": "Itinerario",
-  "route_cancel": "Cancelar Itinerario",
+  "route_start": "Ruta",
+  "route_cancel": "Cancelar ruta",
   "show_steps": "Ver pasos",
   "hide_steps": "Ocultar pasos",
   "route_details": "Detalles de la ruta",
@@ -52,14 +57,14 @@
   "maneuver_arrive": "Llegada",
   "maneuver_turn": "Girar",
   "maneuver_new name": "Continuar",
-  "maneuver_merge": "Incorporarse",
+  "maneuver_merge": "Unirse",
   "maneuver_on ramp": "Tomar la rampa",
   "maneuver_off ramp": "Salir de la rampa",
-  "maneuver_fork": "Bifurcación",
-  "maneuver_end of road": "Fin de la carretera",
+  "maneuver_fork": "Bifurcar",
+  "maneuver_end of road": "Fin del camino",
   "maneuver_roundabout": "Rotonda",
   "maneuver_rotary": "Rotonda",
-  "maneuver_exit rotary": "Salida de rotonda",
+  "maneuver_exit rotary": "Salir de la rotonda",
   "maneuver_roundabout turn": "Girar en la rotonda",
   "maneuver_notification": "Notificación",
 
@@ -69,28 +74,77 @@
   "modifier_sharp left": "giro brusco a la izquierda",
   "modifier_slight right": "ligeramente a la derecha",
   "modifier_slight left": "ligeramente a la izquierda",
-  "modifier_u turn": "media vuelta",
-  "modifier_straight": "todo recto",
+  "modifier_u turn": "dar la vuelta",
+  "modifier_straight": "recto",
 
+  "go_here": "Ir aquí",
+
+  "+---------------------- INFORMATIONS --------------------+": "",
   "phone": "Teléfono",
   "hours": "Horario",
   "type": "Tipo",
-
-  "religion": "Religión",
-
-  "church": "Iglesia",
-  "restaurant": "Restaurante",
-  "green_space": "Espacio verde",
-  "water": "Punto de agua",
-  "position": "Tu posición",
-
-
-  "denomination": "Denominación",
-  "building": "Edificio",
   "address": "Dirección",
   "email": "Correo electrónico",
   "website": "Sitio web",
-  "service_times": "Horarios",
-  "cluster_churches": "Número de iglesias en este grupo"
+  "service_times": "Horario",
 
+  "hotel": "Hotel",
+  "church": "Iglesia",
+  "restaurant": "Restaurante",
+  "green_space": "Zona verde",
+  "water": "Punto de agua",
+  "position": "Tu ubicación",
+  "openingHours": "Horario de apertura",
+
+
+  "+---------------------- EGLISES --------------------+": "",
+
+  "religion": "Religión",
+  "cluster_churches": "Número de iglesias en este grupo",
+
+
+  "+---------------------- HOTELS --------------------+": "",
+
+  "denomination": "Denominación",
+  "building": "Edificio",
+  "stars": "Estrellas",
+
+
+  "+---------------------- ALIMENTAIRE --------------------+": "",
+
+  "cluster_alimentaire": "Tiendas de alimentos en este grupo",
+  "alimentaire": "Tienda de alimentos",
+
+  "brand": "Marca",
+  "delivery": "Entrega a domicilio",
+  "takeaway": "Para llevar",
+
+  "bakery": "Panaderías",
+  "butcher": "Carnicerías",
+  "greengrocer": "Fruterías",
+  "supermarket": "Supermercados",
+  "convenience": "Tiendas de conveniencia",
+  "kiosk": "Quioscos",
+  "cafe": "Cafés",
+  "tea": "Salones de té",
+  "fast_food": "Comidas rápidas",
+  "pub": "Pubs",
+  "bar": "Bares",
+  "food_court": "Zonas de comida",
+  "ice_cream": "Heladerías",
+  "chocolate": "Chocolaterías",
+  "confectionery": "Dulcerías",
+  "wine": "Vinotecas",
+  "beer": "Tiendas de cervezas",
+  "spirits": "Licorerías",
+  "deli": "Charcuterías",
+  "cheese": "Queserías",
+  "seafood": "Pescaderías",
+  "pastry": "Pastelerías",
+  "honey": "Mielerías",
+  "organic": "Tiendas orgánicas",
+  "spices": "Tiendas de especias",
+  "pasta": "Tiendas de pasta",
+
+  "number_cluster": "Número de {type}: {count}"
 }

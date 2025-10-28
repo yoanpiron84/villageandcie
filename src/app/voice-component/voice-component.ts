@@ -158,13 +158,19 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /** Détecte l’action correspondant au texte reconnu */
-  private detectAction(text: string): string | null {
+  private detectAction(text: string): { action: string, word: string } | null {
     text = text.toLowerCase();
     for (const action in this.wordMap) {
-      if (this.wordMap[action].some(word => text.includes(word))) {
-        return action; // retourne action standardisée
+      // Trier les mots par longueur décroissante
+      const wordsSorted = [...this.wordMap[action]].sort((a, b) => b.length - a.length);
+
+      for (const word of wordsSorted) {
+        if (text.includes(word)) {
+          return { action, word };
+        }
       }
     }
+
     return null;
   }
 
@@ -431,9 +437,9 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
                 let methodName: string | undefined;
 
                 if (hasVerb) {
-                  methodName = 'show' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+                  methodName = 'show' + detectedAction.action.charAt(0).toUpperCase() + detectedAction.action.slice(1);
                 } else if (hasRemoveVerb) {
-                  methodName = 'hide' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+                  methodName = 'hide' + detectedAction.action.charAt(0).toUpperCase() + detectedAction.action.slice(1);
                 }
 
                 if (methodName && this.mapComponent && typeof (this.mapComponent as any)[methodName] === 'function') {
@@ -563,13 +569,39 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
     let methodName: string | undefined;
     if (hasVerb) {
-      methodName = 'show' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+      methodName = 'show' + detectedAction.action.charAt(0).toUpperCase() + detectedAction.action.slice(1);
     } else if (hasRemoveVerb) {
-      methodName = 'hide' + detectedAction.charAt(0).toUpperCase() + detectedAction.slice(1);
+      methodName = 'hide' + detectedAction.action.charAt(0).toUpperCase() + detectedAction.action.slice(1);
     }
 
     if (methodName && this.mapComponent && typeof (this.mapComponent.layerService as any)[methodName] === 'function') {
-      (this.mapComponent.layerService as any)[methodName]();
+
+      switch (methodName) {
+        case 'showAlimentaire':
+          const word = (detectedAction.word || 'alimentaire').toLowerCase();
+          const shopMapLang = (environment.shopTagMap as any)[this.currentLanguage]; // cast any pour TS
+          const safeWord = shopMapLang && shopMapLang[word] ? shopMapLang[word] : 'alimentaire'; // fallback si mot absent
+
+          (this.mapComponent.layerService as any)[methodName](safeWord, this.currentLanguage, true);
+          break;
+
+        case 'hideAlimentaire': {
+          const word = (detectedAction.word || 'alimentaire').toLowerCase();
+          const shopMapLang = (environment.shopTagMap as any)[this.currentLanguage];
+          const safeWord = shopMapLang && shopMapLang[word] ? shopMapLang[word] : 'alimentaire';
+
+          // Appel la méthode dédiée au masquage d’une sous-couche
+          this.mapComponent.layerService.hideAlimentaire(safeWord);
+          break;
+        }
+
+        default:
+          (this.mapComponent.layerService as any)[methodName]();
+          break;
+      }
+
+
+
 
       // Si c'est un "show", on garde lastAction
       if (hasVerb) {
