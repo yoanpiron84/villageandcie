@@ -90,6 +90,14 @@
   z-index: 2;
 }
 
+.main-wrapper {
+  margin-left: 80px; /* pour le décalage de la sidebar */
+  height: 100vh;
+  width: calc(100% - 80px);
+  position: relative;
+}
+
+
 /* Header */
 .header-section {
   text-align: center;
@@ -301,6 +309,156 @@
 .carousel-btn.next { right: 10px; }
 
 .carousel-btn:hover { background-color: rgba(0,0,0,0.7); }
+
+
+// FORMULAIRES AUTH0
+/* Container général */
+.login-form, .reset-form {
+  display: flex;
+  flex-direction: column;
+  width: 350px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Titres */
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+h5 {
+  text-align: center;
+  color: #34495e;
+  margin-bottom: 1.5rem;
+}
+
+/* Inputs */
+input {
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: 0.2s border-color;
+}
+
+input:focus {
+  border-color: #2980b9;
+  outline: none;
+}
+
+/* Boutons */
+button {
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-bottom: 0.8rem;
+  cursor: pointer;
+  transition: 0.2s background-color;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Bouton login classique */
+button[type="submit"] {
+  background-color: #27ae60;
+  color: #fff;
+  border: none;
+}
+
+button[type="submit"]:hover {
+  background-color: #219150;
+}
+
+/* Bouton Google */
+.btn-google {
+  background-color: #db4437;
+  color: #fff;
+  border: none;
+}
+
+.btn-google:hover {
+  background-color: #c1351d;
+}
+
+/* Bouton annuler reset password */
+button.cancel-btn {
+  background-color: #7f8c8d;
+  color: #fff;
+  border: none;
+}
+
+button.cancel-btn:hover {
+  background-color: #606d73;
+}
+
+/* Texte mot de passe oublié et toggle */
+.forgot, #login-signup-msg, #link-signup-login {
+  font-size: 0.9rem;
+  color: #2980b9;
+  cursor: pointer;
+  text-align: center;
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.forgot:hover, #link-signup-login:hover {
+  text-decoration: underline;
+}
+
+/* Message d’erreur */
+#error-message {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* État connecté */
+.logged-in {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.logged-in p {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.logged-in button {
+  background-color: #c0392b;
+  color: #fff;
+  border: none;
+}
+
+.logged-in button:hover {
+  background-color: #922b21;
+}
+
+/* Icône Déconnexion */
+#logout-btn .menu-icon {
+  color: #f44336;
+  transition: color 0.3s, transform 0.2s;
+}
+
+#logout-btn:hover .menu-icon {
+  color: #ff7961; /* plus clair au survol */
+  transform: scale(1.2);
+}
+
+
+
 
 /* ===== MOBILE (<600px) ===== */
 @media (max-width: 599px) {

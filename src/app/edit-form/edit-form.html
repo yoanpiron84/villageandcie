@@ -1,0 +1,59 @@
+<div class="modal-backdrop">
+  <div class="modal">
+    <h3>Modifier la feature</h3>
+
+    <!-- Nom principal -->
+    <div class="form-group">
+      <label for="name">Nom :</label>
+      <input id="name" type="text" [(ngModel)]="featureName" />
+    </div>
+
+    <!-- Tags existants -->
+    <div class="tags-list" *ngIf="tagKeys.length">
+      <h4>Tags existants :</h4>
+      <ul>
+        <li *ngFor="let key of tagKeys">
+          <label [for]="key">{{ key }} :</label>
+          <input
+            [id]="key"
+            [type]="getInputType(tags[key])"
+            [(ngModel)]="tags[key]"
+          />
+        </li>
+      </ul>
+    </div>
+
+    <!-- Ajouter un nouveau tag -->
+    <div class="add-tag-section">
+      <h4>Ajouter un nouveau tag</h4>
+
+      <div class="form-group">
+        <label for="newKey">Clé :</label>
+        <input id="newKey" type="text" [(ngModel)]="newKey" placeholder="ex: opening_hours" />
+      </div>
+
+      <div class="form-group">
+        <label for="newType">Type :</label>
+        <select id="newType" [(ngModel)]="newType">
+          <option value="text">Texte</option>
+          <option value="number">Numéro</option>
+          <option value="date">Date</option>
+          <option value="time">Heure</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="newValue">Valeur :</label>
+        <input id="newValue" [type]="newType" [(ngModel)]="newValue" />
+      </div>
+
+      <button (click)="addTag()">Ajouter le tag</button>
+    </div>
+
+    <!-- Boutons -->
+    <div class="modal-buttons">
+      <button (click)="confirm()">OK</button>
+      <button (click)="cancelEdit()">Annuler</button>
+    </div>
+  </div>
+</div>

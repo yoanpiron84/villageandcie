@@ -1,0 +1,85 @@
+<div class="profile-page">
+  <div class="profile-card">
+
+    <!-- PHOTO -->
+    <div class="profile-img-wrapper" [class.editing]="editingName">
+      <img
+        [src]="editingName ? tempPhoto || 'images/avatar-default.png' : userService.userSignal()?.picture || 'images/avatar-default.png'"
+        alt="Photo de profil"
+        class="profile-img"
+      />
+
+
+      <!-- Upload icon visible seulement en édition -->
+      <label *ngIf="editingName" class="upload-icon" [attr.aria-label]="translations['edit']">
+        <input type="file" (change)="onPhotoChange($event)" hidden />
+        &#8682;
+      </label>
+    </div>
+
+    <!-- NOM -->
+    <div class="profile-name">
+      <ng-container *ngIf="!editingName; else editNameTemplate">
+        <h2>{{ userService.userSignal()?.name || translations['profile_default_name'] }}</h2>
+
+        <button type="button" class="edit-btn" (click)="toggleEditName()">
+          {{ translations['edit'] }}
+        </button>
+      </ng-container>
+
+      <ng-template #editNameTemplate>
+        <input
+          [(ngModel)]="editedName"
+          [placeholder]="translations['edit_username_placeholder']"
+          [attr.aria-label]="translations['edit_username_placeholder']"
+        />
+        <div class="edit-buttons">
+          <button type="button" class="save-btn" (click)="saveChanges()">
+            {{ translations['save'] }}
+          </button>
+          <button type="button" class="cancel-btn" (click)="cancelEdit()">
+            {{ translations['cancel'] }}
+          </button>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- DETAILS UTILISATEUR -->
+    <ng-container *ngIf="userService.userSignal() as user">
+      <div class="profile-details">
+
+        <div class="detail-row">
+          <strong>{{ translations['email'] }} :</strong>
+          <span>{{ user.email || '-' }}</span>
+        </div>
+
+        <div class="detail-row">
+          <strong>{{ translations['email_verified'] }} :</strong>
+          <span>{{ user.email_verified ? translations['yes'] : translations['no'] }}</span>
+        </div>
+
+        <div class="detail-row">
+          <strong>{{ translations['logins_count'] }} :</strong>
+          <span>{{ user.logins_count ?? 0 }}</span>
+        </div>
+
+        <div class="detail-row">
+          <strong>{{ translations['account_created'] }} :</strong>
+          <span>{{ normalizeDate(user.created_at) | date:'short' }}</span>
+        </div>
+
+        <div class="detail-row">
+          <strong>{{ translations['last_connection'] }} :</strong>
+          <span>{{ normalizeDate(user.updated_at) | date:'short' }}</span>
+        </div>
+
+        <div class="detail-row">
+          <strong>{{ translations['language'] }} :</strong>
+          <span>{{ user.locale || 'fr' }}</span>
+        </div>
+
+      </div>
+    </ng-container>
+
+  </div>
+</div>

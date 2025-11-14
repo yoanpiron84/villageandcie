@@ -6,7 +6,8 @@
   "chat": "Chat IA",
   "water_points": "Mostrar puntos de agua",
   "green_spaces": "Mostrar zonas verdes",
-  "welcome": "Bienvenido a",
+  "welcome": "Bienvenido",
+  "discover_welcome": "Descubre pueblos y lugares cerca de ti.",
   "subtitle": "Descubre pueblos y lugares cerca de ti.",
   "search_placeholder": "Buscar...",
   "satellite": "Satélite",
@@ -15,6 +16,8 @@
   "type_message": "Escribe tu solicitud aquí",
   "speak": "🎙️ Hablar",
   "speaking": "Escuchando...",
+  "disconnect": "Cerrar sesión",
+  "profile": "Perfil",
 
   "select_city_first": "Por favor, selecciona primero una ciudad.",
   "remove_verbs": "quitar,eliminar,ocultar",
@@ -146,5 +149,22 @@
   "spices": "Tiendas de especias",
   "pasta": "Tiendas de pasta",
 
-  "number_cluster": "Número de {type}: {count}"
+  "number_cluster": "Número de {type}: {count}",
+
+  "+---------------------- PAGE PROFIL --------------------+": "",
+
+  "profile_title": "Perfil",
+  "edit": "Modificar",
+  "edit_username_placeholder": "Nombre de usuario",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+
+  "email_verified": "Correo verificado",
+  "logins_count": "Número de conexiones",
+  "account_created": "Cuenta creada el",
+  "last_connection": "Última conexión",
+  "language": "Idioma",
+
+  "yes": "Sí",
+  "no": "No"
 }

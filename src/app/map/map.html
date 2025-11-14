@@ -145,4 +145,14 @@
     </div>
 
   </div>
+
 }
+
+<app-edit-form
+  *ngIf="interactionService.showModal"
+  [name]="interactionService.modalName"
+  [tags]="interactionService.modalTags"
+  (ok)="onModalOk($event)"
+  (cancel)="onModalCancel()">
+</app-edit-form>
+

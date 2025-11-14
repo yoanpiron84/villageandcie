@@ -14,6 +14,8 @@ import {debounceTime, Subscription} from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import {DecimalPipe, NgClass, NgForOf, NgIf, SlicePipe, TitleCasePipe} from '@angular/common';
 import Overlay from 'ol/Overlay';
+import {Geometry} from 'ol/geom';
+import {EditFormComponent} from '../edit-form/edit-form';
 
 @Component({
   selector: 'app-map',
@@ -26,7 +28,8 @@ import Overlay from 'ol/Overlay';
     NgForOf,
     NgClass,
     TitleCasePipe,
-    SlicePipe
+    SlicePipe,
+    EditFormComponent
   ],
   styleUrls: ['./map.scss']
 })
@@ -218,6 +221,27 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
     this.searchService.showDropdown = false;
     this.layerService.updateCoordsForCity(result);
     this.layerService.zoomToResult(result);
+  }
+
+  // MODAL EDIT
+
+  onFeatureClick(feature: Feature<Geometry>) {
+    this.interactionService.selectedFeature = feature;
+    this.interactionService.modalName = feature.get('tags')?.name || '';
+    this.interactionService.modalTags = feature.get('tags') || {};
+    this.interactionService.showModal = true;
+  }
+
+  onModalOk(event: { name: string }) {
+    if (this.interactionService.selectedFeature) {
+      const tags = { ...this.interactionService.selectedFeature.get('tags'), name: event.name };
+      this.interactionService.selectedFeature.set('tags', tags);
+    }
+    this.interactionService.showModal = false;
+  }
+
+  onModalCancel() {
+    this.interactionService.showModal = false;
   }
 
 

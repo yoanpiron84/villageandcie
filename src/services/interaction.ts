@@ -1,4 +1,13 @@
-import {inject, Inject, Injectable, Input} from '@angular/core';
+import {
+  ApplicationRef,
+  ComponentRef,
+  createComponent,
+  EnvironmentInjector,
+  inject,
+  Inject,
+  Injectable,
+  Input
+} from '@angular/core';
 import { MapService } from './map';
 import { MapComponent } from '../app/map/map';
 import { fromLonLat, toLonLat } from 'ol/proj';
@@ -11,12 +20,16 @@ import {Observable, Subject} from 'rxjs';
 import {LayerService} from './layer';
 import {SearchService} from './search';
 import VectorLayer from 'ol/layer/Vector';
-import {Geometry} from 'ol/geom';
+import {Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon} from 'ol/geom';
 import Overlay from 'ol/Overlay';
 import { Map as OlMap } from 'ol';
 import {FeatureLike} from 'ol/Feature';
 import {RouteService} from './route';
 import {Cluster} from 'ol/source';
+import {Polygon} from 'leaflet';
+import {Extent, getCenter} from 'ol/extent';
+import {environment} from '../environnements/environnement';
+import {EditFormComponent} from '../app/edit-form/edit-form';
 
 @Injectable({ providedIn: 'root' })
 export class InteractionService {
@@ -43,48 +56,57 @@ export class InteractionService {
   };
 
   foodShopsConfig: Record<string, { label: string; fields?: string[] }> = {
-    bakery: { label: this.translations['bakery'] || 'Boulangerie', fields: ['speciality'] },
-    butcher: { label: this.translations['butcher'] || 'Boucherie', fields: ['meat', 'speciality'] },
-    greengrocer: { label: this.translations['greengrocer'] || 'Primeur', fields: ['fruits', 'vegetables'] },
-    supermarket: { label: this.translations['supermarket'] || 'Supermarché', fields: ['aisles'] },
-    convenience: { label: this.translations['convenience'] || 'Supérette' },
-    kiosk: { label: this.translations['kiosk'] || 'Kiosque' },
-    cafe: { label: this.translations['cafe'] || 'Café' },
-    coffee_shop: { label: this.translations['coffee_shop'] || 'Coffee Shop' },
-    tea: { label: this.translations['tea'] || 'Salon de thé' },
-    restaurant: { label: this.translations['restaurant'] || 'Restaurant', fields: ['cuisine'] },
-    fast_food: { label: this.translations['fast_food'] || 'Fast Food', fields: ['cuisine'] },
-    pub: { label: this.translations['pub'] || 'Pub' },
-    bar: { label: this.translations['bar'] || 'Bar' },
-    food_court: { label: this.translations['food_court'] || 'Aire de restauration' },
-    ice_cream: { label: this.translations['ice_cream'] || 'Glacier', fields: ['flavors'] },
-    chocolate: { label: this.translations['chocolate'] || 'Chocolaterie', fields: ['speciality'] },
-    sweet_shop: { label: this.translations['sweet_shop'] || 'Confiserie', fields: ['speciality'] },
-    wine_shop: { label: this.translations['wine_shop'] || 'Caviste', fields: ['wines'] },
-    beer: { label: this.translations['beer'] || 'Magasin de bières', fields: ['beers'] },
-    spirits: { label: this.translations['spirits'] || 'Spiritueux', fields: ['spirits'] },
-    deli: { label: this.translations['deli'] || 'Épicerie fine', fields: ['speciality'] },
-    cheese: { label: this.translations['cheese'] || 'Fromagerie', fields: ['speciality'] },
-    seafood: { label: this.translations['seafood'] || 'Poissonnerie', fields: ['seafood'] },
-    bakery_shop: { label: this.translations['bakery_shop'] || 'Pâtisserie', fields: ['speciality'] },
-    juice_bar: { label: this.translations['juice_bar'] || 'Bar à jus', fields: ['juices'] },
-    milk: { label: this.translations['milk'] || 'Laiterie', fields: ['dairy'] },
-    honey: { label: this.translations['honey'] || 'Miel', fields: ['products'] },
-    organic: { label: this.translations['organic'] || 'Magasin bio', fields: ['products'] },
-    spices: { label: this.translations['spices'] || 'Épices', fields: ['products'] },
-    nuts: { label: this.translations['nuts'] || 'Noix et fruits secs', fields: ['products'] },
-    pasta: { label: this.translations['pasta'] || 'Pâtes', fields: ['products'] },
-    bakery_cafe: { label: this.translations['bakery_cafe'] || 'Boulangerie-Café', fields: ['speciality'] },
-    sandwich: { label: this.translations['sandwich'] || 'Sandwicherie', fields: ['ingredients'] },
-    salad: { label: this.translations['salad'] || 'Saladerie', fields: ['ingredients'] },
-    butcher_shop: { label: this.translations['butcher_shop'] || 'Charcuterie', fields: ['meat', 'speciality'] },
-    dessert: { label: this.translations['dessert'] || 'Desserts', fields: ['speciality'] },
-    yogurt: { label: this.translations['yogurt'] || 'Yaourterie', fields: ['flavors'] },
-    ice_cream_parlor: { label: this.translations['ice_cream_parlor'] || 'Crèmerie', fields: ['flavors'] },
-    bakery_pastry: { label: this.translations['bakery_pastry'] || 'Boulangerie-Pâtisserie', fields: ['speciality'] },
+    bakery: {label: this.translations['bakery'] || 'Boulangerie', fields: ['speciality']},
+    butcher: {label: this.translations['butcher'] || 'Boucherie', fields: ['meat', 'speciality']},
+    greengrocer: {label: this.translations['greengrocer'] || 'Primeur', fields: ['fruits', 'vegetables']},
+    supermarket: {label: this.translations['supermarket'] || 'Supermarché', fields: ['aisles']},
+    convenience: {label: this.translations['convenience'] || 'Supérette'},
+    kiosk: {label: this.translations['kiosk'] || 'Kiosque'},
+    cafe: {label: this.translations['cafe'] || 'Café'},
+    coffee_shop: {label: this.translations['coffee_shop'] || 'Coffee Shop'},
+    tea: {label: this.translations['tea'] || 'Salon de thé'},
+    restaurant: {label: this.translations['restaurant'] || 'Restaurant', fields: ['cuisine']},
+    fast_food: {label: this.translations['fast_food'] || 'Fast Food', fields: ['cuisine']},
+    pub: {label: this.translations['pub'] || 'Pub'},
+    bar: {label: this.translations['bar'] || 'Bar'},
+    food_court: {label: this.translations['food_court'] || 'Aire de restauration'},
+    ice_cream: {label: this.translations['ice_cream'] || 'Glacier', fields: ['flavors']},
+    chocolate: {label: this.translations['chocolate'] || 'Chocolaterie', fields: ['speciality']},
+    sweet_shop: {label: this.translations['sweet_shop'] || 'Confiserie', fields: ['speciality']},
+    wine_shop: {label: this.translations['wine_shop'] || 'Caviste', fields: ['wines']},
+    beer: {label: this.translations['beer'] || 'Magasin de bières', fields: ['beers']},
+    spirits: {label: this.translations['spirits'] || 'Spiritueux', fields: ['spirits']},
+    deli: {label: this.translations['deli'] || 'Épicerie fine', fields: ['speciality']},
+    cheese: {label: this.translations['cheese'] || 'Fromagerie', fields: ['speciality']},
+    seafood: {label: this.translations['seafood'] || 'Poissonnerie', fields: ['seafood']},
+    bakery_shop: {label: this.translations['bakery_shop'] || 'Pâtisserie', fields: ['speciality']},
+    juice_bar: {label: this.translations['juice_bar'] || 'Bar à jus', fields: ['juices']},
+    milk: {label: this.translations['milk'] || 'Laiterie', fields: ['dairy']},
+    honey: {label: this.translations['honey'] || 'Miel', fields: ['products']},
+    organic: {label: this.translations['organic'] || 'Magasin bio', fields: ['products']},
+    spices: {label: this.translations['spices'] || 'Épices', fields: ['products']},
+    nuts: {label: this.translations['nuts'] || 'Noix et fruits secs', fields: ['products']},
+    pasta: {label: this.translations['pasta'] || 'Pâtes', fields: ['products']},
+    bakery_cafe: {label: this.translations['bakery_cafe'] || 'Boulangerie-Café', fields: ['speciality']},
+    sandwich: {label: this.translations['sandwich'] || 'Sandwicherie', fields: ['ingredients']},
+    salad: {label: this.translations['salad'] || 'Saladerie', fields: ['ingredients']},
+    butcher_shop: {label: this.translations['butcher_shop'] || 'Charcuterie', fields: ['meat', 'speciality']},
+    dessert: {label: this.translations['dessert'] || 'Desserts', fields: ['speciality']},
+    yogurt: {label: this.translations['yogurt'] || 'Yaourterie', fields: ['flavors']},
+    ice_cream_parlor: {label: this.translations['ice_cream_parlor'] || 'Crèmerie', fields: ['flavors']},
+    bakery_pastry: {label: this.translations['bakery_pastry'] || 'Boulangerie-Pâtisserie', fields: ['speciality']},
   };
 
-  constructor() {}
+  selectedFeature: Feature<Geometry> | null = null;
+  showModal = false;
+  modalName = '';
+  modalTags: Record<string, any> = {};
+
+  constructor(
+    private appRef: ApplicationRef,
+    http: HttpClient,
+    layerService: LayerService,
+    private envInjector: EnvironmentInjector) {}
 
   private readonly mapService = inject(MapService);
   private readonly http = inject(HttpClient);
@@ -120,7 +142,7 @@ export class InteractionService {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
 
-            this.userPosition = { lat, lon };
+            this.userPosition = {lat, lon};
             this.layerService.coords = `${lat},${lon}`;
 
             view.animate({
@@ -154,17 +176,17 @@ export class InteractionService {
   placePin(lon: number, lat: number) {
     const pinSource = this.mapService.pinLayer.getSource();
     pinSource?.clear();
-    const pin = new Feature({ geometry: new Point(fromLonLat([lon, lat])) });
-    pin.setStyle(new Style({ image: new Icon({ src: '/images/pin.png', scale: 0.1, anchor: [0.5, 1] }) }));
+    const pin = new Feature({geometry: new Point(fromLonLat([lon, lat]))});
+    pin.setStyle(new Style({image: new Icon({src: '/images/pin.png', scale: 0.1, anchor: [0.5, 1]})}));
     pinSource?.addFeature(pin);
-    this.userPosition = { lat, lon };
+    this.userPosition = {lat, lon};
     this.mapService.userPosition = this.userPosition;
 
     // Coordonnées exactes du pin
     this.routeService.updateRouteFromPin([lon, lat]);
   }
 
-  initTooltip(){
+  initTooltip() {
     // Création du tooltip
     this.tooltipEl = document.createElement('div');
     this.tooltipEl.className = 'tooltip-card';
@@ -195,6 +217,23 @@ export class InteractionService {
       ">${text}</button>`;
     };
 
+    const getEditButtonHTML = () => {
+      const text = this.translations['edit'] || 'Modifier';
+      return `<button class="btn-edit" style="
+        display:block;
+        margin:5px auto 0;
+        padding:6px 12px;
+        background-color:#4caf50;
+        color:#fff;
+        border:none;
+        border-radius:6px;
+        cursor:pointer;
+        font-weight:600;
+        pointer-events: auto;
+      ">${text}</button>`;
+    };
+
+
     this.tooltipLayerMap = {
       restaurantLayer: (feature) => {
         this.tooltipEl.className = 'tooltip-card';
@@ -212,6 +251,7 @@ export class InteractionService {
           ${type ? `<div class="field"><span class="label">${this.translations['type']}</span> <span class="value">${type}</span></div>` : ''}
           ${desc ? `<div class="desc">${desc}</div>` : ''}
           ${getGoButtonHTML()}
+          ${getEditButtonHTML()}
         `;
       },
       churchLayer: (feature) => {
@@ -259,14 +299,21 @@ export class InteractionService {
         }
 
         html += getGoButtonHTML();
+        html += getEditButtonHTML();
 
         return html;
-    },
+      },
       greenLayer: (feature) => {
         this.tooltipEl.className = 'tooltip-card';
         const tags = feature.get('tags') || {};
-        const type = tags.natural || tags.leisure || this.translations['green_space'];
-        return `<div class="title">${type}</div>${getGoButtonHTML()}`;
+        const name = tags.name || '';
+        const greenType = tags.type || tags.natural || tags.leisure || this.translations['green'];
+        return `
+          ${name ? `<div class="title">${name}</div>` : ''}
+          <div class="type">${greenType}</div>
+          ${getGoButtonHTML()}
+          ${getEditButtonHTML()}
+        `;
       },
       waterLayer: (feature) => {
         this.tooltipEl.className = 'tooltip-card';
@@ -278,6 +325,7 @@ export class InteractionService {
           ${name ? `<div class="title">${name}</div>` : ''}
           <div class="type">${waterType}</div>
           ${getGoButtonHTML()}
+          ${getEditButtonHTML()}
         `;
       },
       pinLayer: () => {
@@ -333,6 +381,7 @@ export class InteractionService {
 
         // 🔹 Bouton cohérent avec le reste
         html += getGoButtonHTML();
+        html += getEditButtonHTML();
 
         return html;
       }
@@ -390,9 +439,9 @@ export class InteractionService {
       }
 
       html += getGoButtonHTML();
+      html += getEditButtonHTML();
       return html;
     };
-
 
 
     if (this.mapService.alimentaireLayer) {
@@ -400,46 +449,6 @@ export class InteractionService {
         this.tooltipLayerMap[key] = (feature) => getFoodTooltipHTML(feature, key);
       });
     }
-
-    // Object.keys(this.mapService.alimentaireLayer).forEach(key => {
-    //   this.tooltipLayerMap[key] = (feature) => {
-    //     this.tooltipEl.className = 'tooltip-card';
-    //     const clusterFeatures = feature.get('features');
-    //     const f = clusterFeatures && clusterFeatures.length > 1 ? clusterFeatures[0] : feature;
-    //
-    //     const tags = f.get('tags') || {};
-    //     const name = tags.name || f.get('name') || this.translations[key] || 'Commerce alimentaire';
-    //     const shopType = tags.shop || tags['amenity'] || '';
-    //     const brand = tags.brand || '';
-    //     const address = [
-    //       tags['addr:housenumber'] || tags['contact:housenumber'],
-    //       tags['addr:street'] || tags['contact:street'],
-    //       tags['addr:postcode'] || tags['contact:postcode'],
-    //       tags['addr:city'] || tags['contact:city']
-    //     ].filter(Boolean).join(', ');
-    //
-    //     let html = `<div class="title">${name}</div>`;
-    //     const addField = (label: string, value?: string) => {
-    //       if (value) html += `<div class="field"><span class="label">${label}</span> <span class="value">${value}</span></div>`;
-    //     };
-    //
-    //     addField(this.translations['type'] || 'Type', shopType);
-    //     addField(this.translations['brand'] || 'Enseigne', brand);
-    //     addField(this.translations['address'] || 'Adresse', address);
-    //     addField(this.translations['phone'] || 'Téléphone', tags.phone || tags['contact:phone']);
-    //     addField(this.translations['email'] || 'Email', tags.email || tags['contact:email']);
-    //     addField(this.translations['website'] || 'Site web', tags.website || tags['contact:website']);
-    //     addField(this.translations['openingHours'] || 'Horaires d\'ouverture', tags.opening_hours);
-    //     addField(this.translations['delivery'] || 'Livraison', tags.delivery);
-    //     addField(this.translations['takeaway'] || 'À emporter', tags.takeaway);
-    //
-    //     html += `<button class="btn-go" style="display:block; margin:10px auto 0; padding:6px 12px; background-color:#1a73e8; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600; pointer-events: auto;">
-    //           ${this.translations['go_here'] || 'Y aller'}
-    //         </button>`;
-    //
-    //     return html;
-    //   };
-    // });
 
 
     // ===== Ajout du bouton "Y aller" et gestion du clic =====
@@ -466,6 +475,30 @@ export class InteractionService {
       }
     });
 
+    this.tooltipEl.addEventListener('click', (evt) => {
+      evt.stopPropagation();
+      let target = evt.target as HTMLElement;
+
+      while (target && target !== this.tooltipEl) {
+        if (target.classList.contains('btn-go')) {
+          if (!this.isLocalisationActive) this.toggleLocalisation(this.currentLanguage);
+          const geom = this.currentFeature?.getGeometry();
+          if (geom && geom.getType() === 'Point') {
+            const coords = (geom as Point).getCoordinates();
+            const lonLat = toLonLat(coords) as [number, number];
+            this.routeService.fetchRouteWithUserPosition(lonLat);
+          }
+          return;
+        }
+
+        if (target.classList.contains('btn-edit')) {
+          this.openEditForm(this.currentFeature!); // <-- fonction à créer
+          return;
+        }
+
+        target = target.parentElement as HTMLElement;
+      }
+    });
 
 
     const attachTooltipToLayers = (layers: Record<string, VectorLayer<VectorSource>>) => {
@@ -489,87 +522,42 @@ export class InteractionService {
         return (source as VectorSource).hasFeature(feature);
       };
 
-      const getLayerForFeature = (feature: Feature<Geometry>) => {
-        // Layers standards
-        for (const [name, layer] of Object.entries(layers)) {
-          if (layerHasFeature(layer, feature)) {
-            return name;
-          }
-        }
-
-        // Couches alimentaires
-        for (const [key, layer] of Object.entries(this.mapService.alimentaireLayer)) {
-          const source = layer.getSource();
-          const features = source?.getFeatures() || [];
-          for (const f of features) {
-            const inner = f.get('features') || [];
-            if (inner.includes(feature) || f === feature) {
-              return key;
-            }
-          }
-        }
-        return '';
-      };
-
-      const fillTooltip = (featureLike: FeatureLike) => {
-        if (featureLike instanceof Feature) {
-          const feature = featureLike as Feature<Geometry>;
-          const layerName = getLayerForFeature(feature);
-          if (layerName && this.tooltipLayerMap[layerName]) {
-            this.currentFeature = feature;
-            this.tooltipEl.innerHTML = this.tooltipLayerMap[layerName](feature);
-          }
-        }
-      };
-
-
-      // // Hover desktop
-      // this.mapService.map.on('pointermove', (evt) => {
-      //   if (evt.dragging) return;
-      //
-      //   const feature = this.mapService.map.forEachFeatureAtPixel(evt.pixel, f => f, {
-      //     layerFilter: (layer) => Object.values(layers).includes(layer as VectorLayer<VectorSource>)
-      //   });
-      //
-      //   if (feature) {
-      //     fillTooltip(feature);
-      //     if (!isHoveringTooltip) {
-      //       this.tooltipOverlay.setPosition(evt.coordinate);
-      //     }
-      //     this.tooltipEl.style.display = 'block';
-      //   } else {
-      //     if (!isHoveringTooltip) {
-      //       // Disparaît seulement si la souris n'est pas sur le tooltip
-      //       this.tooltipEl.style.display = 'none';
-      //       this.tooltipOverlay.setPosition(undefined);
+      // const getLayerForFeature = (feature: Feature<Geometry>) => {
+      //   // Layers standards
+      //   for (const [name, layer] of Object.entries(layers)) {
+      //     if (layerHasFeature(layer, feature)) {
+      //       return name;
       //     }
       //   }
       //
-      //   // Si on est dans le tooltip, maintenir la position figée
-      //   if (isHoveringTooltip && tooltipFixedCoordinate) {
-      //     this.tooltipOverlay.setPosition(tooltipFixedCoordinate);
+      //   // Couches alimentaires
+      //   for (const [key, layer] of Object.entries(this.mapService.alimentaireLayer)) {
+      //     const source = layer.getSource();
+      //     const features = source?.getFeatures() || [];
+      //     for (const f of features) {
+      //       const inner = f.get('features') || [];
+      //       if (inner.includes(feature) || f === feature) {
+      //         return key;
+      //       }
+      //     }
       //   }
-      //
-      // });
-
-
+      //   return '';
+      // };
 
       // Tap/click mobile
       this.mapService.map.on('click', (evt) => {
-        // const feature = this.mapService.map.forEachFeatureAtPixel(evt.pixel, f => f, {
-        //   layerFilter: (layer) => Object.values(layers).includes(layer as VectorLayer<VectorSource>)
-        // });
-
         const feature = this.mapService.map.forEachFeatureAtPixel(evt.pixel, f => f);
 
         if (feature) {
-          fillTooltip(feature);
+          this.fillTooltip(feature);
           this.tooltipOverlay.setPosition(evt.coordinate);
           this.tooltipEl.style.display = 'block';
         } else {
           this.tooltipEl.style.display = 'none';
         }
       });
+
+
     };
 
 // Exemple d’utilisation
@@ -583,6 +571,55 @@ export class InteractionService {
       ...this.mapService.alimentaireLayer
     });
   }
+
+  private fillTooltip(featureLike: FeatureLike) {
+    if (!(featureLike instanceof Feature)) return;
+    const feature = featureLike as Feature<Geometry>;
+
+    const geom = feature.getGeometry();
+    if (!geom) return;
+
+    const center = getCenter(geom.getExtent());
+    const [lon, lat] = toLonLat(center);
+    const key = `${lon}_${lat}`;
+
+    // récupérer tags modifiés si existants
+    const tags = this.layerService.customTagsMap.get(key) || feature.get('tags') || {};
+    feature.set('tags', tags);
+
+    const allLayers = {
+      restaurantLayer: this.mapService.restaurantLayer,
+      greenLayer: this.mapService.greenLayer,
+      waterLayer: this.mapService.waterLayer,
+      churchLayer: this.mapService.churchLayer,
+      pinLayer: this.mapService.pinLayer,
+      hotelLayer: this.mapService.hotelLayer,
+      ...this.mapService.alimentaireLayer
+    };
+
+    const getLayerForFeature = (feature: Feature<Geometry>) => {
+      for (const [name, layer] of Object.entries(allLayers)) {
+        const source = layer.getSource();
+        if (!source) continue;
+
+        const features = source.getFeatures();
+        for (const f of features) {
+          const inner = f.get('features') || [];
+          if (inner.includes(feature) || f === feature) {
+            return name;
+          }
+        }
+      }
+      return '';
+    };
+
+    const layerName = getLayerForFeature(feature);
+    if (layerName && this.tooltipLayerMap[layerName]) {
+      this.currentFeature = feature;
+      this.tooltipEl.innerHTML = this.tooltipLayerMap[layerName](feature);
+    }
+  }
+
 
   // Mise à jour des traductions et rafraîchissement du tooltip si visible
   updateTranslations(translations: Record<string, string>) {
@@ -604,6 +641,101 @@ export class InteractionService {
     }
   }
 
+  openEditForm(feature: Feature<Geometry>) {
+    const realFeature = (feature.get('features')?.[0]) || feature;
+    const props = realFeature.getProperties() as { type?: string; tags?: any };
+    const oldTags = props.tags || {};
+    const type = props.type || 'unknown';
 
+    // 1️⃣ Créer dynamiquement le composant EditFormComponent
+    const componentRef: ComponentRef<EditFormComponent> = createComponent(EditFormComponent, {
+      environmentInjector: this.envInjector,  // <-- utiliser environmentInjector
+    });
+
+    // 2️⃣ Initialiser ses inputs
+    componentRef.instance.name = oldTags.name || '';
+    componentRef.instance.tags = oldTags;
+
+    // 3️⃣ Événements ok / cancel
+    const subOk = componentRef.instance.ok.subscribe(event => {
+      const newName = event.name;
+      const newTags = event.tags; // ✅ tags à jour
+
+      realFeature.setProperties({ ...props, tags: newTags });
+
+      const geom = realFeature.getGeometry();
+      if (!geom) return;
+      const centerXY = getCenter(geom.getExtent());
+      const [lon, lat] = toLonLat(centerXY);
+
+      let collection = type.toLowerCase();
+      if (collection === 'alimentaire') {
+        const tagType = (newTags['shop'] || newTags['amenity'] || '').toLowerCase();
+        if (tagType && tagType in environment.iconMap) collection = tagType;
+      }
+      if (!collection.endsWith('s')) collection += 's';
+
+      this.http.post(`http://localhost:3000/nodejs/entity/${collection}`, {
+        _id: `${lat}_${lon}`,
+        type,
+        name: newName,
+        coords: { lat, lon },
+        tags: newTags
+      }).subscribe({
+        next: () => {
+          const key = `${lat}_${lon}`;
+          this.layerService.customTagsMap.set(key, newTags);
+          this.fillTooltip(realFeature);
+        },
+        error: (err) => {
+          console.error(`Erreur lors de l'enregistrement dans ${collection}:`, err);
+          alert(`Erreur lors de l'enregistrement dans ${collection}`);
+        }
+      });
+
+      subOk.unsubscribe();
+      subCancel.unsubscribe();
+      this.appRef.detachView(componentRef.hostView);
+      componentRef.destroy();
+    });
+
+
+    const subCancel = componentRef.instance.cancel.subscribe(() => {
+      subOk.unsubscribe();
+      subCancel.unsubscribe();
+      this.appRef.detachView(componentRef.hostView);
+      componentRef.destroy();
+    });
+
+    // 4️⃣ Ajouter au DOM
+    this.appRef.attachView(componentRef.hostView);
+    const domElem = (componentRef.hostView as any).rootNodes[0] as HTMLElement;
+    document.body.appendChild(domElem);
+  }
 
 }
+
+
+
+
+
+    //
+  //
+  //
+  //
+  // public getFeatureCenter(feature: Feature<Geometry>): [number, number] | null {
+  //   const geom = feature.getGeometry();
+  //   if (!geom) return null;
+  //
+  //   // Récupère le centre de l'extent (bounding box)
+  //   const extent = geom.getExtent();
+  //   const centerXY = getCenter(extent);
+  //
+  //   // Récupère le point le plus proche sur la géométrie
+  //   const closestPoint = geom.getClosestPoint(centerXY);
+  //
+  //   return toLonLat(closestPoint) as [number, number];
+  // }
+
+
+

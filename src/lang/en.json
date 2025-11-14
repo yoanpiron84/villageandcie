@@ -6,7 +6,8 @@
   "chat": "AI Chat",
   "water_points": "Show water points",
   "green_spaces": "Show green spaces",
-  "welcome": "Welcome to",
+  "welcome": "Welcome",
+  "discover_welcome": "Discover villages and places near you.",
   "subtitle": "Discover villages and places near you.",
   "search_placeholder": "Search...",
   "satellite": "Satellite",
@@ -15,6 +16,8 @@
   "type_message": "Type your request here",
   "speak": "🎙️ Speak",
   "speaking": "Listening...",
+  "disconnect": "Logout",
+  "profile": "Profile",
 
   "select_city_first": "Please select a city first.",
   "remove_verbs": "remove,delete,hide",
@@ -146,5 +149,22 @@
   "spices": "Spice Shops",
   "pasta": "Pasta Shops",
 
-  "number_cluster": "Number of {type}: {count}"
+  "number_cluster": "Number of {type}: {count}",
+
+  "+---------------------- PAGE PROFIL --------------------+": "",
+
+  "profile_title": "Profile",
+  "edit": "Edit",
+  "edit_username_placeholder": "Username",
+  "save": "Save",
+  "cancel": "Cancel",
+
+  "email_verified": "Email verified",
+  "logins_count": "Number of logins",
+  "account_created": "Account created on",
+  "last_connection": "Last connection",
+  "language": "Language",
+
+  "yes": "Yes",
+  "no": "No"
 }

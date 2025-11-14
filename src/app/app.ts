@@ -1,18 +1,29 @@
 // app.component.ts
-import {Component, SimpleChanges, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, effect, Input, Output, SimpleChanges, ViewChild} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { VoiceComponent } from './voice-component/voice-component';
 import { MapComponent } from './map/map';
-import { NgClass, NgForOf, NgIf } from '@angular/common';
+import {AsyncPipe, NgClass, NgForOf, NgIf} from '@angular/common';
+import {AuthService, User} from '@auth0/auth0-angular';
+import {BehaviorSubject, window} from 'rxjs';
+import {getWindow} from '../utils/getWindow';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {ProfileComponent} from './profile/profile';
+import {UserService} from '../services/user';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [VoiceComponent, MapComponent, NgIf, NgClass, NgForOf],
+  imports: [VoiceComponent, MapComponent, NgIf, NgClass, NgForOf, AsyncPipe, ReactiveFormsModule, ProfileComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
 export class AppComponent {
+
+  loginForm: FormGroup;
+  resetForm: FormGroup;
+  showResetForm = false;
+  resetSent = false;
 
   /*********************************************************************
 
@@ -20,8 +31,10 @@ export class AppComponent {
 
    *********************************************************************/
 
+  showHome = true;
   showChat = false;
   showMap = false;
+  showProfile = false;
   menuActive = false;
 
   currentLanguage: string = 'fr';
@@ -55,7 +68,68 @@ export class AppComponent {
 
   @ViewChild('mapRef') mapRef!: MapComponent;
 
-  constructor(private http: HttpClient) {}
+  @ViewChild('profile') profilComponent!: ProfileComponent;
+
+
+  // Auth0
+  user: any = null;
+
+  constructor(private http: HttpClient, public auth: AuthService, public userService: UserService, private fb: FormBuilder) {
+    this.loginForm = this.fb.group({
+      // email: ['', [Validators.required, Validators.email]],
+      // password: ['', Validators.required],
+    });
+
+    this.resetForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]]
+    });
+
+    effect(() => {
+      const locale = this.userService.userSignal()?.locale;
+      if (locale) {
+        this.currentLanguage = locale;
+        this.loadTranslations(this.currentLanguage);
+      }
+    });
+
+    this.auth.user$.subscribe(user => {
+      if (user?.sub) this.userService.fetchUser(user.sub);
+    });
+  }
+
+  login() {
+    const { email } = this.loginForm.value;
+    const { password } = this.loginForm.value;
+    this.auth.loginWithRedirect({
+      // authorizationParams: {
+      //   login_hint: email,
+      // },
+    })
+
+  }
+
+  loginWithGoogle() {
+    this.auth.loginWithRedirect({
+      authorizationParams: {
+        connection: 'google-oauth2',
+      },
+    });
+  }
+
+  resetPasswordSubmit() {
+    const { email } = this.resetForm.value;
+
+    // Ici tu appelles ton endpoint backend pour trigger Auth0 reset password email
+    this.http.post('http://localhost:3000/api/auth/reset-password', { email }).subscribe(() => {
+      this.resetSent = true;
+    }, err => {
+      console.error(err);
+    });
+  }
+
+  logout() {
+    this.auth.logout({ logoutParams: { returnTo: getWindow().location.origin } });
+  }
 
   /*********************************************************************
 
@@ -63,9 +137,22 @@ export class AppComponent {
 
    *********************************************************************/
 
+
   ngOnInit() {
-    this.loadTranslations(this.currentLanguage);
     this.startAutoSlide();
+
+    this.auth.isAuthenticated$.subscribe(isAuth => {
+      if (isAuth) {
+        console.log('✅ Session active restaurée');
+      } else {
+        console.log('🚫 Pas de session active');
+      }
+    });
+
+    this.auth.user$.subscribe(user => {
+      this.user = user;
+    });
+
   }
 
   ngOnChanges(){
@@ -86,25 +173,40 @@ export class AppComponent {
 
    *********************************************************************/
 
-  toggleChat() {
-    this.showChat = !this.showChat;
-    setTimeout(() => this.updateTexts(), 0);
-  }
+  toggleView(view: 'home' | 'map' | 'profile' | 'chat') {
+    if (view === 'chat') {
+      // Chat se superpose, donc on ne touche pas aux autres vues
+      this.showChat = !this.showChat;
+      return;
+    }
 
-  toggleMap() {
-    this.showMap = !this.showMap;
+    // On crée un mapping pour les vues principales
+    const mainViews: Record<'home' | 'map' | 'profile', boolean> = {
+      home: this.showHome,
+      map: this.showMap,
+      profile: this.showProfile
+    };
 
-    // Mettre à jour les textes une fois que la map est affichée
-    if (this.showMap) {
-      setTimeout(() => this.updateTexts(), 0);
+    if (mainViews[view]) {
+      // Si la vue est déjà ouverte, revenir sur Home
+      this.showHome = true;
+      this.showMap = false;
+      this.showProfile = false;
+    } else {
+      // Sinon activer la vue demandée et désactiver les autres
+      this.showHome = false;
+      this.showMap = false;
+      this.showProfile = false;
+
+      switch (view) {
+        case 'home': this.showHome = true; break;
+        case 'map': this.showMap = true; break;
+        case 'profile': this.showProfile = true; break;
+      }
     }
   }
 
-  toggleHome() {
-    this.showChat = false;
-    this.showMap = false;
-    setTimeout(() => this.updateTexts(), 0)
-  }
+
 
   toggleMenu() {
     this.menuActive = !this.menuActive;
@@ -124,43 +226,48 @@ export class AppComponent {
     this.currentLanguage = lang;
     this.showLanguageMenu = false;
     this.loadTranslations(lang);
+
+    const user = this.userService.userSignal();
+    if (user.sub) {
+      this.userService.updateLocale(user.sub, lang);
+    }
   }
 
   private loadTranslations(lang: string) {
     this.http.get<Record<string, string>>(`/lang/${lang}.json`)
       .subscribe(data => {
         this.translations = data;
-        this.updateTexts();
+        //this.updateTexts();
         this.updateSlides();
       });
   }
-
-  private updateTexts() {
-    setTimeout(() => {
-      // Menu
-      const homeText = document.querySelector('.home-text');
-      const mapText = document.querySelector('.map-text');
-      const chatText = document.querySelector('.chat-text');
-
-      if (homeText) homeText.textContent = this.translations['home'];
-      if (mapText) mapText.textContent = this.translations['map'];
-      if (chatText) chatText.textContent = this.translations['chat'];
-
-      // Header
-      const title = document.querySelector('.title .hide-small');
-      const subtitle = document.querySelector('.subtitle');
-
-      if (title) title.textContent = this.translations['welcome'];
-      if (subtitle) subtitle.textContent = this.translations['subtitle'];
-
-      // Boutons carte (seulement si la map est affichée)
-      const waterBtn = document.querySelector('.map-buttons button:nth-child(1)');
-      const greenBtn = document.querySelector('.map-buttons button:nth-child(2)');
-
-      if (waterBtn) waterBtn.textContent = this.translations['water_points'];
-      if (greenBtn) greenBtn.textContent = this.translations['green_spaces'];
-    });
-  }
+  //
+  // private updateTexts() {
+  //   setTimeout(() => {
+  //     // Menu
+  //     const homeText = document.querySelector('.home-text');
+  //     const mapText = document.querySelector('.map-text');
+  //     const chatText = document.querySelector('.chat-text');
+  //
+  //     if (homeText) homeText.textContent = this.translations['home'];
+  //     if (mapText) mapText.textContent = this.translations['map'];
+  //     if (chatText) chatText.textContent = this.translations['chat'];
+  //
+  //     // Header
+  //     const title = document.querySelector('.title .hide-small');
+  //     const subtitle = document.querySelector('.subtitle');
+  //
+  //     if (title) title.textContent = this.translations['welcome'];
+  //     if (subtitle) subtitle.textContent = this.translations['subtitle'];
+  //
+  //     // Boutons carte (seulement si la map est affichée)
+  //     const waterBtn = document.querySelector('.map-buttons button:nth-child(1)');
+  //     const greenBtn = document.querySelector('.map-buttons button:nth-child(2)');
+  //
+  //     if (waterBtn) waterBtn.textContent = this.translations['water_points'];
+  //     if (greenBtn) greenBtn.textContent = this.translations['green_spaces'];
+  //   });
+  // }
 
   /*********************************************************************
 
@@ -195,4 +302,6 @@ export class AppComponent {
     this.slides[2].text = this.translations['text_slide_3'];
   }
 
+  protected readonly window = window;
+  protected readonly getWindow = getWindow;
 }
