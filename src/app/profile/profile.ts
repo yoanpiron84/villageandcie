@@ -12,39 +12,17 @@ import { filter, take } from 'rxjs/operators';
   templateUrl: './profile.html',
   styleUrls: ['./profile.scss']
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent {
   editedName = '';
   tempPhoto = '';
   editingName = false;
   @Input() translations!: Record<string, string>;
-  @Input() currentLanguage!: string;
 
   constructor(public auth: AuthService, public userService: UserService) {
     effect(() => {
       const user = this.userService.userSignal();
       if (!this.editingName) this.editedName = user.name ?? '';
     });
-  }
-
-  ngOnInit() {
-    // 🔥 On récupère auth.user$ une seule fois et on fetch le profil backend
-    this.auth.user$
-      .pipe(
-        filter((u: any) => !!u?.sub),
-        take(1)
-      )
-      .subscribe({
-        next: (authUser: any) => {
-          const sub = authUser.sub as string;
-
-          // on stocke le sub dans le signal
-          this.userService.setSub(sub);
-
-          // puis on charge les données complètes depuis ton backend
-          this.userService.fetchUser(sub);
-        },
-        error: (err) => console.error('auth.user$ error', err)
-      });
   }
 
   toggleEditName() {

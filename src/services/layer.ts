@@ -16,6 +16,7 @@ import {environment} from '../environnements/environnement';
 import VectorLayer from 'ol/layer/Vector';
 import {Geometry} from 'ol/geom';
 import {getCenter} from 'ol/extent';
+import {LanguageService} from './language';
 
 interface CustomEntity {
   _id: string | number;
@@ -36,7 +37,6 @@ export class LayerService {
   public canApplyFilter = true;
   coords: string = '';
   @Input() translations: Record<string, string> = {};
-  @Input() currentLanguage: string = 'fr';
 
   layerLabels: Record<string, string> = {};
 
@@ -44,7 +44,7 @@ export class LayerService {
 
   customTagsMap = new Map<string, any>();
 
-  constructor(private mapService: MapService, private searchService: SearchService, private http: HttpClient) {}
+  constructor(private mapService: MapService, private searchService: SearchService, private http: HttpClient, private languageService: LanguageService) {}
 
   public initLayerLabels() {
     // labels généraux
@@ -57,7 +57,7 @@ export class LayerService {
     };
 
     // labels alimentaires dynamiques depuis environment
-    const lang = this.currentLanguage || 'fr';
+    const lang = this.languageService.currentLanguage || 'fr';
     const shopMap = environment.shopTagMap[lang];
     Object.entries(shopMap).forEach(([label, keyInternal]) => {
       const actionKey = `showAlimentaire('${keyInternal}')`;
@@ -84,7 +84,7 @@ export class LayerService {
       (this as any)[this.selectedLayerAction]();
     } else if (this.selectedLayerAction.startsWith("showAlimentaire(")){
       const param = this.selectedLayerAction.match(/\(([^)]+)\)/)?.[1]?.replace(/['"]/g, '') || 'alimentaire';
-      const lang = this.currentLanguage;
+      const lang = this.languageService.currentLanguage;
       this.showAlimentaire(param, lang, false);
     }
 

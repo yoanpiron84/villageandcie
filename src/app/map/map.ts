@@ -16,6 +16,7 @@ import {DecimalPipe, NgClass, NgForOf, NgIf, SlicePipe, TitleCasePipe} from '@an
 import Overlay from 'ol/Overlay';
 import {Geometry} from 'ol/geom';
 import {EditFormComponent} from '../edit-form/edit-form';
+import {LanguageService} from '../../services/language';
 
 @Component({
   selector: 'app-map',
@@ -36,7 +37,6 @@ import {EditFormComponent} from '../edit-form/edit-form';
 export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
   @Input() showMap: boolean = true;
   @Input() translations: Record<string, string> = {};
-  @Input() currentLanguage: string = 'fr';
 
   searchQuery: string = '';
   selectedMode: String = 'routed-car';
@@ -55,7 +55,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
     public searchService: SearchService,
     public routeService: RouteService,
     public layerService: LayerService,
-    public interactionService: InteractionService
+    public interactionService: InteractionService,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit(): void {
@@ -95,7 +96,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
     this.searchService.searchSubject.pipe(
       debounceTime(1000)
     ).subscribe(term => {
-      this.searchService.performSearch(term, this.currentLanguage);
+      this.searchService.performSearch(term, this.languageService.currentLanguage);
     });
   }
 
@@ -122,8 +123,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
     }
 
     // Gestion du changement de langue → recentrage
-    if (changes['currentLanguage'] && this.mapService.map) {
-      switch (this.currentLanguage) {
+    if (changes['this.languageService.currentLanguage'] && this.mapService.map) {
+      switch (this.languageService.currentLanguage) {
         case 'fr':
           this.newCenter = [2.2137, 46.2276]; // France
           break;

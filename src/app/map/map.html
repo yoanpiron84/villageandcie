@@ -109,7 +109,7 @@
 <!-- Localisation -->
 <button class="btn-localisation"
         [ngClass]="{'activetoinactive-localisation': interactionService.isLocalisationActive, 'inactivetoactive-localisation': !interactionService.isLocalisationActive}"
-        (click)="interactionService.toggleLocalisation(currentLanguage)">
+        (click)="interactionService.toggleLocalisation(this.languageService.currentLanguage)">
   {{ interactionService.isLocalisationActive ? 'Désactiver ma localisation' : 'Activer ma localisation' }}
 </button>
 

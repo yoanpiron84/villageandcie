@@ -10,6 +10,8 @@ import {getWindow} from '../utils/getWindow';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ProfileComponent} from './profile/profile';
 import {UserService} from '../services/user';
+import {filter, take} from 'rxjs/operators';
+import {LanguageService} from '../services/language';
 
 @Component({
   selector: 'app-root',
@@ -37,7 +39,6 @@ export class AppComponent {
   showProfile = false;
   menuActive = false;
 
-  currentLanguage: string = 'fr';
   showLanguageMenu = false;
 
   translations: Record<string, string> = {};
@@ -74,7 +75,7 @@ export class AppComponent {
   // Auth0
   user: any = null;
 
-  constructor(private http: HttpClient, public auth: AuthService, public userService: UserService, private fb: FormBuilder) {
+  constructor(private http: HttpClient, public auth: AuthService, public userService: UserService, private fb: FormBuilder, protected languageService: LanguageService) {
     this.loginForm = this.fb.group({
       // email: ['', [Validators.required, Validators.email]],
       // password: ['', Validators.required],
@@ -87,8 +88,8 @@ export class AppComponent {
     effect(() => {
       const locale = this.userService.userSignal()?.locale;
       if (locale) {
-        this.currentLanguage = locale;
-        this.loadTranslations(this.currentLanguage);
+        this.languageService.setLanguage(locale as 'fr' | 'en' | 'es');
+        this.loadTranslations(locale);
       }
     });
 
@@ -141,19 +142,37 @@ export class AppComponent {
   ngOnInit() {
     this.startAutoSlide();
 
-    this.auth.isAuthenticated$.subscribe(isAuth => {
-      if (isAuth) {
-        console.log('✅ Session active restaurée');
-      } else {
-        console.log('🚫 Pas de session active');
-      }
-    });
+    this.auth.isAuthenticated$
+      .pipe(take(1))
+      .subscribe(isAuth => {
+        if (isAuth) {
+          console.log('✅ Session active restaurée');
+        } else {
+          console.log('🚫 Pas de session active');
+        }
+      });
 
     this.auth.user$.subscribe(user => {
       this.user = user;
     });
 
+    this.auth.user$
+      .pipe(
+        filter((u: any) => !!u?.sub),
+        take(1)
+      )
+      .subscribe({
+        next: (authUser: any) => {
+          const sub = authUser.sub as string;
+
+          this.userService.setSub(sub);
+
+          this.userService.fetchUser(sub);
+        },
+        error: (err) => console.error('auth.user$ error', err)
+      });
   }
+
 
   ngOnChanges(){
   // if (changes['currentLanguage'] && !changes['currentLanguage'].firstChange) {
@@ -222,8 +241,8 @@ export class AppComponent {
 
    *********************************************************************/
 
-  changeLanguage(lang: string) {
-    this.currentLanguage = lang;
+  changeLanguage(lang: 'fr' | 'en' | 'es') {
+    this.languageService.setLanguage(lang);
     this.showLanguageMenu = false;
     this.loadTranslations(lang);
 

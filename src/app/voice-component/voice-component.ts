@@ -15,6 +15,7 @@ import {NgClass, NgForOf, NgIf, NgStyle} from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import ol from 'ol/dist/ol';
 import {environment} from '../../environnements/environnement';
+import {LanguageService} from '../../services/language';
 
 @Component({
   selector: 'app-voice',
@@ -33,7 +34,6 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @Input() mapComponent!: MapComponent;
   @Input() translations: Record<string, string> = {};
-  @Input() currentLanguage: string = 'en';
   @ViewChild('chatModal', { static: false }) chatModal!: ElementRef<HTMLDivElement>;
 
 
@@ -64,7 +64,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private wordMap: Record<string, string[]> = {}; // action => synonymes
 
-  constructor(private http: HttpClient, private ngZone: NgZone) {}
+  constructor(private http: HttpClient, private ngZone: NgZone, private languageService: LanguageService) {}
 
   /*********************************************************************
 
@@ -74,7 +74,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['currentLanguage'] && !changes['currentLanguage'].firstChange) {
-      this.loadWords(this.currentLanguage);
+      this.loadWords(this.languageService.currentLanguage);
     }
   }
 
@@ -83,7 +83,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       { user: 'ai', text: this.translations['ask_question'] || 'Entrez votre demande ici.' }
     ];
 
-    this.loadWords(this.currentLanguage);
+    this.loadWords(this.languageService.currentLanguage);
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ audio: true })
@@ -579,15 +579,15 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
       switch (methodName) {
         case 'showAlimentaire':
           const word = (detectedAction.word || 'alimentaire').toLowerCase();
-          const shopMapLang = (environment.shopTagMap as any)[this.currentLanguage]; // cast any pour TS
+          const shopMapLang = (environment.shopTagMap as any)[this.languageService.currentLanguage]; // cast any pour TS
           const safeWord = shopMapLang && shopMapLang[word] ? shopMapLang[word] : 'alimentaire'; // fallback si mot absent
 
-          (this.mapComponent.layerService as any)[methodName](safeWord, this.currentLanguage, true);
+          (this.mapComponent.layerService as any)[methodName](safeWord, this.languageService.currentLanguage, true);
           break;
 
         case 'hideAlimentaire': {
           const word = (detectedAction.word || 'alimentaire').toLowerCase();
-          const shopMapLang = (environment.shopTagMap as any)[this.currentLanguage];
+          const shopMapLang = (environment.shopTagMap as any)[this.languageService.currentLanguage];
           const safeWord = shopMapLang && shopMapLang[word] ? shopMapLang[word] : 'alimentaire';
 
           // Appel la méthode dédiée au masquage d’une sous-couche

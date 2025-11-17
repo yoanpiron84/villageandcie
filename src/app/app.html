@@ -49,8 +49,8 @@
     <!-- ✅ Sélecteur de langue intégré à la sidebar -->
     <div class="language-switcher">
       <button class="toggle-lang-btn" (click)="toggleLanguageMenu()">
-        <img [src]="'/images/flags/' + currentLanguage + '.png'"
-             [alt]="currentLanguage"
+        <img [src]="'/images/flags/' + languageService.currentLanguage + '.png'"
+             [alt]="languageService.currentLanguage"
              class="flag-icon">
       </button>
 
@@ -148,18 +148,18 @@
 
   @if (showMap){
     <div class="main-wrapper">
-      <app-map #mapRef [translations]="translations" [currentLanguage]="currentLanguage" [showMap]="showMap"></app-map>
+      <app-map #mapRef [translations]="translations" [showMap]="showMap"></app-map>
     </div>
   }
 
   <!-- Chat Flottant -->
   @if (showChat){
-    <app-voice [mapComponent]="mapRef" [translations]="translations" [currentLanguage]="currentLanguage"></app-voice>
+    <app-voice [mapComponent]="mapRef" [translations]="translations"></app-voice>
   }
 
   @if (showProfile){
     <div class="main-wrapper">
-      <app-profile #profile [translations]="translations" [currentLanguage]="currentLanguage"></app-profile>
+      <app-profile #profile [translations]="translations"></app-profile>
     </div>
   }
 

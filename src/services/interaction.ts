@@ -16,7 +16,7 @@ import Point from 'ol/geom/Point';
 import VectorSource from 'ol/source/Vector';
 import { Style, Icon, Circle as CircleStyle, Fill, Stroke } from 'ol/style';
 import { HttpClient } from '@angular/common/http';
-import {Observable, Subject} from 'rxjs';
+import {firstValueFrom, Observable, Subject} from 'rxjs';
 import {LayerService} from './layer';
 import {SearchService} from './search';
 import VectorLayer from 'ol/layer/Vector';
@@ -30,6 +30,8 @@ import {Polygon} from 'leaflet';
 import {Extent, getCenter} from 'ol/extent';
 import {environment} from '../environnements/environnement';
 import {EditFormComponent} from '../app/edit-form/edit-form';
+import {LanguageService} from './language';
+import {TranslationService} from './translation';
 
 @Injectable({ providedIn: 'root' })
 export class InteractionService {
@@ -44,10 +46,8 @@ export class InteractionService {
 
   private tooltipEl!: HTMLDivElement;
   private tooltipOverlay!: Overlay;
-  private tooltipLayerMap!: Record<string, (feature: Feature) => string>;
+  private tooltipLayerMap!: Record<string, (feature: Feature<Geometry>) => Promise<string>>;
   private currentFeature: Feature<Geometry> | null = null;
-
-  @Input() currentLanguage: string = 'fr';
 
   countryCenters: Record<string, [number, number]> = {
     fr: [2.2137, 46.2276],    // France
@@ -106,7 +106,31 @@ export class InteractionService {
     private appRef: ApplicationRef,
     http: HttpClient,
     layerService: LayerService,
-    private envInjector: EnvironmentInjector) {}
+    private envInjector: EnvironmentInjector,
+    private languageService: LanguageService,
+    private translationService: TranslationService) {}
+
+  private async updateTooltipContent() {
+    if (!this.currentFeature) return;
+
+    const allLayers: Record<string, VectorLayer<VectorSource>> = {
+      restaurantLayer: this.mapService.restaurantLayer,
+      greenLayer: this.mapService.greenLayer,
+      waterLayer: this.mapService.waterLayer,
+      churchLayer: this.mapService.churchLayer,
+      pinLayer: this.mapService.pinLayer,
+      hotelLayer: this.mapService.hotelLayer,
+      ...this.mapService.alimentaireLayer
+    };
+
+    const layerName = Object.keys(allLayers).find(name =>
+      allLayers[name].getSource()?.hasFeature(this.currentFeature!)
+    );
+
+    if (layerName && this.tooltipLayerMap[layerName]) {
+      this.tooltipEl.innerHTML = await this.tooltipLayerMap[layerName](this.currentFeature!);
+    }
+  }
 
   private readonly mapService = inject(MapService);
   private readonly http = inject(HttpClient);
@@ -235,182 +259,154 @@ export class InteractionService {
 
 
     this.tooltipLayerMap = {
-      restaurantLayer: (feature) => {
+      restaurantLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
         const tags = feature.get('tags') || {};
+
         const name = tags.name || feature.get('name') || 'Restaurant';
-        const phone = tags.phone || tags['contact:phone'] || '';
-        const hours = tags.opening_hours || '';
-        const type = tags.cuisine || '';
-        const desc = tags.description || '';
-
-        return `
-          <div class="title">${name}</div>
-          ${phone ? `<div class="field"><span class="label">${this.translations['phone']}</span> <span class="value">${phone}</span></div>` : ''}
-          ${hours ? `<div class="field"><span class="label">${this.translations['hours']}</span> <span class="value">${hours}</span></div>` : ''}
-          ${type ? `<div class="field"><span class="label">${this.translations['type']}</span> <span class="value">${type}</span></div>` : ''}
-          ${desc ? `<div class="desc">${desc}</div>` : ''}
-          ${getGoButtonHTML()}
-          ${getEditButtonHTML()}
-        `;
-      },
-      churchLayer: (feature) => {
-        this.tooltipEl.className = 'tooltip-card';
-        const clusterFeatures = feature.get('features');
-
-        if (clusterFeatures && clusterFeatures.length > 1) {
-          const count = clusterFeatures.length;
-          const label = this.translations['cluster_churches'] || 'Églises dans ce cluster';
-          return `<div class="title">${label}: ${count}</div>`;
-        }
-
-        const f = clusterFeatures ? clusterFeatures[0] : feature;
-        const tags = f.get('tags') || {};
-        const name = tags.name || f.get('name') || this.translations['church'];
-        const religion = tags.religion || 'Non spécifiée';
-        const denomination = tags.denomination || tags['denomination:wikidata'] || '';
-        const building = tags.building || tags['building:part'] || '';
-        const phone = tags.phone || tags['contact:phone'] || '';
-        const email = tags.email || tags['contact:email'] || '';
-        const website = tags.website || tags['contact:website'] || '';
-        const address = [
-          tags['addr:housenumber'],
-          tags['addr:street'],
-          tags['addr:postcode'],
-          tags['addr:city']
-        ].filter(Boolean).join(', ');
+        const phone = tags.phone || tags['contact:phone'];
+        const hours = tags.opening_hours;
+        const type = tags.cuisine;
+        const desc = tags.description;
 
         let html = `<div class="title">${name}</div>`;
 
-        const addField = (label: string, value?: string) => {
-          if (value) html += `<div class="field"><span class="label">${label}</span> <span class="value">${value}</span></div>`;
+        const addField = async (labelKey: string, value?: string) => {
+          if (!value) return '';
+          const translatedLabel = await this.translateOSMTag(labelKey, this.languageService.currentLanguage as any);
+          return `<div class="field"><span class="label">${translatedLabel}</span><span class="value">${value}</span></div>`;
         };
 
-        addField(this.translations['religion'], religion);
-        addField(this.translations['denomination'], denomination);
-        addField(this.translations['building'], building);
-        addField(this.translations['address'], address);
-        addField(this.translations['phone'], phone);
-        addField(this.translations['email'], email);
-        addField(this.translations['website'], website);
+        html += await addField('phone', phone);
+        html += await addField('hours', hours);
+        html += await addField('type', type);
+        if (desc) html += `<div class="desc">${desc}</div>`;
 
-        if (tags.service_times) {
-          addField(this.translations['service_times'], tags.service_times);
-        }
+        html += await this.buildTagListHTML(tags);
 
-        html += getGoButtonHTML();
-        html += getEditButtonHTML();
-
+        html += getGoButtonHTML() + getEditButtonHTML();
         return html;
       },
-      greenLayer: (feature) => {
-        this.tooltipEl.className = 'tooltip-card';
-        const tags = feature.get('tags') || {};
-        const name = tags.name || '';
-        const greenType = tags.type || tags.natural || tags.leisure || this.translations['green'];
-        return `
-          ${name ? `<div class="title">${name}</div>` : ''}
-          <div class="type">${greenType}</div>
-          ${getGoButtonHTML()}
-          ${getEditButtonHTML()}
-        `;
-      },
-      waterLayer: (feature) => {
-        this.tooltipEl.className = 'tooltip-card';
-        const tags = feature.get('tags') || {};
-        const name = tags.name || '';
-        const waterType = tags.type || tags.natural || this.translations['water'];
 
-        return `
-          ${name ? `<div class="title">${name}</div>` : ''}
-          <div class="type">${waterType}</div>
-          ${getGoButtonHTML()}
-          ${getEditButtonHTML()}
-        `;
+      churchLayer: async (feature) => {
+        this.tooltipEl.className = 'tooltip-card';
+        const cluster = feature.get('features');
+        const f = cluster && cluster.length > 1 ? cluster[0] : feature;
+        const tags = f.get('tags') || {};
+        const name = tags.name || f.get('name') || this.translations['church'];
+
+        let html = `<div class="title">${name}</div>`;
+
+        const add = async (labelKey: string, value?: string) => {
+          if (!value) return;
+          const translatedLabel = await this.translateOSMTag(labelKey, this.languageService.currentLanguage as any);
+          html += `<div class="field"><span class="label">${translatedLabel}</span><span class="value">${value}</span></div>`;
+        };
+
+        await add('religion', tags.religion);
+        await add('denomination', tags.denomination || tags['denomination:wikidata']);
+        await add('building', tags.building || tags['building:part']);
+        await add('phone', tags.phone || tags['contact:phone']);
+        await add('email', tags.email || tags['contact:email']);
+        await add('website', tags.website || tags['contact:website']);
+        await add('service_times', tags.service_times);
+
+        html += await this.buildTagListHTML(tags);
+
+        html += getGoButtonHTML() + getEditButtonHTML();
+        return html;
       },
-      pinLayer: () => {
+
+      greenLayer: async (feature) => {
+        this.tooltipEl.className = 'tooltip-card';
+        const tags = feature.get('tags') || {};
+        const name = tags.name || '';
+        const type = tags.type || tags.natural || tags.leisure || this.translations['green'];
+
+        let html = name ? `<div class="title">${name}</div>` : '';
+        html += `<div class="type">${type}</div>`;
+        html += await this.buildTagListHTML(tags);
+        html += getGoButtonHTML() + getEditButtonHTML();
+        return html;
+      },
+
+      waterLayer: async (feature) => {
+        this.tooltipEl.className = 'tooltip-card';
+        const tags = feature.get('tags') || {};
+        const name = tags.name || '';
+        const type = tags.type || tags.natural || this.translations['water'];
+
+        let html = name ? `<div class="title">${name}</div>` : '';
+        html += `<div class="type">${type}</div>`;
+        html += await this.buildTagListHTML(tags);
+        html += getGoButtonHTML() + getEditButtonHTML();
+        return html;
+      },
+
+      pinLayer: async () => {
         this.tooltipEl.className = 'tooltip-pin';
         return `<div class="title">${this.translations['position']}</div>`;
       },
-      hotelLayer: (feature) => {
+
+      hotelLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
-        const clusterFeatures = feature.get('features');
-
-        // 🟢 Si c’est un cluster de plusieurs hôtels
-        if (clusterFeatures && clusterFeatures.length > 1) {
-          const count = clusterFeatures.length;
-          const label = this.translations['cluster_hotels'] || 'Hôtels dans ce cluster';
-          return `<div class="title">${label}: ${count}</div>`;
-        }
-
-        // 🟢 Sinon, un hôtel unique
-        const f = clusterFeatures ? clusterFeatures[0] : feature;
+        const cluster = feature.get('features');
+        const f = cluster && cluster.length > 1 ? cluster[0] : feature;
         const tags = f.get('tags') || {};
-
-        const name = tags.name || f.get('name') || this.translations['hotel'] || 'Hôtel';
-        const stars = tags.stars || tags['stars:official'] || '';
-        const phone = tags.phone || tags['contact:phone'] || '';
-        const email = tags.email || tags['contact:email'] || '';
-        const website = tags.website || tags['contact:website'] || '';
-        const openingHours = tags.opening_hours || '';
-        const checkin = tags.checkin || '';
-        const checkout = tags.checkout || '';
-
-        const address = [
-          tags['addr:housenumber'] || tags['contact:housenumber'],
-          tags['addr:street'] || tags['contact:street'],
-          tags['addr:postcode'] || tags['contact:postcode'],
-          tags['addr:city'] || tags['contact:city']
-        ].filter(Boolean).join(', ');
+        const name = tags.name || f.get('name') || this.translations['hotel'];
 
         let html = `<div class="title">${name}</div>`;
 
-        // Petit helper interne pour ajouter les champs seulement s’ils existent
-        const addField = (label: string, value?: string) => {
-          if (value) html += `<div class="field"><span class="label">${label}</span> <span class="value">${value}</span></div>`;
+        const add = async (labelKey: string, value?: string) => {
+          if (!value) return;
+          const translatedLabel = await this.translateOSMTag(labelKey, this.languageService.currentLanguage as any);
+          html += `<div class="field"><span class="label">${translatedLabel}</span><span class="value">${value}</span></div>`;
         };
 
-        addField(this.translations['stars'] || 'Étoiles', stars);
-        addField(this.translations['address'] || 'Adresse', address);
-        addField(this.translations['phone'] || 'Téléphone', phone);
-        addField(this.translations['email'] || 'Email', email);
-        addField(this.translations['website'] || 'Site web', website);
-        addField(this.translations['openingHours'] || 'Horaires d\'ouverture', openingHours);
-        addField(this.translations['checkin'] || 'Ouverture', checkin);
-        addField(this.translations['checkout'] || 'Fermeture', checkout);
+        await add('stars', tags.stars || tags['stars:official']);
+        await add('phone', tags.phone || tags['contact:phone']);
+        await add('email', tags.email || tags['contact:email']);
+        await add('website', tags.website || tags['contact:website']);
+        await add('openingHours', tags.opening_hours);
+        await add('checkin', tags.checkin);
+        await add('checkout', tags.checkout);
 
-        // 🔹 Bouton cohérent avec le reste
-        html += getGoButtonHTML();
-        html += getEditButtonHTML();
+        html += await this.buildTagListHTML(tags);
 
+        html += getGoButtonHTML() + getEditButtonHTML();
         return html;
       }
     };
 
-    const getFoodTooltipHTML = (feature: Feature<Geometry>, key: string) => {
+
+    const getFoodTooltipHTML = async (feature: Feature<Geometry>, key: string) => {
       this.tooltipEl.className = 'tooltip-card';
 
-      // 🟢 Récupération du cluster si c'est un cluster
+      // Cluster
       const clusterFeatures: Feature[] = feature.get('features') || [];
       const isCluster = clusterFeatures.length > 1;
 
-      // 🟢 On prend la vraie feature, même si c’est cluster 1
+      // Feature réelle
       const f = clusterFeatures.length ? clusterFeatures[0] : feature;
 
-      // 🟢 Récupération des tags correctement
+      // Tags corrects
       const props = f.getProperties();
       const tags = f.get('tags') || props || {};
 
-      // 🟢 Déterminer le type et le label générique
+      // Type de commerce
       const shopType = tags.shop || tags['amenity'] || key;
       const genericLabel = this.translations[key] || this.foodShopsConfig[key]?.label || 'Commerce alimentaire';
 
       let html = '';
 
       if (isCluster) {
-        html += `<div class="title">${this.translations['number_cluster']
+        html += `
+      <div class="title">
+        ${this.translations['number_cluster']
           .replace('{type}', genericLabel)
-          .replace('{count}', clusterFeatures.length.toString())}</div>`;
+          .replace('{count}', clusterFeatures.length.toString())}
+      </div>
+    `;
 
       } else {
         const name = tags.name || f.get('name') || genericLabel;
@@ -423,10 +419,14 @@ export class InteractionService {
         ].filter(Boolean).join(', ');
 
         html += `<div class="title">${name}</div>`;
+
         const addField = (label: string, value?: string) => {
-          if (value) html += `<div class="field"><span class="label">${label}</span> <span class="value">${value}</span></div>`;
+          if (value) {
+            html += `<div class="field"><span class="label">${label}</span> <span class="value">${value}</span></div>`;
+          }
         };
 
+        // Champs principaux affichés en haut
         addField(this.translations['type'] || 'Type', shopType);
         addField(this.translations['brand'] || 'Enseigne', brand);
         addField(this.translations['address'] || 'Adresse', address);
@@ -436,19 +436,25 @@ export class InteractionService {
         addField(this.translations['openingHours'] || 'Horaires d\'ouverture', tags.opening_hours);
         addField(this.translations['delivery'] || 'Livraison', tags.delivery);
         addField(this.translations['takeaway'] || 'À emporter', tags.takeaway);
+
+        // 🟢 Affichage auto des tags restants
+        html += await this.buildTagListHTML(tags);
       }
 
       html += getGoButtonHTML();
       html += getEditButtonHTML();
+
       return html;
     };
 
 
+
     if (this.mapService.alimentaireLayer) {
       Object.keys(this.mapService.alimentaireLayer).forEach(key => {
-        this.tooltipLayerMap[key] = (feature) => getFoodTooltipHTML(feature, key);
+        this.tooltipLayerMap[key] = async (feature) => getFoodTooltipHTML(feature, key);
       });
     }
+
 
 
     // ===== Ajout du bouton "Y aller" et gestion du clic =====
@@ -462,7 +468,7 @@ export class InteractionService {
 
       if (target?.classList.contains('btn-go') && this.currentFeature) {
 
-        if (!this.isLocalisationActive) this.toggleLocalisation(this.currentLanguage);
+        if (!this.isLocalisationActive) this.toggleLocalisation(this.languageService.currentLanguage);
 
         const geom = this.currentFeature.getGeometry();
         if (!geom || geom.getType() !== 'Point') return;
@@ -481,7 +487,7 @@ export class InteractionService {
 
       while (target && target !== this.tooltipEl) {
         if (target.classList.contains('btn-go')) {
-          if (!this.isLocalisationActive) this.toggleLocalisation(this.currentLanguage);
+          if (!this.isLocalisationActive) this.toggleLocalisation(this.languageService.currentLanguage);
           const geom = this.currentFeature?.getGeometry();
           if (geom && geom.getType() === 'Point') {
             const coords = (geom as Point).getCoordinates();
@@ -545,17 +551,18 @@ export class InteractionService {
       // };
 
       // Tap/click mobile
-      this.mapService.map.on('click', (evt) => {
+      this.mapService.map.on('click', async (evt) => {
         const feature = this.mapService.map.forEachFeatureAtPixel(evt.pixel, f => f);
 
         if (feature) {
-          this.fillTooltip(feature);
+          await this.fillTooltip(feature);  // ⚠️ async
           this.tooltipOverlay.setPosition(evt.coordinate);
           this.tooltipEl.style.display = 'block';
         } else {
           this.tooltipEl.style.display = 'none';
         }
       });
+
 
 
     };
@@ -572,20 +579,12 @@ export class InteractionService {
     });
   }
 
-  private fillTooltip(featureLike: FeatureLike) {
+  private async fillTooltip(featureLike: FeatureLike) {
     if (!(featureLike instanceof Feature)) return;
     const feature = featureLike as Feature<Geometry>;
 
     const geom = feature.getGeometry();
     if (!geom) return;
-
-    const center = getCenter(geom.getExtent());
-    const [lon, lat] = toLonLat(center);
-    const key = `${lon}_${lat}`;
-
-    // récupérer tags modifiés si existants
-    const tags = this.layerService.customTagsMap.get(key) || feature.get('tags') || {};
-    feature.set('tags', tags);
 
     const allLayers = {
       restaurantLayer: this.mapService.restaurantLayer,
@@ -601,13 +600,10 @@ export class InteractionService {
       for (const [name, layer] of Object.entries(allLayers)) {
         const source = layer.getSource();
         if (!source) continue;
-
         const features = source.getFeatures();
         for (const f of features) {
           const inner = f.get('features') || [];
-          if (inner.includes(feature) || f === feature) {
-            return name;
-          }
+          if (inner.includes(feature) || f === feature) return name;
         }
       }
       return '';
@@ -616,13 +612,23 @@ export class InteractionService {
     const layerName = getLayerForFeature(feature);
     if (layerName && this.tooltipLayerMap[layerName]) {
       this.currentFeature = feature;
-      this.tooltipEl.innerHTML = this.tooltipLayerMap[layerName](feature);
+      const htmlOrPromise = this.tooltipLayerMap[layerName](feature);
+
+// Vérifie si c'est une Promise (duck typing)
+      const html = htmlOrPromise && typeof (htmlOrPromise as any).then === 'function'
+        ? await htmlOrPromise
+        : htmlOrPromise;
+
+      this.tooltipEl.innerHTML = html as string;
+
+
     }
   }
 
 
+
   // Mise à jour des traductions et rafraîchissement du tooltip si visible
-  updateTranslations(translations: Record<string, string>) {
+  async updateTranslations(translations: Record<string, string>) {
     this.translations = translations;
 
     if (this.currentFeature && this.tooltipEl.style.display === 'block') {
@@ -636,7 +642,7 @@ export class InteractionService {
 
       const layerName = Object.keys(layers).find(name => layers[name].getSource()?.hasFeature(this.currentFeature!));
       if (layerName) {
-        this.tooltipEl.innerHTML = this.tooltipLayerMap[layerName](this.currentFeature!);
+        this.tooltipEl.innerHTML = await this.tooltipLayerMap[layerName](this.currentFeature!);
       }
     }
   }
@@ -712,8 +718,85 @@ export class InteractionService {
     const domElem = (componentRef.hostView as any).rootNodes[0] as HTMLElement;
     document.body.appendChild(domElem);
   }
+  // ====== Traduction d'une clé OSM via Google Translate uniquement ======
+  private async translateOSMTag(key: string, lang: 'fr' | 'en' | 'es'): Promise<string> {
+    if (!key) return '';
 
+    // Découper la clé en parties (ex: "outdoor_seating")
+    const parts = key.split(/[:_]/);
+    const translatedParts: string[] = [];
+
+    for (const part of parts) {
+      try {
+        const translationObs = this.translationService.translate(part, lang);
+        const translationResult = await firstValueFrom(translationObs);
+        translatedParts.push(translationResult || part);
+      } catch (err) {
+        console.error(`Erreur traduction pour "${part}"`, err);
+        translatedParts.push(part);
+      }
+    }
+
+
+    // Construire la phrase finale
+    let result = translatedParts.join(' ');
+
+    return this.capitalize(result);
+  }
+
+  private capitalize(s: string): string {
+    if (!s) return '';
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+// ====== Construction du HTML des tags ======
+  private async buildTagListHTML(tags: Record<string, any>): Promise<string> {
+    if (!tags) return '';
+
+    const excluded = [
+      'geometry', 'features', 'id', 'layer', 'type',
+      'name', 'brand', 'shop', 'amenity', 'addr:housenumber',
+      'addr:street', 'addr:postcode', 'addr:city', 'contact:housenumber',
+      'contact:street', 'contact:postcode', 'contact:city', 'phone',
+      'contact:phone', 'email', 'contact:email', 'website', 'contact:website',
+      'opening_hours', 'delivery', 'takeaway' ];
+    const lang = (this.languageService.currentLanguage as 'fr' | 'en' | 'es') || 'fr';
+    let html = '<div class="tags-list">';
+
+    for (const [key, value] of Object.entries(tags)) {
+      if (!value || excluded.includes(key)) continue;
+
+      const translatedKey = await this.translateOSMTag(key, lang);
+
+      // Traduction valeur (support multi-valeurs séparées par ;)
+      const parts = String(value).split(';').map(p => p.trim());
+      const translatedParts: string[] = [];
+
+      for (const part of parts) {
+        try {
+          const translationObs = this.translationService.translate(part, lang);
+          const translationResult = await firstValueFrom(translationObs);
+          translatedParts.push(this.capitalize(translationResult || part));
+        } catch (err) {
+          console.warn(`Erreur traduction valeur "${part}":`, err);
+          translatedParts.push(part);
+        }
+      }
+
+      html += `
+      <div class="field">
+        <span class="label">${translatedKey}</span>
+        <span class="value">${translatedParts.join(', ')}</span>
+      </div>
+    `;
+    }
+
+    html += '</div>';
+    return html;
+  }
 }
+
+
 
 
 
