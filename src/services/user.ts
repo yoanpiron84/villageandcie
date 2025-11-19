@@ -1,5 +1,12 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { jwtDecode } from 'jwt-decode';
+
+export interface UserRole {
+  id: string;
+  name: string;
+  description?: string;
+}
 
 export interface UserProfile {
   sub?: string;
@@ -11,7 +18,9 @@ export interface UserProfile {
   email_verified?: boolean;
   logins_count?: number;
   locale?: string;
+  roles?: UserRole[];
   [key: string]: any;
+
 }
 
 @Injectable({ providedIn: 'root' })
@@ -32,6 +41,8 @@ export class UserService {
   // Récupère le profil depuis le backend et merge dans le signal
   fetchUser(userId: string) {
     if (!userId) return;
+
+    // Récupération du profil utilisateur
     this.http.get<UserProfile>(`http://localhost:3000/api/me/${encodeURIComponent(userId)}`)
       .subscribe({
         next: user => {
@@ -41,6 +52,17 @@ export class UserService {
         },
         error: err => console.error('Erreur récupération user', err)
       });
+
+    // Récupération des rôles depuis le backend
+    this.http.get<UserRole[]>(`http://localhost:3000/api/user/${encodeURIComponent(userId)}/roles`)
+      .subscribe({
+        next: roles => {
+          const current = this.userSignal();
+          this.userSignal.set({ ...current, roles });
+        },
+        error: err => console.error('Erreur récupération roles', err)
+      });
+
   }
 
   updateLocale(userId: string, locale: string) {
@@ -68,4 +90,10 @@ export class UserService {
       error: err => console.error('Erreur mise à jour profile', err)
     });
   }
+
+
+  isAdmin(): boolean {
+    return this.userSignal()?.roles?.some(r => r.name === 'admin') ?? false;
+  }
+
 }

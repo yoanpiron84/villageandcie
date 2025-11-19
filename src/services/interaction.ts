@@ -32,6 +32,7 @@ import {environment} from '../environnements/environnement';
 import {EditFormComponent} from '../app/edit-form/edit-form';
 import {LanguageService} from './language';
 import {TranslationService} from './translation';
+import {UserService} from './user';
 
 @Injectable({ providedIn: 'root' })
 export class InteractionService {
@@ -108,7 +109,8 @@ export class InteractionService {
     layerService: LayerService,
     private envInjector: EnvironmentInjector,
     private languageService: LanguageService,
-    private translationService: TranslationService) {}
+    private translationService: TranslationService,
+    private userService: UserService) {}
 
   private async updateTooltipContent() {
     if (!this.currentFeature) return;
@@ -282,7 +284,7 @@ export class InteractionService {
         html += await addField('type', type);
         if (desc) html += `<div class="desc">${desc}</div>`;
 
-        html += await this.buildTagListHTML(tags);
+        html += await this.buildTagListHTML(tags, feature);
 
         html += getGoButtonHTML() + getEditButtonHTML();
         return html;
@@ -290,17 +292,35 @@ export class InteractionService {
 
       churchLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
+
         const cluster = feature.get('features');
-        const f = cluster && cluster.length > 1 ? cluster[0] : feature;
+
+        // === 1) CLUSTER : plusieurs églises ===
+        if (cluster && cluster.length > 1) {
+          const count = cluster.length;
+          return `
+      <div class="title">${this.translations['cluster_churches'] || 'églises trouvées'}: ${count}</div>
+    `;
+        }
+
+        // === 2) UNE SEULE ÉGLISE ===
+        const f = cluster ? cluster[0] : feature;
         const tags = f.get('tags') || {};
-        const name = tags.name || f.get('name') || this.translations['church'];
+        const name = tags.name || this.translations['church'];
 
         let html = `<div class="title">${name}</div>`;
 
         const add = async (labelKey: string, value?: string) => {
           if (!value) return;
-          const translatedLabel = await this.translateOSMTag(labelKey, this.languageService.currentLanguage as any);
-          html += `<div class="field"><span class="label">${translatedLabel}</span><span class="value">${value}</span></div>`;
+          const translatedLabel = await this.translateOSMTag(
+            labelKey,
+            this.languageService.currentLanguage as any
+          );
+          html += `
+      <div class="field">
+        <span class="label">${translatedLabel}</span>
+        <span class="value">${value}</span>
+      </div>`;
         };
 
         await add('religion', tags.religion);
@@ -311,21 +331,20 @@ export class InteractionService {
         await add('website', tags.website || tags['contact:website']);
         await add('service_times', tags.service_times);
 
-        html += await this.buildTagListHTML(tags);
-
+        html += await this.buildTagListHTML(tags, feature);
         html += getGoButtonHTML() + getEditButtonHTML();
+
         return html;
       },
+
 
       greenLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
         const tags = feature.get('tags') || {};
         const name = tags.name || '';
-        const type = tags.type || tags.natural || tags.leisure || this.translations['green'];
 
         let html = name ? `<div class="title">${name}</div>` : '';
-        html += `<div class="type">${type}</div>`;
-        html += await this.buildTagListHTML(tags);
+        html += await this.buildTagListHTML(tags, feature);
         html += getGoButtonHTML() + getEditButtonHTML();
         return html;
       },
@@ -333,15 +352,15 @@ export class InteractionService {
       waterLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
         const tags = feature.get('tags') || {};
+
         const name = tags.name || '';
-        const type = tags.type || tags.natural || this.translations['water'];
 
         let html = name ? `<div class="title">${name}</div>` : '';
-        html += `<div class="type">${type}</div>`;
-        html += await this.buildTagListHTML(tags);
+        html += await this.buildTagListHTML(tags, feature);
         html += getGoButtonHTML() + getEditButtonHTML();
         return html;
       },
+
 
       pinLayer: async () => {
         this.tooltipEl.className = 'tooltip-pin';
@@ -350,17 +369,39 @@ export class InteractionService {
 
       hotelLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
+
         const cluster = feature.get('features');
-        const f = cluster && cluster.length > 1 ? cluster[0] : feature;
+
+        // === 1) CLUSTER : plusieurs hôtels ===
+        if (cluster && cluster.length > 1) {
+          const count = cluster.length;
+          const type = this.translations['hotel'] || 'hôtels';
+          return `
+      <div class="title">
+        ${this.translations['number_cluster']?.replace('{type}', type).replace('{count}', String(count))
+          || `Nombre de ${type}: ${count}`}
+      </div>
+    `;
+        }
+
+        // === 2) UN SEUL HÔTEL ===
+        const f = cluster ? cluster[0] : feature;
         const tags = f.get('tags') || {};
-        const name = tags.name || f.get('name') || this.translations['hotel'];
+        const name = tags.name || this.translations['hotel'];
 
         let html = `<div class="title">${name}</div>`;
 
         const add = async (labelKey: string, value?: string) => {
           if (!value) return;
-          const translatedLabel = await this.translateOSMTag(labelKey, this.languageService.currentLanguage as any);
-          html += `<div class="field"><span class="label">${translatedLabel}</span><span class="value">${value}</span></div>`;
+          const translatedLabel = await this.translateOSMTag(
+            labelKey,
+            this.languageService.currentLanguage as any
+          );
+          html += `
+      <div class="field">
+        <span class="label">${translatedLabel}</span>
+        <span class="value">${value}</span>
+      </div>`;
         };
 
         await add('stars', tags.stars || tags['stars:official']);
@@ -371,9 +412,9 @@ export class InteractionService {
         await add('checkin', tags.checkin);
         await add('checkout', tags.checkout);
 
-        html += await this.buildTagListHTML(tags);
-
+        html += await this.buildTagListHTML(tags, feature);
         html += getGoButtonHTML() + getEditButtonHTML();
+
         return html;
       }
     };
@@ -391,7 +432,7 @@ export class InteractionService {
 
       // Tags corrects
       const props = f.getProperties();
-      const tags = f.get('tags') || props || {};
+      const tags = f.get('tags') || {};
 
       // Type de commerce
       const shopType = tags.shop || tags['amenity'] || key;
@@ -438,7 +479,7 @@ export class InteractionService {
         addField(this.translations['takeaway'] || 'À emporter', tags.takeaway);
 
         // 🟢 Affichage auto des tags restants
-        html += await this.buildTagListHTML(tags);
+        html += await this.buildTagListHTML(tags, feature);
       }
 
       html += getGoButtonHTML();
@@ -458,38 +499,149 @@ export class InteractionService {
 
 
     // ===== Ajout du bouton "Y aller" et gestion du clic =====
+    // this.tooltipEl.addEventListener('click', (evt) => {
+    //   console.log("EVENT 1");
+    //   evt.stopPropagation(); // ← IMPORTANT
+    //   let target = evt.target as HTMLElement;
+    //
+    //   while (target && target !== this.tooltipEl && !target.classList.contains('btn-go')) {
+    //     target = target.parentElement as HTMLElement;
+    //   }
+    //
+    //   if (target?.classList.contains('btn-go') && this.currentFeature) {
+    //
+    //     if (!this.isLocalisationActive) this.toggleLocalisation(this.languageService.currentLanguage);
+    //
+    //     const geom = this.currentFeature.getGeometry();
+    //     if (!geom || geom.getType() !== 'Point') return;
+    //
+    //     const coords = (geom as Point).getCoordinates();
+    //     const lonLat = toLonLat(coords) as [number, number];
+    //
+    //     this.routeService.fetchRouteWithUserPosition(lonLat);
+    //
+    //   }
+    // });
+
+    // this.tooltipEl.addEventListener('click', (evt) => {
+    //   console.log("EVENT 2");
+    //   let target = evt.target as HTMLElement; // ✅ cast ici
+    //
+    //   while (target && target !== this.tooltipEl) {
+    //
+    //     console.log("test");
+    //     console.log(target);
+    //     // bouton "Y aller"
+    //     if (target.classList.contains('btn-go')) {
+    //       if (!this.isLocalisationActive) this.toggleLocalisation(this.languageService.currentLanguage);
+    //       const geom = this.currentFeature?.getGeometry();
+    //       if (geom && geom.getType() === 'Point') {
+    //         const coords = (geom as Point).getCoordinates();
+    //         const lonLat = toLonLat(coords) as [number, number];
+    //         this.routeService.fetchRouteWithUserPosition(lonLat);
+    //       }
+    //       return;
+    //     }
+    //
+    //     // bouton "Edit"
+    //     if (target.classList.contains('btn-edit')) {
+    //       this.openEditForm(this.currentFeature!);
+    //       return;
+    //     }
+    //
+    //     console.log("TEST");
+    //
+    //     // icône poubelle
+    //     if (target.classList.contains('tag-delete')) {
+    //       const key = target.dataset['key']; // ✅ dataset existe maintenant
+    //       if (!key || !this.currentFeature) return;
+    //
+    //       const tags = this.currentFeature.get('tags') || {};
+    //       delete tags[key];
+    //       this.currentFeature.set('tags', tags);
+    //
+    //       const parentDiv = target.closest('.field');
+    //       if (parentDiv) parentDiv.remove();
+    //
+    //       evt.stopPropagation();
+    //       evt.preventDefault();
+    //       return;
+    //     }
+    //
+    //     target = target.parentElement as HTMLElement;
+    //   }
+    // });
+
     this.tooltipEl.addEventListener('click', (evt) => {
-      evt.stopPropagation(); // ← IMPORTANT
-      let target = evt.target as HTMLElement;
+      const target = evt.target as HTMLElement;
+      if (!target) return;
 
-      while (target && target !== this.tooltipEl && !target.classList.contains('btn-go')) {
-        target = target.parentElement as HTMLElement;
-      }
+      // --- 1️⃣ Icône poubelle : PRIORITAIRE, sinon bouffé par les autres événements ---
+      if (target.closest('.tag-delete')) {
+        evt.stopPropagation();
+        evt.preventDefault();
 
-      if (target?.classList.contains('btn-go') && this.currentFeature) {
+        const icon = target.closest('.tag-delete') as HTMLElement;
+        const key = icon.dataset['key'];
+        if (!key || !this.currentFeature) return;
 
-        if (!this.isLocalisationActive) this.toggleLocalisation(this.languageService.currentLanguage);
+        const realFeature = (this.currentFeature.get('features')?.[0]) || this.currentFeature;
+        const props = realFeature.getProperties() as { type?: string; tags?: Record<string, any> };
+
+        // Clone des tags
+        const tags = { ...(realFeature.get('tags') || {}) };
+
+        // Supprimer le tag
+        delete tags[key];
+
+        // Supprimer l'entrée correspondante dans modifiedFields
+        if (Array.isArray(tags.modifiedFields)) {
+          tags.modifiedFields = (tags.modifiedFields as { key: string; modifiedBy: string }[])
+            .filter(f => f.key !== key);
+          if (tags.modifiedFields.length === 0) delete tags.modifiedFields;
+        }
+
+        // Mettre à jour le feature
+        realFeature.setProperties({ ...props, tags });
+        this.currentFeature.set('tags', tags);
 
         const geom = this.currentFeature.getGeometry();
-        if (!geom || geom.getType() !== 'Point') return;
+        if (!geom) return;
+        const [lon, lat] = toLonLat(getCenter(geom.getExtent()));
 
-        const coords = (geom as Point).getCoordinates();
-        const lonLat = toLonLat(coords) as [number, number];
+        let collection = (props.type || 'unknown').toLowerCase();
+        if (collection === 'alimentaire') {
+          const tagType = (tags.shop || tags.amenity || '').toLowerCase();
+          if (tagType && tagType in environment.iconMap) collection = tagType;
+        }
+        if (!collection.endsWith('s')) collection += 's';
 
-        this.routeService.fetchRouteWithUserPosition(lonLat);
+        this.http.delete(`http://localhost:3000/nodejs/${collection}/${lat}_${lon}/${key}`)
+          .subscribe({
+            next: () => console.log(`Tag ${key} supprimé dans ${collection}`),
+            error: (err) => console.error('Erreur suppression tag :', err)
+          });
 
+
+
+        const field = icon.closest('.field');
+        if (field) field.remove();
       }
-    });
 
-    this.tooltipEl.addEventListener('click', (evt) => {
-      evt.stopPropagation();
-      let target = evt.target as HTMLElement;
 
-      while (target && target !== this.tooltipEl) {
-        if (target.classList.contains('btn-go')) {
-          if (!this.isLocalisationActive) this.toggleLocalisation(this.languageService.currentLanguage);
+      let el: HTMLElement | null = target;
+
+      // --- Autres boutons (go/edit) ---
+      while (el && el !== this.tooltipEl) {
+
+        // bouton "Y aller"
+        if (el.classList.contains('btn-go')) {
+          evt.stopPropagation();
+          if (!this.isLocalisationActive) {
+            this.toggleLocalisation(this.languageService.currentLanguage);
+          }
           const geom = this.currentFeature?.getGeometry();
-          if (geom && geom.getType() === 'Point') {
+          if (geom?.getType() === 'Point') {
             const coords = (geom as Point).getCoordinates();
             const lonLat = toLonLat(coords) as [number, number];
             this.routeService.fetchRouteWithUserPosition(lonLat);
@@ -497,12 +649,16 @@ export class InteractionService {
           return;
         }
 
-        if (target.classList.contains('btn-edit')) {
-          this.openEditForm(this.currentFeature!); // <-- fonction à créer
+        // bouton "Modifier"
+        if (el.classList.contains('btn-edit')) {
+          evt.stopPropagation();
+          if (this.currentFeature) {
+            this.openEditForm(this.currentFeature);
+          }
           return;
         }
 
-        target = target.parentElement as HTMLElement;
+        el = el.parentElement;
       }
     });
 
@@ -528,40 +684,19 @@ export class InteractionService {
         return (source as VectorSource).hasFeature(feature);
       };
 
-      // const getLayerForFeature = (feature: Feature<Geometry>) => {
-      //   // Layers standards
-      //   for (const [name, layer] of Object.entries(layers)) {
-      //     if (layerHasFeature(layer, feature)) {
-      //       return name;
-      //     }
-      //   }
-      //
-      //   // Couches alimentaires
-      //   for (const [key, layer] of Object.entries(this.mapService.alimentaireLayer)) {
-      //     const source = layer.getSource();
-      //     const features = source?.getFeatures() || [];
-      //     for (const f of features) {
-      //       const inner = f.get('features') || [];
-      //       if (inner.includes(feature) || f === feature) {
-      //         return key;
-      //       }
-      //     }
-      //   }
-      //   return '';
-      // };
-
       // Tap/click mobile
       this.mapService.map.on('click', async (evt) => {
-        const feature = this.mapService.map.forEachFeatureAtPixel(evt.pixel, f => f);
+        const clickedFeature = this.mapService.map.forEachFeatureAtPixel(evt.pixel, f => f);
 
-        if (feature) {
-          await this.fillTooltip(feature);  // ⚠️ async
+        if (clickedFeature) {
+          await this.fillTooltip(clickedFeature);
           this.tooltipOverlay.setPosition(evt.coordinate);
           this.tooltipEl.style.display = 'block';
         } else {
           this.tooltipEl.style.display = 'none';
         }
       });
+
 
 
 
@@ -658,16 +793,58 @@ export class InteractionService {
       environmentInjector: this.envInjector,  // <-- utiliser environmentInjector
     });
 
-    // 2️⃣ Initialiser ses inputs
+    // 2️⃣ Initialiser ses inputs avec un clone pour éviter de modifier oldTags
     componentRef.instance.name = oldTags.name || '';
-    componentRef.instance.tags = oldTags;
+    componentRef.instance.tags = { ...oldTags }; // important : clone
 
     // 3️⃣ Événements ok / cancel
     const subOk = componentRef.instance.ok.subscribe(event => {
       const newName = event.name;
-      const newTags = event.tags; // ✅ tags à jour
+      const currentUser = this.userService.userSignal();
+      const modifiedBy = currentUser.name || 'Utilisateur inconnu';
+
+      // Nouveau set de tags basé sur l'ancien
+      const newTags: Record<string, any> = { ...oldTags };
+      let modifiedFields: { key: string, modifiedBy: string }[] = Array.isArray(oldTags.modifiedFields)
+        ? [...oldTags.modifiedFields]
+        : [];
+
+      // Parcourir tous les tags du formulaire
+      for (const key of Object.keys(event.tags)) {
+        const oldValue = oldTags[key];
+        const newValue = event.tags[key];
+
+        if (oldValue !== newValue) {
+          newTags[key] = newValue;
+
+          // Ajouter ou mettre à jour le modifiedFields pour ce tag
+          const existing = modifiedFields.find(f => f.key === key);
+          if (existing) {
+            existing.modifiedBy = modifiedBy; // si déjà dans modifiedFields, mettre à jour
+          } else {
+            modifiedFields.push({ key, modifiedBy });
+          }
+        }
+      }
+
+      // Supprimer les tags supprimés
+      for (const key of Object.keys(oldTags)) {
+        if (!event.tags.hasOwnProperty(key)) {
+          delete newTags[key];
+          // Retirer du modifiedFields
+          modifiedFields = modifiedFields.filter(f => f.key !== key);
+        }
+      }
+
+      // Ajouter modifiedFields seulement si non vide
+      if (modifiedFields.length > 0) {
+        newTags['modifiedFields'] = modifiedFields;
+      } else {
+        delete newTags['modifiedFields'];
+      }
 
       realFeature.setProperties({ ...props, tags: newTags });
+
 
       const geom = realFeature.getGeometry();
       if (!geom) return;
@@ -719,106 +896,109 @@ export class InteractionService {
     document.body.appendChild(domElem);
   }
   // ====== Traduction d'une clé OSM via Google Translate uniquement ======
-  private async translateOSMTag(key: string, lang: 'fr' | 'en' | 'es'): Promise<string> {
-    if (!key) return '';
+  private translateOSMTag(key: string, lang: 'fr' | 'en' | 'es'): Promise<string> {
+    if (!key) return Promise.resolve('');
 
-    // Découper la clé en parties (ex: "outdoor_seating")
     const parts = key.split(/[:_]/);
-    const translatedParts: string[] = [];
 
-    for (const part of parts) {
-      try {
-        const translationObs = this.translationService.translate(part, lang);
-        const translationResult = await firstValueFrom(translationObs);
-        translatedParts.push(translationResult || part);
-      } catch (err) {
-        console.error(`Erreur traduction pour "${part}"`, err);
-        translatedParts.push(part);
-      }
+    return Promise.all(
+      parts.map(async part => {
+        try {
+          const translation = await firstValueFrom(
+            this.translationService.translate(part, lang)
+          );
+          return translation || part;
+        } catch {
+          return part;
+        }
+      })
+    )
+      .then(translated => this.capitalize(translated.join(' ')));
+  }
+
+  private capitalize(s: string):
+    string {
+      if (!s) return '';
+      return s.charAt(0).toUpperCase() + s.slice(1);
     }
 
-
-    // Construire la phrase finale
-    let result = translatedParts.join(' ');
-
-    return this.capitalize(result);
-  }
-
-  private capitalize(s: string): string {
-    if (!s) return '';
-    return s.charAt(0).toUpperCase() + s.slice(1);
-  }
-
-// ====== Construction du HTML des tags ======
-  private async buildTagListHTML(tags: Record<string, any>): Promise<string> {
+  private async buildTagListHTML(tags: Record<string, any>, feature: Feature<Geometry>): Promise<string> {
     if (!tags) return '';
 
-    const excluded = [
-      'geometry', 'features', 'id', 'layer', 'type',
-      'name', 'brand', 'shop', 'amenity', 'addr:housenumber',
-      'addr:street', 'addr:postcode', 'addr:city', 'contact:housenumber',
-      'contact:street', 'contact:postcode', 'contact:city', 'phone',
-      'contact:phone', 'email', 'contact:email', 'website', 'contact:website',
-      'opening_hours', 'delivery', 'takeaway' ];
-    const lang = (this.languageService.currentLanguage as 'fr' | 'en' | 'es') || 'fr';
+    const excluded = new Set([
+      'geometry','features','id','layer','type','name',
+      'brand','shop','amenity',
+      'addr:housenumber','addr:street','addr:postcode','addr:city',
+      'contact:housenumber','contact:street','contact:postcode','contact:city',
+      'phone','contact:phone','email','contact:email',
+      'website','contact:website','opening_hours','delivery','takeaway',
+      'modifiedFields'
+    ]);
+
+    const lang = this.languageService.currentLanguage as 'fr' | 'en' | 'es' || 'fr';
+    const isAdmin = this.userService.isAdmin();
+
+    const modifiedFields: { key: string, modifiedBy: string }[] = tags['modifiedFields'] || [];
+
     let html = '<div class="tags-list">';
 
-    for (const [key, value] of Object.entries(tags)) {
-      if (!value || excluded.includes(key)) continue;
+    const promises: Promise<string>[] = Object.entries(tags)
+      .filter(([key, value]) => value && !excluded.has(key) && !/^name(:.+)?$/i.test(key))
+      .map(async ([key, value]) => {
+        const translatedKey = await this.translateOSMTag(key, lang);
+        const parts = String(value).split(';').map(v => v.trim());
 
-      const translatedKey = await this.translateOSMTag(key, lang);
+        const translatedValues = await Promise.all(
+          parts.map(async p => {
+            try {
+              const t = await firstValueFrom(this.translationService.translate(p, lang));
+              return this.capitalize(t || p);
+            } catch {
+              return p;
+            }
+          })
+        );
 
-      // Traduction valeur (support multi-valeurs séparées par ;)
-      const parts = String(value).split(';').map(p => p.trim());
-      const translatedParts: string[] = [];
+        // 🟡 Vérifier si ce tag est modifié et récupérer le modifiedBy correspondant
+        const modifiedEntry = modifiedFields.find(f => f.key === key);
+        const modifiedText = modifiedEntry
+          ? ` <span style="color:orange; font-weight:600;">(modifié par ${modifiedEntry.modifiedBy})</span>`
+          : '';
 
-      for (const part of parts) {
-        try {
-          const translationObs = this.translationService.translate(part, lang);
-          const translationResult = await firstValueFrom(translationObs);
-          translatedParts.push(this.capitalize(translationResult || part));
-        } catch (err) {
-          console.warn(`Erreur traduction valeur "${part}":`, err);
-          translatedParts.push(part);
-        }
-      }
+        const deleteIcon = isAdmin
+          ? `<button class="tag-delete" data-key="${key}" style="
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          width:24px;
+          height:24px;
+          padding:0;
+          margin-right:6px;
+          color:white;
+          background-color: transparent;
+          border:none;
+          border-radius:4px;
+          cursor:pointer;
+          font-size:14px;
+          font-weight:bold;
+          pointer-events:auto;
+          ">🗑️</button>`
+          : '';
 
-      html += `
-      <div class="field">
+        return `
+      <div class="field" style="display:flex; align-items:center;">
+        ${deleteIcon}
         <span class="label">${translatedKey}</span>
-        <span class="value">${translatedParts.join(', ')}</span>
-      </div>
-    `;
-    }
+        <span class="value">${translatedValues.join(', ')}${modifiedText}</span>
+      </div>`;
+      });
 
+    const blocks = await Promise.all(promises);
+    html += blocks.join('\n');
     html += '</div>';
+
     return html;
   }
+
+
 }
-
-
-
-
-
-
-
-    //
-  //
-  //
-  //
-  // public getFeatureCenter(feature: Feature<Geometry>): [number, number] | null {
-  //   const geom = feature.getGeometry();
-  //   if (!geom) return null;
-  //
-  //   // Récupère le centre de l'extent (bounding box)
-  //   const extent = geom.getExtent();
-  //   const centerXY = getCenter(extent);
-  //
-  //   // Récupère le point le plus proche sur la géométrie
-  //   const closestPoint = geom.getClosestPoint(centerXY);
-  //
-  //   return toLonLat(closestPoint) as [number, number];
-  // }
-
-
-

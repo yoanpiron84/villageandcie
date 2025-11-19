@@ -32,6 +32,7 @@
     "@angular/ssr": "^20.3.9",
     "@auth0/auth0-angular": "^2.3.0",
     "axios": "^1.13.2",
+    "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "ol": "^10.6.1",
     "ol-mapbox-style": "^13.1.0",

@@ -96,6 +96,7 @@ export class AppComponent {
     this.auth.user$.subscribe(user => {
       if (user?.sub) this.userService.fetchUser(user.sub);
     });
+
   }
 
   login() {

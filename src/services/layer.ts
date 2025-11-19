@@ -840,18 +840,20 @@ export class LayerService {
 
   public showHotel() {
     if (!this.mapService.userPosition) return;
-    const { lat, lon } = this.mapService.userPosition;
-    const r = (this.layerRadii['showHotel'] || 0.5) * 1000;
 
-    const query = `[out:json];
+    const { lat, lon } = this.mapService.userPosition;
+    const radiusKey = 'showHotel';
+    const radiusMeters = (this.layerRadii[radiusKey] || 0.5) * 1000;
+
+    const overpassQuery = `[out:json];
   (
-    node["tourism"="hotel"](around:${r},${lat},${lon});
-    way["tourism"="hotel"](around:${r},${lat},${lon});
-    relation["tourism"="hotel"](around:${r},${lat},${lon});
+    node["tourism"="hotel"](around:${radiusMeters},${lat},${lon});
+    way["tourism"="hotel"](around:${radiusMeters},${lat},${lon});
+    relation["tourism"="hotel"](around:${radiusMeters},${lat},${lon});
   );
   out geom;`;
 
-    this.fetchOverpassAndCustom(query, 'hotel')
+    this.fetchOverpassAndCustom(overpassQuery, 'hotel')
       .then(result => {
         const features = this.convertOverpassToGeoJSON(result.mergedData);
 
@@ -873,39 +875,45 @@ export class LayerService {
           }
 
           // Vérifie le rayon
-          if (!this.isFeatureWithinRadius(f, 'showHotel')) return;
+          if (!this.isFeatureWithinRadius(f, radiusKey)) return;
 
-          // ID stable basé uniquement sur les coordonnées arrondies
+          // ID stable basé sur coordonnées arrondies
           const featureId = `${center[0]}_${center[1]}`;
           f.setId(featureId);
 
-          // Cherche si une feature avec ces coordonnées existe déjà
+          // Fusion des tags custom
+          let tags = f.get('tags') || {};
+          let match: any = undefined;
+
+          if ('customDataByCollection' in result) {
+            for (const { customData } of result.customDataByCollection as any[]) {
+              match = (customData as any[]).find(c =>
+                Math.abs(c.coords.lat - center[1]) < 1e-6 &&
+                Math.abs(c.coords.lon - center[0]) < 1e-6
+              );
+              if (match) break;
+            }
+          } else if ('customData' in result) {
+            match = (result.customData as any[]).find(c =>
+              Math.abs(c.coords.lat - center[1]) < 1e-6 &&
+              Math.abs(c.coords.lon - center[0]) < 1e-6
+            );
+          }
+
+          if (match) {
+            tags = { ...tags, ...match.tags, name: match.name };
+            this.customTagsMap.set(featureId, tags);
+          } else {
+            const localTags = this.customTagsMap.get(featureId);
+            if (localTags) tags = localTags;
+          }
+
+          f.setProperties({ ...f.getProperties(), tags, type: 'hotel' });
+
+          // Gestion cluster / feature unique
           const rawSource = (this.mapService.hotelLayer.getSource() as ClusterSource)?.getSource();
           const existing = rawSource?.getFeatureById(featureId);
 
-          // Merge des tags custom si existant
-          const match = (result.customData as CustomEntity[]).find(c =>
-            Math.abs(c.coords.lat - center[1]) < 1e-5 &&
-            Math.abs(c.coords.lon - center[0]) < 1e-5
-          );
-
-          if (match) {
-            f.setProperties({
-              ...f.getProperties(),
-              tags: { ...f.get('tags'), ...match.tags, name: match.name },
-              type: 'hotel'
-            });
-            this.customTagsMap.set(featureId, f.get('tags'));
-          } else {
-            const localTags = this.customTagsMap.get(featureId);
-            f.setProperties({
-              ...f.getProperties(),
-              tags: localTags || f.get('tags'),
-              type: 'hotel'
-            });
-          }
-
-          // Si la feature existe déjà → on la met à jour
           if (existing) {
             existing.setProperties(f.getProperties());
             existing.setGeometry(f.getGeometry());
@@ -918,16 +926,17 @@ export class LayerService {
           }
         });
 
-        // ClusterSource
+        // Mise à jour du ClusterSource
         const rawSource = (this.mapService.hotelLayer.getSource() as ClusterSource)?.getSource();
         rawSource?.clear();
         rawSource?.addFeatures(clusterFeatures);
 
-        this.activeLayers.add('showHotel');
-        this.selectedLayerAction = 'showHotel';
+        this.activeLayers.add(radiusKey);
+        this.selectedLayerAction = radiusKey;
       })
       .catch(err => console.error('Erreur showHotel:', err));
   }
+
 
 
 
