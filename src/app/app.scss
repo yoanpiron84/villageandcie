@@ -462,6 +462,12 @@ button.cancel-btn:hover {
 
 /* ===== MOBILE (<600px) ===== */
 @media (max-width: 599px) {
+  .main-wrapper {
+    margin-left: 0; /* plus de décalage sur mobile */
+    width: 100%;    /* occupe toute la largeur */
+    margin-top: 60px; /* si tu veux garder l'espace pour la sidebar fixe */
+  }
+
   .sidebar {
     flex-direction: row;
     width: 100%;
@@ -501,6 +507,7 @@ button.cancel-btn:hover {
 
   .sidebar-menu li {
     margin: 10px 15px;
+    z-index: 1200;
   }
 
   .sidebar-menu.active .menu-text {
@@ -529,7 +536,7 @@ button.cancel-btn:hover {
   .menu-toggle {
     display: flex;
     margin-right: 25px;
-    z-index: 1001;
+    z-index: 999999;
   }
 
   .full-screen-map {
@@ -553,4 +560,5 @@ button.cancel-btn:hover {
     width: 30px;
     height: 20px;
   }
+
 }

@@ -136,6 +136,149 @@ html, body, app-root {
     opacity 0.2s ease,
     transform 0.2s ease;
 }
+/* =============================
+   Panel et card
+============================= */
+
+.panel-content {
+  padding: 18px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: visible; // scroll géré par tags-container
+  min-height: 0;
+}
+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centre horizontalement */
+  gap: 6px; /* espace entre titre et nom */
+  margin-bottom: 12px; /* espace entre header et tags-container */
+  color: #1a73e8; /* texte en bleu */
+}
+
+.card-header .title {
+  font-weight: 700;
+  font-size: 22px;
+  text-align: center;
+}
+
+.card-header .subtitle {
+  font-weight: 600;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* =============================
+   Tags stylés
+============================= */
+
+.tags-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 700px;
+  min-height: 86%;
+  padding-right: 6px;
+}
+
+.tags-container .field {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #f2f4f7 !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  margin: 2px 0 !important;
+  font-size: 14px !important;
+  transition: background 0.2s;
+}
+
+.tags-container .field:hover {
+  background: #e0e4ea;
+}
+
+.field .label {
+  font-weight: 600 !important;
+  color: #333;
+  min-width: 100px;
+}
+
+.field .value {
+  color: #444 !important;
+  flex: 1;
+  word-break: break-word;
+}
+
+/* =============================
+   Footer boutons
+============================= */
+
+/* Footer pour aligner les boutons côte à côte */
+.card-footer {
+  display: flex;
+  justify-content: center; /* centre horizontalement */
+  gap: 12px;               /* espace entre les boutons */
+  margin-top: 12px;
+}
+
+
+/* Boutons génériques */
+.btn-go, .btn-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+/* Bouton Y Aller */
+.btn-go {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.btn-go:hover {
+  background-color: #0056b3;
+}
+
+/* Bouton Modifier */
+.btn-edit {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.btn-edit:hover {
+  background-color: #495057;
+}
+
+/* Icônes */
+.btn-go i, .btn-edit i {
+  font-size: 16px;
+}
+
+@media (max-width: 599px) {
+  .tags-container {
+    max-height: 180px;
+    min-height: 68%;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: center; /* centre horizontalement */
+    gap: 12px;               /* espace entre les boutons */
+    margin-top: 12px;
+  }
+}
+
+
 
 
 

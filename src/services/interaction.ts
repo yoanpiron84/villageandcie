@@ -47,8 +47,22 @@ export class InteractionService {
 
   private tooltipEl!: HTMLDivElement;
   private tooltipOverlay!: Overlay;
+
+
+
   private tooltipLayerMap!: Record<string, (feature: Feature<Geometry>) => Promise<string>>;
   private currentFeature: Feature<Geometry> | null = null;
+
+  public sidebarPanel!: HTMLDivElement;
+  public sidebarContent!: HTMLDivElement;
+  public mapElement!: HTMLDivElement;
+
+  // setter appelé depuis le component
+  public setSidebarElements(panel: HTMLDivElement, content: HTMLDivElement, map: HTMLDivElement) {
+    this.sidebarPanel = panel;
+    this.sidebarContent = content;
+    this.mapElement = map;
+  }
 
   countryCenters: Record<string, [number, number]> = {
     fr: [2.2137, 46.2276],    // France
@@ -227,37 +241,10 @@ export class InteractionService {
     this.mapService.map.addOverlay(this.tooltipOverlay);
 
     // Fonction pour générer le bouton "Y aller"
-    const getGoButtonHTML = () => {
-      const text = this.translations['go_here'] || 'Y aller';
-      return `<button class="btn-go" style="
-        display:block;
-        margin:10px auto 0;
-        padding:6px 12px;
-        background-color:#1a73e8;
-        color:#fff;
-        border:none;
-        border-radius:6px;
-        cursor:pointer;
-        font-weight:600;
-        pointer-events: auto;
-      ">${text}</button>`;
-    };
+    const getGoButtonHTML = () => `<button class="btn-go"><i class="fa fa-location-arrow"></i> Y Aller</button>`;
+    const getEditButtonHTML = () => `<button class="btn-edit"><i class="fa fa-pencil-alt"></i> Modifier</button>`;
 
-    const getEditButtonHTML = () => {
-      const text = this.translations['edit'] || 'Modifier';
-      return `<button class="btn-edit" style="
-        display:block;
-        margin:5px auto 0;
-        padding:6px 12px;
-        background-color:#4caf50;
-        color:#fff;
-        border:none;
-        border-radius:6px;
-        cursor:pointer;
-        font-weight:600;
-        pointer-events: auto;
-      ">${text}</button>`;
-    };
+
 
 
     this.tooltipLayerMap = {
@@ -266,29 +253,27 @@ export class InteractionService {
         const tags = feature.get('tags') || {};
 
         const name = tags.name || feature.get('name') || 'Restaurant';
-        const phone = tags.phone || tags['contact:phone'];
-        const hours = tags.opening_hours;
-        const type = tags.cuisine;
-        const desc = tags.description;
 
         let html = `<div class="title">${name}</div>`;
 
-        const addField = async (labelKey: string, value?: string) => {
-          if (!value) return '';
-          const translatedLabel = await this.translateOSMTag(labelKey, this.languageService.currentLanguage as any);
-          return `<div class="field"><span class="label">${translatedLabel}</span><span class="value">${value}</span></div>`;
-        };
-
-        html += await addField('phone', phone);
-        html += await addField('hours', hours);
-        html += await addField('type', type);
-        if (desc) html += `<div class="desc">${desc}</div>`;
-
+        // 🟢 Tous les autres tags passent dans tags-container
         html += await this.buildTagListHTML(tags, feature);
 
-        html += getGoButtonHTML() + getEditButtonHTML();
+        const isCluster = !!feature.get('features') && feature.get('features').length > 1;
+
+        if (!isCluster) {
+          html += `
+            <div class="card-footer">
+              ${getGoButtonHTML()}
+              ${getEditButtonHTML()}
+            </div>
+          `;
+        }
+
+
         return html;
       },
+
 
       churchLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
@@ -310,32 +295,23 @@ export class InteractionService {
 
         let html = `<div class="title">${name}</div>`;
 
-        const add = async (labelKey: string, value?: string) => {
-          if (!value) return;
-          const translatedLabel = await this.translateOSMTag(
-            labelKey,
-            this.languageService.currentLanguage as any
-          );
-          html += `
-      <div class="field">
-        <span class="label">${translatedLabel}</span>
-        <span class="value">${value}</span>
-      </div>`;
-        };
-
-        await add('religion', tags.religion);
-        await add('denomination', tags.denomination || tags['denomination:wikidata']);
-        await add('building', tags.building || tags['building:part']);
-        await add('phone', tags.phone || tags['contact:phone']);
-        await add('email', tags.email || tags['contact:email']);
-        await add('website', tags.website || tags['contact:website']);
-        await add('service_times', tags.service_times);
-
+        // 🟢 Tous les autres tags passent dans tags-container
         html += await this.buildTagListHTML(tags, feature);
-        html += getGoButtonHTML() + getEditButtonHTML();
+
+        const isCluster = !!feature.get('features') && feature.get('features').length > 1;
+
+        if (!isCluster) {
+          html += `
+            <div class="card-footer">
+              ${getGoButtonHTML()}
+              ${getEditButtonHTML()}
+            </div>
+          `;
+        }
 
         return html;
       },
+
 
 
       greenLayer: async (feature) => {
@@ -345,7 +321,18 @@ export class InteractionService {
 
         let html = name ? `<div class="title">${name}</div>` : '';
         html += await this.buildTagListHTML(tags, feature);
-        html += getGoButtonHTML() + getEditButtonHTML();
+
+        const isCluster = !!feature.get('features') && feature.get('features').length > 1;
+
+        if (!isCluster) {
+          html += `
+            <div class="card-footer">
+              ${getGoButtonHTML()}
+              ${getEditButtonHTML()}
+            </div>
+          `;
+        }
+
         return html;
       },
 
@@ -354,10 +341,23 @@ export class InteractionService {
         const tags = feature.get('tags') || {};
 
         const name = tags.name || '';
+        const type = tags.type || tags.natural || this.translations['water'];
 
         let html = name ? `<div class="title">${name}</div>` : '';
+        html += `<div class="type">${type}</div>`;
         html += await this.buildTagListHTML(tags, feature);
-        html += getGoButtonHTML() + getEditButtonHTML();
+
+        const isCluster = !!feature.get('features') && feature.get('features').length > 1;
+
+        if (!isCluster) {
+          html += `
+            <div class="card-footer">
+              ${getGoButtonHTML()}
+              ${getEditButtonHTML()}
+            </div>
+          `;
+        }
+
         return html;
       },
 
@@ -413,7 +413,17 @@ export class InteractionService {
         await add('checkout', tags.checkout);
 
         html += await this.buildTagListHTML(tags, feature);
-        html += getGoButtonHTML() + getEditButtonHTML();
+
+        const isCluster = !!feature.get('features') && feature.get('features').length > 1;
+
+        if (!isCluster) {
+          html += `
+            <div class="card-footer">
+              ${getGoButtonHTML()}
+              ${getEditButtonHTML()}
+            </div>
+          `;
+        }
 
         return html;
       }
@@ -430,8 +440,7 @@ export class InteractionService {
       // Feature réelle
       const f = clusterFeatures.length ? clusterFeatures[0] : feature;
 
-      // Tags corrects
-      const props = f.getProperties();
+      // Tags
       const tags = f.get('tags') || {};
 
       // Type de commerce
@@ -442,51 +451,48 @@ export class InteractionService {
 
       if (isCluster) {
         html += `
-      <div class="title">
-        ${this.translations['number_cluster']
+      <div class="card-header">
+        <div class="title">
+          ${this.translations['number_cluster']
           .replace('{type}', genericLabel)
           .replace('{count}', clusterFeatures.length.toString())}
+        </div>
       </div>
     `;
-
       } else {
         const name = tags.name || f.get('name') || genericLabel;
-        const brand = tags.brand || '';
-        const address = [
-          tags['addr:housenumber'] || tags['contact:housenumber'],
-          tags['addr:street'] || tags['contact:street'],
-          tags['addr:postcode'] || tags['contact:postcode'],
-          tags['addr:city'] || tags['contact:city']
-        ].filter(Boolean).join(', ');
 
-        html += `<div class="title">${name}</div>`;
+        // Nom et type centrés, gros, gras, bleu
+        html += `
+          <div class="card-header">
+            <div class="title">${name}</div>
+            <div class="subtitle">
+              <span style="color:#1a73e8; font-weight:700;">Type:</span>
+              <span style="color:#000; font-weight:600; margin-left:4px;">
+                ${ (this.translations[shopType] || shopType).replace(/s$/, '') }
+              </span>
+            </div>
+          </div>
+        `;
 
-        const addField = (label: string, value?: string) => {
-          if (value) {
-            html += `<div class="field"><span class="label">${label}</span> <span class="value">${value}</span></div>`;
-          }
-        };
 
-        // Champs principaux affichés en haut
-        addField(this.translations['type'] || 'Type', shopType);
-        addField(this.translations['brand'] || 'Enseigne', brand);
-        addField(this.translations['address'] || 'Adresse', address);
-        addField(this.translations['phone'] || 'Téléphone', tags.phone || tags['contact:phone']);
-        addField(this.translations['email'] || 'Email', tags.email || tags['contact:email']);
-        addField(this.translations['website'] || 'Site web', tags.website || tags['contact:website']);
-        addField(this.translations['openingHours'] || 'Horaires d\'ouverture', tags.opening_hours);
-        addField(this.translations['delivery'] || 'Livraison', tags.delivery);
-        addField(this.translations['takeaway'] || 'À emporter', tags.takeaway);
-
-        // 🟢 Affichage auto des tags restants
+        // Tous les autres tags dans tags-container
         html += await this.buildTagListHTML(tags, feature);
       }
 
-      html += getGoButtonHTML();
-      html += getEditButtonHTML();
+      if (!isCluster) {
+        html += `
+      <div class="card-footer">
+        ${getGoButtonHTML()}
+        ${getEditButtonHTML()}
+      </div>
+    `;
+      }
 
       return html;
     };
+
+
 
 
 
@@ -572,11 +578,11 @@ export class InteractionService {
     //   }
     // });
 
-    this.tooltipEl.addEventListener('click', (evt) => {
+    this.sidebarContent.addEventListener('click', (evt) => {
       const target = evt.target as HTMLElement;
       if (!target) return;
 
-      // --- 1️⃣ Icône poubelle : PRIORITAIRE, sinon bouffé par les autres événements ---
+      // --- 1️⃣ Supprimer un tag ---
       if (target.closest('.tag-delete')) {
         evt.stopPropagation();
         evt.preventDefault();
@@ -587,59 +593,21 @@ export class InteractionService {
 
         const realFeature = (this.currentFeature.get('features')?.[0]) || this.currentFeature;
         const props = realFeature.getProperties() as { type?: string; tags?: Record<string, any> };
-
-        // Clone des tags
         const tags = { ...(realFeature.get('tags') || {}) };
-
-        // Supprimer le tag
         delete tags[key];
-
-        // Supprimer l'entrée correspondante dans modifiedFields
-        if (Array.isArray(tags.modifiedFields)) {
-          tags.modifiedFields = (tags.modifiedFields as { key: string; modifiedBy: string }[])
-            .filter(f => f.key !== key);
-          if (tags.modifiedFields.length === 0) delete tags.modifiedFields;
-        }
-
-        // Mettre à jour le feature
-        realFeature.setProperties({ ...props, tags });
-        this.currentFeature.set('tags', tags);
-
-        const geom = this.currentFeature.getGeometry();
-        if (!geom) return;
-        const [lon, lat] = toLonLat(getCenter(geom.getExtent()));
-
-        let collection = (props.type || 'unknown').toLowerCase();
-        if (collection === 'alimentaire') {
-          const tagType = (tags.shop || tags.amenity || '').toLowerCase();
-          if (tagType && tagType in environment.iconMap) collection = tagType;
-        }
-        if (!collection.endsWith('s')) collection += 's';
-
-        this.http.delete(`http://localhost:3000/nodejs/${collection}/${lat}_${lon}/${key}`)
-          .subscribe({
-            next: () => console.log(`Tag ${key} supprimé dans ${collection}`),
-            error: (err) => console.error('Erreur suppression tag :', err)
-          });
-
-
+        realFeature.set('tags', tags);
 
         const field = icon.closest('.field');
         if (field) field.remove();
+        return;
       }
 
-
+      // --- 2️⃣ Bouton "Y aller" ---
       let el: HTMLElement | null = target;
-
-      // --- Autres boutons (go/edit) ---
-      while (el && el !== this.tooltipEl) {
-
-        // bouton "Y aller"
+      while (el && el !== this.sidebarContent) {
         if (el.classList.contains('btn-go')) {
           evt.stopPropagation();
-          if (!this.isLocalisationActive) {
-            this.toggleLocalisation(this.languageService.currentLanguage);
-          }
+          if (!this.isLocalisationActive) this.toggleLocalisation(this.languageService.currentLanguage);
           const geom = this.currentFeature?.getGeometry();
           if (geom?.getType() === 'Point') {
             const coords = (geom as Point).getCoordinates();
@@ -649,18 +617,17 @@ export class InteractionService {
           return;
         }
 
-        // bouton "Modifier"
+        // --- 3️⃣ Bouton "Modifier" ---
         if (el.classList.contains('btn-edit')) {
           evt.stopPropagation();
-          if (this.currentFeature) {
-            this.openEditForm(this.currentFeature);
-          }
+          if (this.currentFeature) this.openEditForm(this.currentFeature);
           return;
         }
 
         el = el.parentElement;
       }
     });
+
 
 
     const attachTooltipToLayers = (layers: Record<string, VectorLayer<VectorSource>>) => {
@@ -685,17 +652,22 @@ export class InteractionService {
       };
 
       // Tap/click mobile
-      this.mapService.map.on('click', async (evt) => {
+      this.mapService.map.on('click', async evt => {
         const clickedFeature = this.mapService.map.forEachFeatureAtPixel(evt.pixel, f => f);
 
+        if (!this.sidebarPanel || !this.sidebarContent) return;
+
         if (clickedFeature) {
-          await this.fillTooltip(clickedFeature);
-          this.tooltipOverlay.setPosition(evt.coordinate);
-          this.tooltipEl.style.display = 'block';
+          const html = await this.fillTooltip(clickedFeature);
+          this.sidebarContent.innerHTML = html;
+
+          this.sidebarPanel.classList.add('open');
         } else {
-          this.tooltipEl.style.display = 'none';
+          this.sidebarPanel.classList.remove('open');
         }
       });
+
+
 
 
 
@@ -714,12 +686,12 @@ export class InteractionService {
     });
   }
 
-  private async fillTooltip(featureLike: FeatureLike) {
-    if (!(featureLike instanceof Feature)) return;
+  private async fillTooltip(featureLike: FeatureLike): Promise<string> {
+    if (!(featureLike instanceof Feature)) return "";
     const feature = featureLike as Feature<Geometry>;
 
     const geom = feature.getGeometry();
-    if (!geom) return;
+    if (!geom) return "";
 
     const allLayers = {
       restaurantLayer: this.mapService.restaurantLayer,
@@ -741,24 +713,28 @@ export class InteractionService {
           if (inner.includes(feature) || f === feature) return name;
         }
       }
-      return '';
+      return "";
     };
 
     const layerName = getLayerForFeature(feature);
     if (layerName && this.tooltipLayerMap[layerName]) {
       this.currentFeature = feature;
+
       const htmlOrPromise = this.tooltipLayerMap[layerName](feature);
 
-// Vérifie si c'est une Promise (duck typing)
-      const html = htmlOrPromise && typeof (htmlOrPromise as any).then === 'function'
-        ? await htmlOrPromise
-        : htmlOrPromise;
+      // 🔥 Supporte string ou Promise<string>
+      const html =
+        htmlOrPromise && typeof (htmlOrPromise as any).then === "function"
+          ? await htmlOrPromise
+          : htmlOrPromise;
 
-      this.tooltipEl.innerHTML = html as string;
-
-
+      // 🔥 NE PAS toucher au DOM ici → on retourne le HTML
+      return html || "";
     }
+
+    return "";
   }
+
 
 
 
@@ -922,16 +898,12 @@ export class InteractionService {
       return s.charAt(0).toUpperCase() + s.slice(1);
     }
 
-  private async buildTagListHTML(tags: Record<string, any>, feature: Feature<Geometry>): Promise<string> {
+  async buildTagListHTML(tags: Record<string, any>, feature: Feature<Geometry>): Promise<string> {
     if (!tags) return '';
 
     const excluded = new Set([
-      'geometry','features','id','layer','type','name',
+      'geometry','features','id','layer','name',
       'brand','shop','amenity',
-      'addr:housenumber','addr:street','addr:postcode','addr:city',
-      'contact:housenumber','contact:street','contact:postcode','contact:city',
-      'phone','contact:phone','email','contact:email',
-      'website','contact:website','opening_hours','delivery','takeaway',
       'modifiedFields'
     ]);
 
@@ -940,7 +912,7 @@ export class InteractionService {
 
     const modifiedFields: { key: string, modifiedBy: string }[] = tags['modifiedFields'] || [];
 
-    let html = '<div class="tags-list">';
+    let html = '<div class="tags-container">';
 
     const promises: Promise<string>[] = Object.entries(tags)
       .filter(([key, value]) => value && !excluded.has(key) && !/^name(:.+)?$/i.test(key))

@@ -1,4 +1,14 @@
-import { Component, OnInit, OnDestroy, Input, SimpleChanges, OnChanges, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  Input,
+  SimpleChanges,
+  OnChanges,
+  AfterViewInit,
+  ElementRef,
+  ViewChild
+} from '@angular/core';
 import { MapService } from '../../services/map';
 import { SearchService } from '../../services/search';
 import { RouteService } from '../../services/route';
@@ -35,6 +45,11 @@ import {LanguageService} from '../../services/language';
   styleUrls: ['./map.scss']
 })
 export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
+  @ViewChild('sidebarPanel', { static: true }) sidebarPanel!: ElementRef<HTMLDivElement>;
+  @ViewChild('sidebarContent', { static: true }) sidebarContent!: ElementRef<HTMLDivElement>;
+  @ViewChild('mapHost', { static: true }) mapHost!: ElementRef<HTMLDivElement>;
+
+
   @Input() showMap: boolean = true;
   @Input() translations: Record<string, string> = {};
 
@@ -49,6 +64,10 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
   public lastAction: (() => void) | null = null;
 
   public newCenter: [number, number] = [0,0];
+
+  panelOpen = false;
+  panelHTML = '';
+
 
   constructor(
     public mapService: MapService,
@@ -90,6 +109,12 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
       }
     });
 
+    this.interactionService.setSidebarElements(
+      this.sidebarPanel.nativeElement,
+      this.sidebarContent.nativeElement,
+      this.interactionService.mapElement,
+    );
+
     this.interactionService.initTooltip();
 
     // Recherche avec debounce
@@ -104,10 +129,17 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
   ngAfterViewInit(): void {
 
     // Initialisation de la carte après que le div soit rendu
+
     if (this.showMap && !this.mapInitialized) {
       this.mapService.map.setTarget('map-container');
       this.mapInitialized = true;
     }
+
+    this.interactionService.setSidebarElements(
+      this.sidebarPanel.nativeElement,
+      this.sidebarContent.nativeElement,
+      this.mapHost.nativeElement
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -243,6 +275,31 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
 
   onModalCancel() {
     this.interactionService.showModal = false;
+  }
+
+  closePanel() {
+    this.panelOpen = false;
+    this.panelHTML = '';
+  }
+
+  get isPanelOpen(): boolean {
+    return this.sidebarPanel?.nativeElement.classList.contains('open');
+  }
+
+  get modalTagsValues(): any[] {
+    return Object.values(this.interactionService.modalTags || {});
+  }
+
+
+  tooltipHeader: string = '';
+  tooltipTags: string = '';
+
+  // Quand tu récupères le tooltip d’un restaurant ou d’une église :
+  async showTooltip(feature: Feature<Geometry>, key: string) {
+    this.tooltipHeader = `<div class="title">${feature.get('tags')?.name || 'Nom'}</div>
+                        <div class="subtitle">${feature.get('tags')?.shop || feature.get('tags')?.amenity || key}</div>`;
+
+    this.tooltipTags = await this.interactionService.buildTagListHTML(feature.get('tags'), feature);
   }
 
 

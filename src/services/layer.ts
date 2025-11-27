@@ -181,6 +181,7 @@ export class LayerService {
 
     // 3️⃣ Récupération des customData via la nouvelle route GET /entity
     const typesQuery = collections.map(c => c.mongo).join(',');
+    console.log(`http://localhost:3000/nodejs/entity?types=${typesQuery}`);
     const customPromise = typesQuery
       ? this.http.get<any[]>(`http://localhost:3000/nodejs/entity?types=${typesQuery}`).toPromise()
         .then(allData => {
@@ -193,7 +194,6 @@ export class LayerService {
         })
         .catch(() => collections.map(c => ({ collection: c.mongo, type: c.typeReal, customData: [] })))
       : Promise.resolve([]);
-
 
     // 4️⃣ Fusion Overpass + MongoDB
     return Promise.all([osmPromise, customPromise]).then(([osmData, allCustom]) => {
@@ -420,7 +420,6 @@ export class LayerService {
     const minLat = lat - delta, maxLat = lat + delta;
     const minLon = lon - delta, maxLon = lon + delta;
 
-    // Query Overpass pour les cours d'eau
     const overpassQuery = `[out:json];
   (way["waterway"~"river|stream|canal|drain"](${minLat},${minLon},${maxLat},${maxLon});
    relation["waterway"~"river|stream|canal|drain"](${minLat},${minLon},${maxLat},${maxLon}););
@@ -431,6 +430,8 @@ export class LayerService {
         const features = this.convertOverpassToGeoJSON(result.mergedData);
         const source = this.mapService.waterLayer.getSource() as VectorSource<any>;
         source?.clear();
+
+        const allCustom = (result.customDataByCollection || []).flatMap((c: any) => c.customData);
 
         features.forEach((f: Feature<Geometry>) => {
           // Filtrage par rayon
@@ -443,54 +444,72 @@ export class LayerService {
           const geom = f.getGeometry();
           if (!geom) return;
 
+          let tags = f.get('tags') || {};
+          let match: any = null;
+
+          // --------------------
+          //      POINTS
+          // --------------------
           if (geom instanceof Point) {
             const center = toLonLat(geom.getCoordinates()) as [number, number];
-            let tags = f.get('tags') || {};
+            const key = `${center[0]}_${center[1]}`;
 
-            // Cherche le match dans customData
-            let match: any = undefined;
-
-            // Si plusieurs collections
-            if ('customDataByCollection' in result) {
-              for (const { customData } of result.customDataByCollection as any[]) {
-                match = (customData as any[]).find(c =>
-                  Math.abs(c.coords.lat - center[1]) < 1e-6 &&
-                  Math.abs(c.coords.lon - center[0]) < 1e-6
-                );
-                if (match) break;
-              }
-            } else if ('customData' in result) {
-              match = (result.customData as any[]).find(c =>
-                Math.abs(c.coords.lat - center[1]) < 1e-6 &&
-                Math.abs(c.coords.lon - center[0]) < 1e-6
-              );
-            }
+            match = allCustom.find((c: any) =>
+              Math.abs(c.coords.lat - center[1]) < 1e-6 &&
+              Math.abs(c.coords.lon - center[0]) < 1e-6
+            );
 
             if (match) {
-              tags = { ...tags, ...match.tags, name: match.name };
-              this.customTagsMap.set(`${center[0]}_${center[1]}`, tags);
+              f.set('tags', { ...tags, ...match.tags, name: match.name });
+              this.customTagsMap.set(key, f.get('tags'));
+              console.log("MATCH: ",key, tags);
             } else {
-              const localTags = this.customTagsMap.get(`${center[0]}_${center[1]}`);
-              if (localTags) tags = localTags;
+              const localTags = this.customTagsMap.get(key);
+              if (localTags) f.set('tags', localTags);
+              console.log("UNMATCH LOCAL: ",localTags);
             }
 
-            f.set('tags', tags);
+            if (!f.get('type')) f.set('type', 'water');
+            tags = f.get('tags') || {};
+            if (!tags.name) f.set('tags', { ...tags, name: this.translations['waterway'] || 'Waterway' });
+          }
 
-          } else if (
+            // --------------------
+            //   LINE / POLYGON
+          // --------------------
+          else if (
             geom.getType() === 'LineString' ||
             geom.getType() === 'Polygon' ||
             geom.getType() === 'MultiPolygon'
           ) {
-            // Pour LineStrings/Polygons/MultiPolygons, ne pas écraser les tags originaux
-            const tags = f.get('tags') || {};
-            if (!tags.name) f.set('tags', { ...tags, name: 'Waterway' });
+            const extent = geom.getExtent();
+            const [centerX, centerY] = getCenter(extent);
+            const center = toLonLat([centerX, centerY]) as [number, number];
+            const key = `${center[0]}_${center[1]}`;
+
+            match = allCustom.find((c: any) =>
+              Math.abs(c.coords.lat - center[1]) < 1e-6 &&
+              Math.abs(c.coords.lon - center[0]) < 1e-6
+            );
+
+            if (match) {
+              f.set('tags', { ...tags, ...match.tags, name: match.name });
+              this.customTagsMap.set(key, f.get('tags'));
+            } else {
+              const localTags = this.customTagsMap.get(key);
+              if (localTags) f.set('tags', localTags);
+            }
+
+            if (!f.get('type')) f.set('type', 'water');
+            tags = f.get('tags') || {};
+            if (!tags.name) f.set('tags', { ...tags, name: this.translations['waterway'] || 'Waterway' });
           }
         });
 
-        // Ajout des features à la source
+        // Ajout des features à la couche
         source?.addFeatures(features);
 
-        // Mise à jour des layers actifs
+        // Mise à jour état
         this.activeLayers.add('showWater');
         this.selectedLayerAction = 'showWater';
 
@@ -501,6 +520,7 @@ export class LayerService {
       })
       .catch(err => console.error('Erreur showWater:', err));
   }
+
 
 
 
