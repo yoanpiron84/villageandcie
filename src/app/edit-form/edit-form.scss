@@ -1,70 +1,100 @@
 .modal-backdrop {
   position: fixed;
-  inset: 0; // remplace top/left/right/bottom
-  background: rgba(0, 0, 0, 0.6);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(3px); // effet flou sympa
+  justify-content: center;
+  z-index: 1500;
+  color: black;
 }
 
 .modal {
-  background: #ffffff;
-  color: #000000; // texte en noir
-  padding: 24px;
-  border-radius: 12px;
-  width: 360px;
-  max-width: 90%;
-  max-height: 80vh;
+  background: #fff;
+  padding: 28px;
+  border-radius: 14px;
+  width: 400px;
+  max-width: 92%;
+  max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.2s ease-out;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 20px;
+    font-weight: 600;
+  }
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 
   label {
     display: block;
     margin-bottom: 6px;
     font-weight: 600;
+    color: #333;
   }
 
-  input {
+  input,
+  select {
     width: 100%;
-    padding: 8px 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
     border: 1px solid #ccc;
-    border-radius: 6px;
     font-size: 14px;
-    transition: border-color 0.2s;
+    background: #fafafa;
+    transition: border-color 0.2s, background 0.2s;
 
     &:focus {
       outline: none;
       border-color: #4caf50;
+      background: #fff;
     }
   }
 }
 
 .tags-list {
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 
   h4 {
-    margin-bottom: 8px;
-    font-weight: 600;
-    font-size: 14px;
+    font-size: 15px;
+    margin-bottom: 10px;
   }
 
   ul {
-    list-style-type: none;
-    padding-left: 0;
-    margin: 0;
+    padding: 0;
+    list-style: none;
 
     li {
-      padding: 4px 0;
+      padding: 6px 0;
       font-size: 13px;
     }
+  }
+}
+
+.add-tag-section {
+  border-top: 1px solid #e5e5e5;
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.btn-add {
+  width: 100%;
+  padding: 10px 0;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #1565c0;
   }
 }
 
@@ -72,39 +102,89 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  margin-top: 20px;
 
   button {
-    padding: 8px 16px;
+    padding: 10px 18px;
     border: none;
-    border-radius: 6px;
-    cursor: pointer;
+    border-radius: 8px;
     font-weight: 600;
-    transition: background-color 0.2s, transform 0.1s;
-
-    &:hover {
-      transform: translateY(-1px);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
+    cursor: pointer;
   }
 
   button:first-child {
-    background-color: #4caf50;
-    color: #ffffff;
+    background: #4caf50;
+    color: white;
 
     &:hover {
-      background-color: #45a049;
+      background: #43a047;
     }
   }
 
   button:last-child {
-    background-color: #f44336;
-    color: #ffffff;
+    background: #e53935;
+    color: white;
 
     &:hover {
-      background-color: #e53935;
+      background: #d32f2f;
     }
+  }
+}
+
+.opening-day {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+
+  .day-name {
+    width: 80px;        // largeur fixe pour tous les jours
+    font-weight: 600;
+    margin-right: 10px; // écart fixe entre le jour et les inputs
+    text-align: right;
+  }
+
+  input.morning,
+  input.afternoon {
+    width: 50px;        // réduit par rapport à avant
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1px;
+
+    &:focus {
+      outline: none;
+      border-color: #4caf50;
+    }
+  }
+
+  select.status {
+    width: 120px;       // légèrement plus compact
+    margin-left: 6px;    // espace entre input et select
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+
+    &:focus {
+      outline: none;
+      border-color: #4caf50;
+    }
+  }
+
+  gap: 6px; // écart entre morning et afternoon
+}
+
+
+
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

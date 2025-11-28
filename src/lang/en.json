@@ -166,5 +166,16 @@
   "language": "Language",
 
   "yes": "Yes",
-  "no": "No"
+  "no": "No",
+
+  "+---------------------- TAGS HORAIRES --------------------+": "",
+
+  "day_Mo": "Monday",
+  "day_Tu": "Tuesday",
+  "day_We": "Wednesday",
+  "day_Th": "Thursday",
+  "day_Fr": "Friday",
+  "day_Sa": "Saturday",
+  "day_Su": "Sunday"
+
 }

@@ -16,25 +16,70 @@ export class EditFormComponent implements OnInit {
   @Output() ok = new EventEmitter<{ name: string; tags: Record<string, any> }>();
   @Output() cancel = new EventEmitter<void>();
 
-  featureName: string = '';
+  featureName = '';
   tagKeys: string[] = [];
 
-  // Champs pour ajouter un nouveau tag
-  newKey: string = '';
+  newKey = '';
   newValue: any = '';
-  newType: string = 'text';
+  newType = 'text';
+  selectedKey = '';
+
+  availableKeys: string[] = [];
+
+  openingHoursDays = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  openingHoursValues: Record<string, {
+    morning: string;
+    afternoon: string;
+    status: string;
+  }> = {};
 
   ngOnInit(): void {
     this.featureName = this.name;
     this.tagKeys = Object.keys(this.tags || {});
+
+    this.availableKeys = this.tagKeys.filter(k => k !== 'shop' && k !== 'name');
+    this.availableKeys.push('custom');
+
+    // 🔥 Init structure vide pour chaque jour
+    this.openingHoursDays.forEach(day => {
+      this.openingHoursValues[day] = {
+        morning: '',
+        afternoon: '',
+        status: ''
+      };
+    });
+
+    // 🔥 Pré-remplissage opening_hours
+    if (this.tags['opening_hours']) {
+      const lines = this.tags['opening_hours'].split('<br>');
+
+      lines.forEach((line: string) => {
+        if (!line.includes(':')) return;
+
+        const [dayRaw, valueRaw] = line.split(':');
+        const day = dayRaw.trim();
+        const value = valueRaw.trim();
+
+        if (!this.openingHoursValues[day]) return;
+
+        // ⚠️ Fermeture totale
+        if (value.toLowerCase().includes('fermé') && !value.includes(':')) {
+          this.openingHoursValues[day].status = value;
+          return;
+        }
+
+        // Exemple : "06:30-12:30 14:00-18:00"
+        const parts = value.split(' ').filter(v => v.includes('-'));
+
+        if (parts[0]) this.openingHoursValues[day].morning = parts[0];    // ex 06:30-12:30
+        if (parts[1]) this.openingHoursValues[day].afternoon = parts[1];  // ex 14:00-18:00
+      });
+    }
   }
 
   confirm(): void {
-    // Filtrer pour ne garder qu’un seul name “général”
     const cleanTags = { ...this.tags };
-    if (this.featureName) {
-      cleanTags['name'] = this.featureName;
-    }
+    if (this.featureName) cleanTags['name'] = this.featureName;
 
     this.ok.emit({
       name: this.featureName,
@@ -55,22 +100,25 @@ export class EditFormComponent implements OnInit {
   }
 
   addTag(): void {
-    const key = this.newKey.trim();
+    let key = this.selectedKey;
     if (!key) return;
 
-    // Cas particulier : opening_hours
-    if (key === 'opening_hours') {
-      // Si le tag existe déjà, on met simplement à jour
-      this.tags[key] = this.newValue || this.tags[key] || '';
-    } else {
-      // Sinon on ajoute un nouveau tag
-      this.tags[key] = this.castValueByType(this.newValue, this.newType);
-      this.tagKeys = Object.keys(this.tags);
+    if (key === 'custom') {
+      if (!this.newKey.trim()) return;
+      key = this.newKey.trim();
     }
 
-    // Réinitialiser le formulaire d’ajout
+    if (key === 'opening_hours') {
+      this.tags[key] = this.buildOpeningHoursTag();
+    } else {
+      this.tags[key] = this.castValueByType(this.newValue, this.newType);
+    }
+
+    this.tagKeys = Object.keys(this.tags);
+
     this.newKey = '';
     this.newValue = '';
+    this.selectedKey = '';
     this.newType = 'text';
   }
 
@@ -78,11 +126,31 @@ export class EditFormComponent implements OnInit {
     switch (type) {
       case 'number':
         return Number(value);
-      case 'date':
-      case 'time':
-      case 'text':
       default:
         return value;
     }
+  }
+
+  isOpeningHours(): boolean {
+    return this.selectedKey === 'opening_hours';
+  }
+
+  // 🔥 Corrigé : construit le format EXACT utilisé partout
+  buildOpeningHoursTag(): string {
+    return this.openingHoursDays.map(day => {
+      const v = this.openingHoursValues[day];
+
+      if (v.status) return `${day}: ${v.status}`;
+
+      const morning = v.morning ? v.morning : '';
+      const afternoon = v.afternoon ? v.afternoon : '';
+
+      return `${day}: ${morning}${afternoon ? ' ' + afternoon : ''}`;
+    }).join('<br>');
+  }
+
+  // 🔥 Mis à jour automatiquement quand on édite
+  updateOpeningHoursTag(): void {
+    this.tags['opening_hours'] = this.buildOpeningHoursTag();
   }
 }

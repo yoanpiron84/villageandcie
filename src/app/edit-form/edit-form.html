@@ -23,18 +23,30 @@
       </ul>
     </div>
 
-    <!-- Ajouter un nouveau tag -->
+    <!-- Ajouter un tag -->
     <div class="add-tag-section">
       <h4>Ajouter un nouveau tag</h4>
 
       <div class="form-group">
-        <label for="newKey">Clé :</label>
-        <input id="newKey" type="text" [(ngModel)]="newKey" placeholder="ex: opening_hours" />
+        <label for="selectKey">Clé :</label>
+        <select id="selectKey" [(ngModel)]="selectedKey">
+          <option value="">-- Choisir une clé --</option>
+          <option *ngFor="let key of availableKeys" [value]="key">
+            {{ key === 'opening_hours' ? "Horaires d'ouverture" : (key === 'custom' ? 'Clé personnalisée' : key) }}
+          </option>
+        </select>
       </div>
 
+      <!-- Custom key -->
+      <div class="form-group" *ngIf="selectedKey === 'custom'">
+        <label for="newKey">Nouvelle clé :</label>
+        <input id="newKey" type="text" [(ngModel)]="newKey" placeholder="ex: wheelchair" />
+      </div>
+
+      <!-- Type -->
       <div class="form-group">
         <label for="newType">Type :</label>
-        <select id="newType" [(ngModel)]="newType">
+        <select id="newType" [(ngModel)]="newType" [disabled]="isOpeningHours()">
           <option value="text">Texte</option>
           <option value="number">Numéro</option>
           <option value="date">Date</option>
@@ -42,12 +54,45 @@
         </select>
       </div>
 
-      <div class="form-group">
-        <label for="newValue">Valeur :</label>
-        <input id="newValue" [type]="newType" [(ngModel)]="newValue" />
+      <!-- Champ valeur -->
+      <div class="form-group" *ngIf="isOpeningHours()">
+        <label>Horaires d'ouverture</label>
+
+        <div *ngFor="let day of openingHoursDays" class="opening-day">
+          <span class="day-name">{{day}}:</span>
+
+          <input type="time"
+                 [(ngModel)]="openingHoursValues[day].morning"
+                 (ngModelChange)="updateOpeningHoursTag()"
+                 placeholder="Heure matin" />
+
+          <input type="time"
+                 [(ngModel)]="openingHoursValues[day].afternoon"
+                 (ngModelChange)="updateOpeningHoursTag()"
+                 placeholder="Heure après-midi" />
+
+          <select [(ngModel)]="openingHoursValues[day].status"
+                  (ngModelChange)="updateOpeningHoursTag()">
+            <option value="">Ouvert</option>
+            <option value="fermé matin">Fermé matin</option>
+            <option value="fermé aprem">Fermé après-midi</option>
+            <option value="fermé">Fermé toute la journée</option>
+          </select>
+        </div>
       </div>
 
-      <button (click)="addTag()">Ajouter le tag</button>
+
+      <!-- Champ normal si autre type -->
+      <div class="form-group" *ngIf="!isOpeningHours()">
+        <label for="valueField">Valeur :</label>
+        <input id="valueField" [type]="newType" [(ngModel)]="newValue" />
+      </div>
+
+
+
+
+
+      <button class="btn-add" (click)="addTag()">Ajouter</button>
     </div>
 
     <!-- Boutons -->

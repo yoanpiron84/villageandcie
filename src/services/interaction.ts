@@ -429,6 +429,53 @@ export class InteractionService {
       }
     };
 
+    const daysKeys = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+
+    const formatOpeningHours = (oh: string, translations: any) => {
+      // Séparer par ";" puis trim
+      const parts = oh.split(";").map(x => x.trim());
+      const result: string[] = [];
+
+      for (const part of parts) {
+        if (!part) continue;
+
+        // On cherche la dernière occurrence d'un espace avant l'heure
+        const lastSpace = part.lastIndexOf(" ");
+        if (lastSpace === -1) {
+          result.push(part);
+          continue;
+        }
+
+        const days = part.slice(0, lastSpace).trim(); // ex: "Lun, mercredi-vendredi"
+        const hours = part.slice(lastSpace + 1).trim().replace(/h/g, ":"); // ex: "06h45-20h00"
+
+        const dayRanges = days.split(",").map(s => s.trim());
+
+        for (const dr of dayRanges) {
+          if (dr.includes("-")) {
+            const [start, end] = dr.split("-").map(s => s.trim());
+            let startIdx = daysKeys.indexOf(start);
+            let endIdx = daysKeys.indexOf(end);
+            if (startIdx === -1 || endIdx === -1) continue;
+
+            if (endIdx < startIdx) endIdx += 7; // cycle
+
+            for (let i = startIdx; i <= endIdx; i++) {
+              const key = daysKeys[i % 7];
+              const label = translations[`day_${key}`] || key;
+              result.push(`${label}: ${hours}`);
+            }
+          } else {
+            const label = translations[`day_${dr}`] || dr;
+            result.push(`${label}: ${hours}`);
+          }
+        }
+      }
+
+      return result.join("<br>");
+    };
+
+
 
     const getFoodTooltipHTML = async (feature: Feature<Geometry>, key: string) => {
       this.tooltipEl.className = 'tooltip-card';
@@ -442,6 +489,10 @@ export class InteractionService {
 
       // Tags
       const tags = f.get('tags') || {};
+
+      if (tags.opening_hours) {
+        tags.opening_hours = formatOpeningHours(tags.opening_hours, this.translations);
+      }
 
       // Type de commerce
       const shopType = tags.shop || tags['amenity'] || key;
@@ -923,7 +974,10 @@ export class InteractionService {
         const translatedValues = await Promise.all(
           parts.map(async p => {
             try {
-              const t = await firstValueFrom(this.translationService.translate(p, lang));
+              let t = p;
+              if(key != "opening_hours"){
+                await firstValueFrom(this.translationService.translate(p, lang));
+              }
               return this.capitalize(t || p);
             } catch {
               return p;
