@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { UserService, UserProfile } from '../../services/user';
 import { AuthService } from '@auth0/auth0-angular';
 import { filter, take } from 'rxjs/operators';
+import {TranslationEntry} from '../app';
 
 @Component({
   selector: 'app-profile',
@@ -16,7 +17,7 @@ export class ProfileComponent {
   editedName = '';
   tempPhoto = '';
   editingName = false;
-  @Input() translations!: Record<string, string>;
+  @Input() translations!: Record<string, TranslationEntry>;
 
   constructor(public auth: AuthService, public userService: UserService) {
     effect(() => {

@@ -17,6 +17,7 @@ import VectorLayer from 'ol/layer/Vector';
 import {Geometry} from 'ol/geom';
 import {getCenter} from 'ol/extent';
 import {LanguageService} from './language';
+import {TranslationEntry} from '../app/app';
 
 interface CustomEntity {
   _id: string | number;
@@ -36,7 +37,7 @@ export class LayerService {
   public showFilterCard = false;
   public canApplyFilter = true;
   coords: string = '';
-  @Input() translations: Record<string, string> = {};
+  @Input() translations: Record<string, TranslationEntry> = {};
 
   layerLabels: Record<string, string> = {};
 
@@ -49,11 +50,11 @@ export class LayerService {
   public initLayerLabels() {
     // labels généraux
     this.layerLabels = {
-      showRestaurant: this.translations["restaurant"] || 'Restaurant',
-      showWater: this.translations["water"] || 'Points d\'eau',
-      showChurch: this.translations["church"] || 'Église',
-      showGreen: this.translations["green_space"] || 'Espaces verts',
-      showHotel: this.translations["hotel"] || 'Hôtels',
+      showRestaurant: this.translations["tag:restaurant"]?.message || 'Restaurant',
+      showWater: this.translations["tag:water"]?.message || 'Points d\'eau',
+      showChurch: this.translations["tag:church"]?.message || 'Église',
+      showGreen: this.translations["tag:green_space"]?.message || 'Espaces verts',
+      showHotel: this.translations["tag:hotel"]?.message || 'Hôtels',
     };
 
     // labels alimentaires dynamiques depuis environment
@@ -61,7 +62,7 @@ export class LayerService {
     const shopMap = environment.shopTagMap[lang];
     Object.entries(shopMap).forEach(([label, keyInternal]) => {
       const actionKey = `showAlimentaire('${keyInternal}')`;
-      this.layerLabels[actionKey] = this.translations[keyInternal] || keyInternal.charAt(0).toUpperCase() + keyInternal.slice(1);
+      this.layerLabels[actionKey] = this.translations[`tag:${keyInternal}`]?.message || keyInternal.charAt(0).toUpperCase() + keyInternal.slice(1);
     });
 
   }
@@ -205,6 +206,7 @@ export class LayerService {
 
       allCustom.forEach(({ type, customData }) => {
         customData.forEach(c => {
+
           mergedData.elements.push({
             type: 'node',
             id: `custom_${type}_${c._id}`,
@@ -471,7 +473,7 @@ export class LayerService {
 
             if (!f.get('type')) f.set('type', 'water');
             tags = f.get('tags') || {};
-            if (!tags.name) f.set('tags', { ...tags, name: this.translations['waterway'] || 'Waterway' });
+            if (!tags.name) f.set('tags', { ...tags, name: this.translations['tag:waterway']?.message || 'Waterway' });
           }
 
             // --------------------
@@ -502,7 +504,7 @@ export class LayerService {
 
             if (!f.get('type')) f.set('type', 'water');
             tags = f.get('tags') || {};
-            if (!tags.name) f.set('tags', { ...tags, name: this.translations['waterway'] || 'Waterway' });
+            if (!tags.name) f.set('tags', { ...tags, name: this.translations['tag:waterway']?.message || 'Waterway' });
           }
         });
 
@@ -587,13 +589,13 @@ export class LayerService {
 
             // Toujours définir un nom générique si absent
             const tags = f.get('tags') || {};
-            if (!tags.name) f.set('tags', { ...tags, name: this.translations['green_space'] || 'Green space' });
+            if (!tags.name) f.set('tags', { ...tags, name: this.translations['tag:green_space']?.message || 'Green space' });
 
           } else if (geom.getType() === 'LineString' || geom.getType() === 'Polygon' || geom.getType() === 'MultiPolygon') {
             const tags = f.get('tags') || {};
             // Définit type + nom générique pour les formes
             f.set('type', f.get('type') || 'green');
-            if (!tags.name) f.set('tags', { ...tags, name: this.translations['green_space'] || 'Green space' });
+            if (!tags.name) f.set('tags', { ...tags, name: this.translations['tag:green_space']?.message || 'Green space' });
           }
         });
 
@@ -1079,7 +1081,7 @@ out geom;`;
             ...f.getProperties(),
             tags,
             type: realType,
-            name: tags['name'] || tags['brand'] || this.translations[shopFilter] || 'Commerce alimentaire',
+            name: tags['name'] || tags['brand'] || this.translations[`tag:${shopFilter}`]?.message || 'Commerce alimentaire',
             icon
           });
         });

@@ -33,6 +33,7 @@ import {EditFormComponent} from '../app/edit-form/edit-form';
 import {LanguageService} from './language';
 import {TranslationService} from './translation';
 import {UserService} from './user';
+import {TranslationEntry} from '../app/app';
 
 @Injectable({ providedIn: 'root' })
 export class InteractionService {
@@ -41,7 +42,7 @@ export class InteractionService {
   userPosition: { lat: number, lon: number } | null = null;
   searchResults: any[] = [];
 
-  translations: Record<string, string> = {};
+  translations: Record<string, TranslationEntry> = {};
 
   public isSatellite = false;
 
@@ -70,46 +71,46 @@ export class InteractionService {
     es: [-3.7038, 40.4168],   // Madrid
   };
 
-  foodShopsConfig: Record<string, { label: string; fields?: string[] }> = {
-    bakery: {label: this.translations['bakery'] || 'Boulangerie', fields: ['speciality']},
-    butcher: {label: this.translations['butcher'] || 'Boucherie', fields: ['meat', 'speciality']},
-    greengrocer: {label: this.translations['greengrocer'] || 'Primeur', fields: ['fruits', 'vegetables']},
-    supermarket: {label: this.translations['supermarket'] || 'Supermarché', fields: ['aisles']},
-    convenience: {label: this.translations['convenience'] || 'Supérette'},
-    kiosk: {label: this.translations['kiosk'] || 'Kiosque'},
-    cafe: {label: this.translations['cafe'] || 'Café'},
-    coffee_shop: {label: this.translations['coffee_shop'] || 'Coffee Shop'},
-    tea: {label: this.translations['tea'] || 'Salon de thé'},
-    restaurant: {label: this.translations['restaurant'] || 'Restaurant', fields: ['cuisine']},
-    fast_food: {label: this.translations['fast_food'] || 'Fast Food', fields: ['cuisine']},
-    pub: {label: this.translations['pub'] || 'Pub'},
-    bar: {label: this.translations['bar'] || 'Bar'},
-    food_court: {label: this.translations['food_court'] || 'Aire de restauration'},
-    ice_cream: {label: this.translations['ice_cream'] || 'Glacier', fields: ['flavors']},
-    chocolate: {label: this.translations['chocolate'] || 'Chocolaterie', fields: ['speciality']},
-    sweet_shop: {label: this.translations['sweet_shop'] || 'Confiserie', fields: ['speciality']},
-    wine_shop: {label: this.translations['wine_shop'] || 'Caviste', fields: ['wines']},
-    beer: {label: this.translations['beer'] || 'Magasin de bières', fields: ['beers']},
-    spirits: {label: this.translations['spirits'] || 'Spiritueux', fields: ['spirits']},
-    deli: {label: this.translations['deli'] || 'Épicerie fine', fields: ['speciality']},
-    cheese: {label: this.translations['cheese'] || 'Fromagerie', fields: ['speciality']},
-    seafood: {label: this.translations['seafood'] || 'Poissonnerie', fields: ['seafood']},
-    bakery_shop: {label: this.translations['bakery_shop'] || 'Pâtisserie', fields: ['speciality']},
-    juice_bar: {label: this.translations['juice_bar'] || 'Bar à jus', fields: ['juices']},
-    milk: {label: this.translations['milk'] || 'Laiterie', fields: ['dairy']},
-    honey: {label: this.translations['honey'] || 'Miel', fields: ['products']},
-    organic: {label: this.translations['organic'] || 'Magasin bio', fields: ['products']},
-    spices: {label: this.translations['spices'] || 'Épices', fields: ['products']},
-    nuts: {label: this.translations['nuts'] || 'Noix et fruits secs', fields: ['products']},
-    pasta: {label: this.translations['pasta'] || 'Pâtes', fields: ['products']},
-    bakery_cafe: {label: this.translations['bakery_cafe'] || 'Boulangerie-Café', fields: ['speciality']},
-    sandwich: {label: this.translations['sandwich'] || 'Sandwicherie', fields: ['ingredients']},
-    salad: {label: this.translations['salad'] || 'Saladerie', fields: ['ingredients']},
-    butcher_shop: {label: this.translations['butcher_shop'] || 'Charcuterie', fields: ['meat', 'speciality']},
-    dessert: {label: this.translations['dessert'] || 'Desserts', fields: ['speciality']},
-    yogurt: {label: this.translations['yogurt'] || 'Yaourterie', fields: ['flavors']},
-    ice_cream_parlor: {label: this.translations['ice_cream_parlor'] || 'Crèmerie', fields: ['flavors']},
-    bakery_pastry: {label: this.translations['bakery_pastry'] || 'Boulangerie-Pâtisserie', fields: ['speciality']},
+  foodShopsConfig: Record<string, { label: TranslationEntry | string; fields?: string[] }> = {
+    bakery: {label: this.translations['tag:bakery']?.message || 'Boulangerie', fields: ['speciality']},
+    butcher: {label: this.translations['tag:butcher']?.message || 'Boucherie', fields: ['meat', 'speciality']},
+    greengrocer: {label: this.translations['tag:greengrocer']?.message || 'Primeur', fields: ['fruits', 'vegetables']},
+    supermarket: {label: this.translations['tag:supermarket']?.message || 'Supermarché', fields: ['aisles']},
+    convenience: {label: this.translations['tag:convenience']?.message || 'Supérette'},
+    kiosk: {label: this.translations['tag:kiosk']?.message || 'Kiosque'},
+    cafe: {label: this.translations['tag:cafe']?.message || 'Café'},
+    coffee_shop: {label: this.translations['tag:coffee_shop']?.message || 'Coffee Shop'},
+    tea: {label: this.translations['tag:tea']?.message || 'Salon de thé'},
+    restaurant: {label: this.translations['tag:restaurant']?.message || 'Restaurant', fields: ['cuisine']},
+    fast_food: {label: this.translations['tag:fast_food']?.message || 'Fast Food', fields: ['cuisine']},
+    pub: {label: this.translations['tag:pub']?.message || 'Pub'},
+    bar: {label: this.translations['tag:bar']?.message || 'Bar'},
+    food_court: {label: this.translations['tag:food_court']?.message || 'Aire de restauration'},
+    ice_cream: {label: this.translations['tag:ice_cream']?.message || 'Glacier', fields: ['flavors']},
+    chocolate: {label: this.translations['tag:chocolate']?.message || 'Chocolaterie', fields: ['speciality']},
+    sweet_shop: {label: this.translations['tag:sweet_shop']?.message || 'Confiserie', fields: ['speciality']},
+    wine_shop: {label: this.translations['tag:wine_shop']?.message || 'Caviste', fields: ['wines']},
+    beer: {label: this.translations['tag:beer']?.message || 'Magasin de bières', fields: ['beers']},
+    spirits: {label: this.translations['tag:spirits']?.message || 'Spiritueux', fields: ['spirits']},
+    deli: {label: this.translations['tag:deli']?.message || 'Épicerie fine', fields: ['speciality']},
+    cheese: {label: this.translations['tag:cheese']?.message || 'Fromagerie', fields: ['speciality']},
+    seafood: {label: this.translations['tag:seafood']?.message || 'Poissonnerie', fields: ['seafood']},
+    bakery_shop: {label: this.translations['tag:bakery_shop']?.message || 'Pâtisserie', fields: ['speciality']},
+    juice_bar: {label: this.translations['tag:juice_bar']?.message || 'Bar à jus', fields: ['juices']},
+    milk: {label: this.translations['tag:milk']?.message || 'Laiterie', fields: ['dairy']},
+    honey: {label: this.translations['tag:honey']?.message || 'Miel', fields: ['products']},
+    organic: {label: this.translations['tag:organic']?.message || 'Magasin bio', fields: ['products']},
+    spices: {label: this.translations['tag:spices']?.message || 'Épices', fields: ['products']},
+    nuts: {label: this.translations['tag:nuts']?.message || 'Noix et fruits secs', fields: ['products']},
+    pasta: {label: this.translations['tag:pasta']?.message || 'Pâtes', fields: ['products']},
+    bakery_cafe: {label: this.translations['tag:bakery_cafe']?.message || 'Boulangerie-Café', fields: ['speciality']},
+    sandwich: {label: this.translations['tag:sandwich']?.message || 'Sandwicherie', fields: ['ingredients']},
+    salad: {label: this.translations['tag:salad']?.message || 'Saladerie', fields: ['ingredients']},
+    butcher_shop: {label: this.translations['tag:butcher_shop']?.message || 'Charcuterie', fields: ['meat', 'speciality']},
+    dessert: {label: this.translations['tag:dessert']?.message || 'Desserts', fields: ['speciality']},
+    yogurt: {label: this.translations['tag:yogurt']?.message || 'Yaourterie', fields: ['flavors']},
+    ice_cream_parlor: {label: this.translations['tag:ice_cream_parlor']?.message || 'Crèmerie', fields: ['flavors']},
+    bakery_pastry: {label: this.translations['tag:bakery_pastry']?.message || 'Boulangerie-Pâtisserie', fields: ['speciality']},
   };
 
   selectedFeature: Feature<Geometry> | null = null;
@@ -284,14 +285,14 @@ export class InteractionService {
         if (cluster && cluster.length > 1) {
           const count = cluster.length;
           return `
-      <div class="title">${this.translations['cluster_churches'] || 'églises trouvées'}: ${count}</div>
+      <div class="title">${this.translations['tag:cluster_churches']?.message || 'églises trouvées'}: ${count}</div>
     `;
         }
 
         // === 2) UNE SEULE ÉGLISE ===
         const f = cluster ? cluster[0] : feature;
         const tags = f.get('tags') || {};
-        const name = tags.name || this.translations['church'];
+        const name = tags.name || this.translations['tag:church']?.message;
 
         let html = `<div class="title">${name}</div>`;
 
@@ -341,7 +342,7 @@ export class InteractionService {
         const tags = feature.get('tags') || {};
 
         const name = tags.name || '';
-        const type = tags.type || tags.natural || this.translations['water'];
+        const type = tags.type || tags.natural || this.translations['tag:water']?.message;
 
         let html = name ? `<div class="title">${name}</div>` : '';
         html += `<div class="type">${type}</div>`;
@@ -364,7 +365,7 @@ export class InteractionService {
 
       pinLayer: async () => {
         this.tooltipEl.className = 'tooltip-pin';
-        return `<div class="title">${this.translations['position']}</div>`;
+        return `<div class="title">${this.translations['tag:position']?.message}</div>`;
       },
 
       hotelLayer: async (feature) => {
@@ -375,10 +376,10 @@ export class InteractionService {
         // === 1) CLUSTER : plusieurs hôtels ===
         if (cluster && cluster.length > 1) {
           const count = cluster.length;
-          const type = this.translations['hotel'] || 'hôtels';
+          const type = this.translations['tag:hotel']?.message || 'hôtels';
           return `
       <div class="title">
-        ${this.translations['number_cluster']?.replace('{type}', type).replace('{count}', String(count))
+        ${this.translations['number_cluster']?.message.replace('{type}', type).replace('{count}', String(count))
           || `Nombre de ${type}: ${count}`}
       </div>
     `;
@@ -387,7 +388,7 @@ export class InteractionService {
         // === 2) UN SEUL HÔTEL ===
         const f = cluster ? cluster[0] : feature;
         const tags = f.get('tags') || {};
-        const name = tags.name || this.translations['hotel'];
+        const name = tags.name || this.translations['tag:hotel']?.message;
 
         let html = `<div class="title">${name}</div>`;
 
@@ -431,50 +432,125 @@ export class InteractionService {
 
     const daysKeys = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
-    const formatOpeningHours = (oh: string, translations: any) => {
-      // Séparer par ";" puis trim
-      const parts = oh.split(";").map(x => x.trim());
-      const result: string[] = [];
+    const normalizeHours = (hours: string) =>
+      hours.trim().replace(/\s+/g, "").replace(/h/g, ":").replace(/([0-9]{1,2})([0-9]{2})/g, "$1:$2");
 
-      for (const part of parts) {
-        if (!part) continue;
+    const formatOpeningHours = (
+      oh: string,
+      translations: Record<string, TranslationEntry>,
+      currentMap: Record<string, string> = {}
+    ) => {
+      if (!oh || typeof oh !== "string") return "";
 
-        // On cherche la dernière occurrence d'un espace avant l'heure
-        const lastSpace = part.lastIndexOf(" ");
-        if (lastSpace === -1) {
-          result.push(part);
+      const blocks = oh
+        .replace(/<br>/g, ";")
+        .split(/;\s*/)
+        .map(x => x.trim())
+        .filter(Boolean);
+
+      const resultMap: Record<string, string> = { ...currentMap };
+
+      for (const block of blocks) {
+        if (!block) continue;
+
+        const blockIsOff = /(off|closed|fermé)/i.test(block);
+
+        if (/^\s*(\d{1,2}[:h]?\d{0,2}-\d{1,2}[:h]?\d{0,2})(\s*,\s*\d{1,2}[:h]?\d{0,2}-\d{1,2}[:h]?\d{0,2})*\s*$/i.test(block)) {
+          const hours = block
+            .split(",")
+            .map(h => normalizeHours(h.trim()))
+            .join(", ");
+
+          for (const k of daysKeys) {
+            resultMap[k] = hours;
+          }
+
           continue;
         }
 
-        const days = part.slice(0, lastSpace).trim(); // ex: "Lun, mercredi-vendredi"
-        const hours = part.slice(lastSpace + 1).trim().replace(/h/g, ":"); // ex: "06h45-20h00"
+        // Nouveau regex : capture le jour/plage + tous les horaires séparés par ,
+        const subBlocks = block.match(
+          /([A-Za-z]{2,3}(?:-[A-Za-z]{2,3})?)\s*:?\s*((?:\d{1,2}[:h]?\d{0,2}-\d{1,2}[:h]?\d{0,2})(?:,\s*\d{1,2}[:h]?\d{0,2}-\d{1,2}[:h]?\d{0,2})*)?/g
+        );
 
-        const dayRanges = days.split(",").map(s => s.trim());
 
-        for (const dr of dayRanges) {
-          if (dr.includes("-")) {
-            const [start, end] = dr.split("-").map(s => s.trim());
-            let startIdx = daysKeys.indexOf(start);
-            let endIdx = daysKeys.indexOf(end);
-            if (startIdx === -1 || endIdx === -1) continue;
-
-            if (endIdx < startIdx) endIdx += 7; // cycle
-
-            for (let i = startIdx; i <= endIdx; i++) {
-              const key = daysKeys[i % 7];
-              const label = translations[`day_${key}`] || key;
-              result.push(`${label}: ${hours}`);
+        if (!subBlocks) {
+          if (blockIsOff) {
+            for (const k of daysKeys) {
+              if (!resultMap[k]) resultMap[k] = "fermé";
             }
-          } else {
-            const label = translations[`day_${dr}`] || dr;
-            result.push(`${label}: ${hours}`);
+          }
+          continue;
+        }
+
+        for (const sub of subBlocks) {
+          if (!sub) continue;
+
+          // Extraction jour et horaires
+          const match = sub.match(/([A-Za-z]{2,3}(?:-[A-Za-z]{2,3})?)\s*:?\s*(.*)/);
+          if (!match) continue;
+
+          const dayPartRaw = match[1];       // ex: "Mo", "Tu-Fr"
+          const hoursPart = match[2] || "";  // ex: "09:00-14:00,14:30-19:30"
+
+          const isOff = /(off|closed|fermé)/i.test(hoursPart) || blockIsOff;
+
+          const hoursRawMatch = hoursPart
+            ? hoursPart.split(',').map(h => h.trim()).filter(Boolean)
+            : [];
+          const hours = isOff ? "fermé" : hoursRawMatch.map(normalizeHours).join(", ");
+
+          const dayRanges: string[] = [];
+          if (dayPartRaw) {
+            const parts = dayPartRaw.split(",").map(s => s.trim());
+            for (const p of parts) {
+              if (p.includes("-")) {
+                const [start, end] = p.split("-").map(s => s.trim());
+                let startKey = daysKeys.includes(start) ? start : undefined;
+                let endKey = daysKeys.includes(end) ? end : undefined;
+                if (!startKey) startKey = daysKeys.find(k => k.toLowerCase() === start.toLowerCase());
+                if (!endKey) endKey = daysKeys.find(k => k.toLowerCase() === end.toLowerCase());
+                if (startKey && endKey) dayRanges.push(`${startKey}-${endKey}`);
+              } else {
+                const key = daysKeys.includes(p) ? p : daysKeys.find(k => k.toLowerCase() === p.toLowerCase());
+                if (key) dayRanges.push(key);
+              }
+            }
+          }
+
+          for (const dr of dayRanges) {
+            if (dr.includes("-")) {
+              const [start, end] = dr.split("-");
+              let si = daysKeys.indexOf(start);
+              let ei = daysKeys.indexOf(end);
+              if (ei < si) ei += 7;
+              for (let i = si; i <= ei; i++) {
+                const key = daysKeys[i % 7];
+                if (!resultMap[key] || (isOff && !hours)) resultMap[key] = isOff ? "fermé" : hours;
+              }
+            } else if (daysKeys.includes(dr)) {
+              if (!resultMap[dr] || (isOff && !hours)) resultMap[dr] = isOff ? "fermé" : hours;
+            }
           }
         }
       }
 
-      return result.join("<br>");
-    };
+      // Compléter les jours manquants
+      for (const k of daysKeys) {
+        if (!resultMap[k]) resultMap[k] = "fermé";
+      }
 
+
+      // On traduit pas daysKeys directement, on fait juste un mapping avec les nouvelles valeurs
+      daysKeys.map(k => `${k}: ${resultMap[k]}`);
+
+      let html = "";
+      for(const i of daysKeys){
+        html += translations[`tag:${i}`]?.message + ": " + resultMap[i] + '<br><br>';
+      }
+
+      return html;
+    };
 
 
     const getFoodTooltipHTML = async (feature: Feature<Geometry>, key: string) => {
@@ -490,26 +566,32 @@ export class InteractionService {
       // Tags
       const tags = f.get('tags') || {};
 
+      // Ici on sauvegarde l'état du tag d'origine
+      const saveOpeningHours = tags.opening_hours;
+
       if (tags.opening_hours) {
+        // On modifie le tag d'origine (à ne pas faire de base) pour traduire correctement
         tags.opening_hours = formatOpeningHours(tags.opening_hours, this.translations);
       }
 
       // Type de commerce
       const shopType = tags.shop || tags['amenity'] || key;
-      const genericLabel = this.translations[key] || this.foodShopsConfig[key]?.label || 'Commerce alimentaire';
+      const genericLabel = this.translations[`tag:${key}`]?.message || this.foodShopsConfig[key]?.label || 'Commerce alimentaire';
 
       let html = '';
 
       if (isCluster) {
-        html += `
+        if (typeof genericLabel === "string") {
+          html += `
       <div class="card-header">
         <div class="title">
-          ${this.translations['number_cluster']
-          .replace('{type}', genericLabel)
-          .replace('{count}', clusterFeatures.length.toString())}
+          ${this.translations['tag:number_cluster']?.message
+            .replace('{type}', genericLabel)
+            .replace('{count}', clusterFeatures.length.toString())}
         </div>
       </div>
     `;
+        }
       } else {
         const name = tags.name || f.get('name') || genericLabel;
 
@@ -520,7 +602,7 @@ export class InteractionService {
             <div class="subtitle">
               <span style="color:#1a73e8; font-weight:700;">Type:</span>
               <span style="color:#000; font-weight:600; margin-left:4px;">
-                ${ (this.translations[shopType] || shopType).replace(/s$/, '') }
+                ${ (this.translations[`tag:${shopType}`]?.message || shopType).replace(/s$/, '') }
               </span>
             </div>
           </div>
@@ -539,6 +621,8 @@ export class InteractionService {
       </div>
     `;
       }
+      // Ici, on utilise une backup du tag d'origine pour que le prochain clic sur une feature affiche les bonnes horaires
+      tags.opening_hours = saveOpeningHours;
 
       return html;
     };
@@ -650,7 +734,24 @@ export class InteractionService {
 
         const field = icon.closest('.field');
         if (field) field.remove();
-        return;
+
+        const collection = realFeature.get('type');
+
+        if (collection) {
+          (async () => {
+            try {
+              const res = await fetch(`http://localhost:3000/nodejs/${collection}s/${realFeature.getId()}/${key}`, { method: 'DELETE' });
+              if (!res.ok) {
+                console.error('Erreur suppression tag, status:', res.status, res.statusText);
+                return;
+              }
+              const data: { success: boolean; error?: string } = await res.json();
+              if (!data.success) console.error('Erreur suppression tag:', data.error);
+            } catch (err) {
+              console.error('Erreur fetch:', err);
+            }
+          })();
+        }
       }
 
       // --- 2️⃣ Bouton "Y aller" ---
@@ -790,7 +891,7 @@ export class InteractionService {
 
 
   // Mise à jour des traductions et rafraîchissement du tooltip si visible
-  async updateTranslations(translations: Record<string, string>) {
+  async updateTranslations(translations: Record<string, TranslationEntry>) {
     this.translations = translations;
 
     if (this.currentFeature && this.tooltipEl.style.display === 'block') {
@@ -823,6 +924,7 @@ export class InteractionService {
     // 2️⃣ Initialiser ses inputs avec un clone pour éviter de modifier oldTags
     componentRef.instance.name = oldTags.name || '';
     componentRef.instance.tags = { ...oldTags }; // important : clone
+    componentRef.instance.translations = this.translations;
 
     // 3️⃣ Événements ok / cancel
     const subOk = componentRef.instance.ok.subscribe(event => {
@@ -870,7 +972,7 @@ export class InteractionService {
         delete newTags['modifiedFields'];
       }
 
-      realFeature.setProperties({ ...props, tags: newTags });
+      //realFeature.setProperties({ ...props, tags: newTags });
 
 
       const geom = realFeature.getGeometry();
@@ -922,6 +1024,8 @@ export class InteractionService {
     const domElem = (componentRef.hostView as any).rootNodes[0] as HTMLElement;
     document.body.appendChild(domElem);
   }
+
+
   // ====== Traduction d'une clé OSM via Google Translate uniquement ======
   private translateOSMTag(key: string, lang: 'fr' | 'en' | 'es'): Promise<string> {
     if (!key) return Promise.resolve('');
@@ -930,14 +1034,7 @@ export class InteractionService {
 
     return Promise.all(
       parts.map(async part => {
-        try {
-          const translation = await firstValueFrom(
-            this.translationService.translate(part, lang)
-          );
-          return translation || part;
-        } catch {
-          return part;
-        }
+        return this.getTranslation(part) || part;
       })
     )
       .then(translated => this.capitalize(translated.join(' ')));
@@ -968,20 +1065,16 @@ export class InteractionService {
     const promises: Promise<string>[] = Object.entries(tags)
       .filter(([key, value]) => value && !excluded.has(key) && !/^name(:.+)?$/i.test(key))
       .map(async ([key, value]) => {
-        const translatedKey = await this.translateOSMTag(key, lang);
+        let translatedKey = this.getTranslation(key);
+        if(translatedKey == key){
+          translatedKey = await firstValueFrom(this.translationService.translate(key, lang)) || key;
+        }
         const parts = String(value).split(';').map(v => v.trim());
 
         const translatedValues = await Promise.all(
           parts.map(async p => {
-            try {
-              let t = p;
-              if(key != "opening_hours"){
-                await firstValueFrom(this.translationService.translate(p, lang));
-              }
-              return this.capitalize(t || p);
-            } catch {
-              return p;
-            }
+            const t = key !== 'opening_hours' ? this.translations['tag:'+p]?.message || p : p;
+            return this.capitalize(t);
           })
         );
 
@@ -1025,6 +1118,18 @@ export class InteractionService {
 
     return html;
   }
+
+  getTranslation(key: string): string {
+    let parts = key.split(':');
+    while (parts.length > 0) {
+      const testKey = 'tag:' + parts.join(':');
+      const message = this.translations[testKey]?.message;
+      if (message) return message;
+      parts.pop(); // retire le dernier segment et essaye la clé "parent"
+    }
+    return key; // fallback sur la valeur brute
+  }
+
 
 
 }

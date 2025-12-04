@@ -11,7 +11,7 @@
 
 
       <!-- Upload icon visible seulement en édition -->
-      <label *ngIf="editingName" class="upload-icon" [attr.aria-label]="translations['edit']">
+      <label *ngIf="editingName" class="upload-icon" [attr.aria-label]="translations['tag:edit']?.message">
         <input type="file" (change)="onPhotoChange($event)" hidden />
         &#8682;
       </label>
@@ -20,25 +20,25 @@
     <!-- NOM -->
     <div class="profile-name">
       <ng-container *ngIf="!editingName; else editNameTemplate">
-        <h2>{{ userService.userSignal()?.name || translations['profile_default_name'] }}</h2>
+        <h2>{{ userService.userSignal()?.name || translations['tag:profile_default_name']?.message }}</h2>
 
         <button type="button" class="edit-btn" (click)="toggleEditName()">
-          {{ translations['edit'] }}
+          {{ translations['tag:edit']?.message }}
         </button>
       </ng-container>
 
       <ng-template #editNameTemplate>
         <input
           [(ngModel)]="editedName"
-          [placeholder]="translations['edit_username_placeholder']"
-          [attr.aria-label]="translations['edit_username_placeholder']"
+          [placeholder]="translations['tag:edit_username_placeholder']?.message"
+          [attr.aria-label]="translations['tag:edit_username_placeholder']?.message"
         />
         <div class="edit-buttons">
           <button type="button" class="save-btn" (click)="saveChanges()">
-            {{ translations['save'] }}
+            {{ translations['tag:save']?.message }}
           </button>
           <button type="button" class="cancel-btn" (click)="cancelEdit()">
-            {{ translations['cancel'] }}
+            {{ translations['tag:cancel']?.message }}
           </button>
         </div>
       </ng-template>
@@ -49,32 +49,32 @@
       <div class="profile-details">
 
         <div class="detail-row">
-          <strong>{{ translations['email'] }} :</strong>
+          <strong>{{ translations['tag:email']?.message }} :</strong>
           <span>{{ user.email || '-' }}</span>
         </div>
 
         <div class="detail-row">
-          <strong>{{ translations['email_verified'] }} :</strong>
-          <span>{{ user.email_verified ? translations['yes'] : translations['no'] }}</span>
+          <strong>{{ translations['tag:email_verified']?.message }} :</strong>
+          <span>{{ user.email_verified ? translations['tag:yes']?.message : translations['tag:no']?.message }}</span>
         </div>
 
         <div class="detail-row">
-          <strong>{{ translations['logins_count'] }} :</strong>
+          <strong>{{ translations['tag:logins_count']?.message }} :</strong>
           <span>{{ user.logins_count ?? 0 }}</span>
         </div>
 
         <div class="detail-row">
-          <strong>{{ translations['account_created'] }} :</strong>
+          <strong>{{ translations['tag:account_created']?.message }} :</strong>
           <span>{{ normalizeDate(user.created_at) | date:'short' }}</span>
         </div>
 
         <div class="detail-row">
-          <strong>{{ translations['last_connection'] }} :</strong>
+          <strong>{{ translations['tag:last_connection']?.message }} :</strong>
           <span>{{ normalizeDate(user.updated_at) | date:'short' }}</span>
         </div>
 
         <div class="detail-row">
-          <strong>{{ translations['language'] }} :</strong>
+          <strong>{{ translations['tag:language']?.message }} :</strong>
           <span>{{ user.locale || 'fr' }}</span>
         </div>
 

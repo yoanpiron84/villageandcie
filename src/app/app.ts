@@ -12,11 +12,16 @@ import {ProfileComponent} from './profile/profile';
 import {UserService} from '../services/user';
 import {filter, take} from 'rxjs/operators';
 import {LanguageService} from '../services/language';
+import {AdminValidation} from './admin-validation/admin-validation';
+
+export interface TranslationEntry {
+  message: string;
+}
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [VoiceComponent, MapComponent, NgIf, NgClass, NgForOf, AsyncPipe, ReactiveFormsModule, ProfileComponent],
+  imports: [VoiceComponent, AdminValidation, MapComponent, NgIf, NgClass, NgForOf, AsyncPipe, ReactiveFormsModule, ProfileComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
@@ -37,11 +42,12 @@ export class AppComponent {
   showChat = false;
   showMap = false;
   showProfile = false;
+  showAdminValidation = false;
   menuActive = false;
 
   showLanguageMenu = false;
 
-  translations: Record<string, string> = {};
+  translations: Record<string, TranslationEntry> = {};
 
   languages = [
     { code: 'fr', label: 'Français', flag: '🇫🇷' },
@@ -193,7 +199,7 @@ export class AppComponent {
 
    *********************************************************************/
 
-  toggleView(view: 'home' | 'map' | 'profile' | 'chat') {
+  toggleView(view: 'home' | 'map' | 'profile' | 'chat' | 'adminvalidation') {
     if (view === 'chat') {
       // Chat se superpose, donc on ne touche pas aux autres vues
       this.showChat = !this.showChat;
@@ -201,10 +207,11 @@ export class AppComponent {
     }
 
     // On crée un mapping pour les vues principales
-    const mainViews: Record<'home' | 'map' | 'profile', boolean> = {
+    const mainViews: Record<'home' | 'map' | 'profile' | 'adminvalidation', boolean> = {
       home: this.showHome,
       map: this.showMap,
-      profile: this.showProfile
+      profile: this.showProfile,
+      adminvalidation: this.showAdminValidation
     };
 
     if (mainViews[view]) {
@@ -212,16 +219,19 @@ export class AppComponent {
       this.showHome = true;
       this.showMap = false;
       this.showProfile = false;
+      this.showAdminValidation = false;
     } else {
       // Sinon activer la vue demandée et désactiver les autres
       this.showHome = false;
       this.showMap = false;
       this.showProfile = false;
+      this.showAdminValidation = false;
 
       switch (view) {
         case 'home': this.showHome = true; break;
         case 'map': this.showMap = true; break;
         case 'profile': this.showProfile = true; break;
+        case 'adminvalidation': this.showAdminValidation = true; break;
       }
     }
   }
@@ -254,7 +264,7 @@ export class AppComponent {
   }
 
   private loadTranslations(lang: string) {
-    this.http.get<Record<string, string>>(`/lang/${lang}.json`)
+    this.http.get<Record<string, TranslationEntry>>(`/lang/${lang}_trad.json`)
       .subscribe(data => {
         this.translations = data;
         //this.updateTexts();
@@ -317,9 +327,9 @@ export class AppComponent {
   }
 
   updateSlides(){
-    this.slides[0].text = this.translations['text_slide_1'];
-    this.slides[1].text = this.translations['text_slide_2'];
-    this.slides[2].text = this.translations['text_slide_3'];
+    this.slides[0].text = this.translations["tag:text_slide_1"].message;
+    this.slides[1].text = this.translations['tag:text_slide_2'].message;
+    this.slides[2].text = this.translations['tag:text_slide_3'].message;
   }
 
   protected readonly window = window;

@@ -170,12 +170,12 @@
 
   "+---------------------- TAGS HORAIRES --------------------+": "",
 
-  "day_Mo": "Lunes",
-  "day_Tu": "Martes",
-  "day_We": "Miércoles",
-  "day_Th": "Jueves",
-  "day_Fr": "Viernes",
-  "day_Sa": "Sábado",
-  "day_Su": "Domingo",
+  "Mo": "Lunes",
+  "Tu": "Martes",
+  "We": "Miércoles",
+  "Th": "Jueves",
+  "Fr": "Viernes",
+  "Sa": "Sábado",
+  "Su": "Domingo",
 
 }

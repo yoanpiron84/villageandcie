@@ -168,12 +168,12 @@
 
   "+---------------------- TAGS HORAIRES --------------------+": "",
 
-  "day_Mo": "Lundi",
-  "day_Tu": "Mardi",
-  "day_We": "Mercredi",
-  "day_Th": "Jeudi",
-  "day_Fr": "Vendredi",
-  "day_Sa": "Samedi",
-  "day_Su": "Dimanche"
+  "Mo": "Lundi",
+  "Tu": "Mardi",
+  "We": "Mercredi",
+  "Th": "Jeudi",
+  "Fr": "Vendredi",
+  "Sa": "Samedi",
+  "Su": "Dimanche"
 
 }

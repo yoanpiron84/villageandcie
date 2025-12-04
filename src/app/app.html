@@ -80,33 +80,42 @@
            (click)="auth.logout({ logoutParams: { returnTo: getWindow().location.origin } })"
            title="Déconnexion">
           <i class="fa fa-sign-out-alt menu-icon"></i>
-          <span class="menu-text logout-text"> {{ translations['disconnect'] }}</span>
+          <span class="menu-text logout-text"> {{ translations['tag:disconnect']?.message }}</span>
         </a>
       </li>
       <li>
         <a id="home-btn" (click)="toggleView('home')" title="Home">
           <i class="fa fa-home menu-icon"></i>
-          <span class="menu-text home-text"> {{ translations['home'] }}</span>
+          <span class="menu-text home-text"> {{ translations['tag:home']?.message }}</span>
         </a>
       </li>
       <li>
         <a id="map-btn" (click)="toggleView('map')" title="Carte">
           <i class="fa fa-map menu-icon"></i>
-          <span class="menu-text map-text"> {{ translations['map'] }}</span>
+          <span class="menu-text map-text"> {{ translations['tag:map']?.message }}</span>
         </a>
       </li>
       <li>
         <a id="chat-btn" (click)="toggleView('chat')" title="Chat IA">
           <i class="fa fa-comments menu-icon"></i>
-          <span class="menu-text chat-text"> {{ translations['chat'] }}</span>
+          <span class="menu-text chat-text"> {{ translations['tag:chat']?.message }}</span>
         </a>
       </li>
       <li>
         <a id="profile-btn" (click)="toggleView('profile')" title="Profil">
           <i class="fa fa-user menu-icon"></i>
-          <span class="menu-text profile-text">{{ translations['profile'] }}</span>
+          <span class="menu-text profile-text">{{ translations['tag:profile']?.message }}</span>
         </a>
       </li>
+
+      @if(this.userService.isAdmin()){
+        <li>
+          <a id="adminvalidation-btn" (click)="toggleView('adminvalidation')" title="Validation demandes">
+            <i class="fa fa-clipboard-list menu-icon"></i>
+            <span class="menu-text profile-text">{{ translations['tag:adminvalidation']?.message }}</span>
+          </a>
+        </li>
+      }
     </ul>
   </nav>
 
@@ -118,10 +127,10 @@
       <header id="home" class="header-section">
 
         <h1 class="title" *ngIf="user">
-          <span class="hide-small">{{ translations['welcome'] }} {{ user.name }} {{ translations['on'] }} Village&Cie</span>
+          <span class="hide-small">{{ translations['tag:welcome']?.message }} {{ user.name }} {{ translations['tag:on']?.message }} Village&Cie</span>
         </h1>
 
-        <p class="subtitle">{{ translations['discover_welcome'] }}</p><br><br>
+        <p class="subtitle">{{ translations['tag:discover_welcome']?.message }}</p><br><br>
         <div class="carousel-container">
           <div class="carousel-track" [style.transform]="'translateX(-' + currentSlide * 100 + '%)'" >
             @for (slide of slides; track slide.text){
@@ -160,6 +169,12 @@
   @if (showProfile){
     <div class="main-wrapper">
       <app-profile #profile [translations]="translations"></app-profile>
+    </div>
+  }
+
+  @if(showAdminValidation){
+    <div class="main-wrapper">
+      <app-admin-validation></app-admin-validation>
     </div>
   }
 

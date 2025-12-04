@@ -27,6 +27,8 @@ import Overlay from 'ol/Overlay';
 import {Geometry} from 'ol/geom';
 import {EditFormComponent} from '../edit-form/edit-form';
 import {LanguageService} from '../../services/language';
+import {TranslationEntry} from '../app';
+
 
 @Component({
   selector: 'app-map',
@@ -51,7 +53,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
 
 
   @Input() showMap: boolean = true;
-  @Input() translations: Record<string, string> = {};
+  @Input() translations: Record<string, TranslationEntry> = {};
 
   searchQuery: string = '';
   selectedMode: String = 'routed-car';

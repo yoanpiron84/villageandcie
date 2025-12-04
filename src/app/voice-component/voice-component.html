@@ -1,7 +1,7 @@
 @if (showChat){
   <div class="chat-modal" [ngClass]="{ minimized: isMinimized }" #chatModal>
     <div class="chat-header" (mousedown)="startDrag($event)" (touchstart)="startDrag($event)">
-      <span>{{ translations['chat_ai'] }}</span>
+      <span>{{ translations['tag:chat_ai']?.message }}</span>
       @if (!isMinimized){
         <button (click)="toggleMinimize()">
           <i class="fa-solid fa-compress-alt"></i>
@@ -33,14 +33,14 @@
         <input
           type="text"
           [(ngModel)]="userMessage"
-          [placeholder]="translations['type_message']"
+          [placeholder]="translations['tag:type_message']?.message"
           (keydown.enter)="sendMessage()"
         />
         <button
           class="record-button"
           (click)="startRecording()"
           [ngClass]="{ recording: isRecording }">
-          {{ isRecording ? translations['speaking'] : translations['speak'] }}
+          {{ isRecording ? translations['tag:speaking']?.message : translations['tag:speak']?.message }}
         </button>
 
 

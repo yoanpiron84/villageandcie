@@ -2,28 +2,19 @@
   <div class="modal">
     <h3>Modifier la feature</h3>
 
-    <!-- Nom principal -->
     <div class="form-group">
       <label for="name">Nom :</label>
-      <input id="name" type="text" [(ngModel)]="featureName" />
+      <input
+        id="name"
+        type="text"
+        [readonly]="!isEditingName"
+        [(ngModel)]="featureName"
+        (dblclick)="isEditingName = true"
+        (blur)="isEditingName = false"
+      />
     </div>
 
-    <!-- Tags existants -->
-    <div class="tags-list" *ngIf="tagKeys.length">
-      <h4>Tags existants :</h4>
-      <ul>
-        <li *ngFor="let key of tagKeys">
-          <label [for]="key">{{ key }} :</label>
-          <input
-            [id]="key"
-            [type]="getInputType(tags[key])"
-            [(ngModel)]="tags[key]"
-          />
-        </li>
-      </ul>
-    </div>
 
-    <!-- Ajouter un tag -->
     <div class="add-tag-section">
       <h4>Ajouter un nouveau tag</h4>
 
@@ -37,13 +28,11 @@
         </select>
       </div>
 
-      <!-- Custom key -->
-      <div class="form-group" *ngIf="selectedKey === 'custom'">
+      <div class="form-group" *ngIf="selectedKey==='custom'">
         <label for="newKey">Nouvelle clé :</label>
-        <input id="newKey" type="text" [(ngModel)]="newKey" placeholder="ex: wheelchair" />
+        <input id="newKey" type="text" [(ngModel)]="newKey" />
       </div>
 
-      <!-- Type -->
       <div class="form-group">
         <label for="newType">Type :</label>
         <select id="newType" [(ngModel)]="newType" [disabled]="isOpeningHours()">
@@ -54,48 +43,71 @@
         </select>
       </div>
 
-      <!-- Champ valeur -->
       <div class="form-group" *ngIf="isOpeningHours()">
         <label>Horaires d'ouverture</label>
 
-        <div *ngFor="let day of openingHoursDays" class="opening-day">
-          <span class="day-name">{{day}}:</span>
+        <div *ngFor="let day of openingHoursDays" class="day-block">
+          <span class="day-name">{{ translations['tag:'+day]?.message }}</span>
 
           <input type="time"
-                 [(ngModel)]="openingHoursValues[day].morning"
-                 (ngModelChange)="updateOpeningHoursTag()"
-                 placeholder="Heure matin" />
+                 [(ngModel)]="openingHoursValues[day].startMorning"
+                 placeholder="Matin Début"
+                 (ngModelChange)="updateOpeningHoursTag(); cleanInvalidFields(day)"
+                 [ngClass]="{ invalid: isFieldInvalid(day, 'startMorning') }"
+                 [disabled]="shouldDisable(day,'startMorning')" />
 
           <input type="time"
-                 [(ngModel)]="openingHoursValues[day].afternoon"
-                 (ngModelChange)="updateOpeningHoursTag()"
-                 placeholder="Heure après-midi" />
+                 [(ngModel)]="openingHoursValues[day].endMorning"
+                 placeholder="Matin Fin"
+                 (ngModelChange)="updateOpeningHoursTag(); cleanInvalidFields(day)"
+                 [ngClass]="{ invalid: isFieldInvalid(day, 'endMorning') }"
+                 [disabled]="shouldDisable(day,'endMorning')" />
+
+          <input type="time"
+                 [(ngModel)]="openingHoursValues[day].startAfternoon"
+                 placeholder="Aprem Début"
+                 (ngModelChange)="updateOpeningHoursTag(); cleanInvalidFields(day)"
+                 [ngClass]="{ invalid: isFieldInvalid(day, 'startAfternoon') }"
+                 [disabled]="shouldDisable(day,'startAfternoon')" />
+
+          <input type="time"
+                 [(ngModel)]="openingHoursValues[day].endAfternoon"
+                 placeholder="Aprem Fin"
+                 (ngModelChange)="updateOpeningHoursTag(); cleanInvalidFields(day)"
+                 [ngClass]="{ invalid: isFieldInvalid(day, 'endAfternoon') }"
+                 [disabled]="shouldDisable(day,'endAfternoon')" />
 
           <select [(ngModel)]="openingHoursValues[day].status"
-                  (ngModelChange)="updateOpeningHoursTag()">
-            <option value="">Ouvert</option>
+                  (ngModelChange)="updateOpeningHoursTag(); cleanInvalidFields(day)">
+            <option value="ouvert">Ouvert</option>
+            <option value="ouvert avec pause">Ouvert avec pause</option>
             <option value="fermé matin">Fermé matin</option>
             <option value="fermé aprem">Fermé après-midi</option>
-            <option value="fermé">Fermé toute la journée</option>
+            <option value="fermé">Fermé</option>
           </select>
         </div>
       </div>
 
 
-      <!-- Champ normal si autre type -->
+
+
       <div class="form-group" *ngIf="!isOpeningHours()">
         <label for="valueField">Valeur :</label>
         <input id="valueField" [type]="newType" [(ngModel)]="newValue" />
       </div>
 
+      <button (click)="onPrimaryAction()">
+        {{ isEditingExistingKey() ? 'Sauvegarder' : 'Ajouter' }}
+      </button>
 
 
+      <div *ngIf="formError" class="error-box">
+        {{ formError }}
+      </div>
 
 
-      <button class="btn-add" (click)="addTag()">Ajouter</button>
     </div>
 
-    <!-- Boutons -->
     <div class="modal-buttons">
       <button (click)="confirm()">OK</button>
       <button (click)="cancelEdit()">Annuler</button>

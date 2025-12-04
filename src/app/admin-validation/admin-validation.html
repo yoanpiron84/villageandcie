@@ -1,0 +1,23 @@
+<div class="admin-validation-container">
+  <h2>Validation des demandes</h2>
+
+  <div *ngIf="loading">Chargement...</div>
+
+  <ul>
+    <li *ngFor="let item of items">
+      <div>
+        <strong>{{ item.name }}</strong>
+        <span>Type: {{ item.type }}</span>
+        <span>Lat: {{ item.coords?.lat }}</span>
+        <span>Lon: {{ item.coords?.lon }}</span>
+        <span>Status: {{ item.status || 'pending' }}</span>
+      </div>
+      <button (click)="updateStatus(item, 'accepted')">Accepter</button>
+      <button (click)="updateStatus(item, 'refused')">Refuser</button>
+    </li>
+  </ul>
+
+  <div *ngIf="!loading && !items.length">
+    Pas de demandes en attente.
+  </div>
+</div>

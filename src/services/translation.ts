@@ -7,6 +7,7 @@ import { map, catchError, of } from 'rxjs';
 })
 export class TranslationService {
 
+
   constructor(private http: HttpClient) {}
 
   translate(text: string, targetLang: string = 'fr') {
@@ -16,7 +17,7 @@ export class TranslationService {
       map(response => {
         // La traduction se trouve dans response[0][0][0]
         if (response && response[0] && response[0][0] && response[0][0][0]) {
-          return response[0][0][0];
+          return response[0][0][0].charAt(0).toUpperCase() + response[0][0][0].slice(1);
         }
         return `[Erreur de traduction] ${text}`;
       }),
