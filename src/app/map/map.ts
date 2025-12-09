@@ -28,6 +28,9 @@ import {Geometry} from 'ol/geom';
 import {EditFormComponent} from '../edit-form/edit-form';
 import {LanguageService} from '../../services/language';
 import {TranslationEntry} from '../app';
+import {AddFormComponent} from '../add-form/add-form';
+import {HttpClient} from '@angular/common/http';
+import {UserService} from '../../services/user';
 
 
 @Component({
@@ -42,14 +45,15 @@ import {TranslationEntry} from '../app';
     NgClass,
     TitleCasePipe,
     SlicePipe,
-    EditFormComponent
+    EditFormComponent,
+    AddFormComponent
   ],
   styleUrls: ['./map.scss']
 })
 export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
-  @ViewChild('sidebarPanel', { static: true }) sidebarPanel!: ElementRef<HTMLDivElement>;
-  @ViewChild('sidebarContent', { static: true }) sidebarContent!: ElementRef<HTMLDivElement>;
-  @ViewChild('mapHost', { static: true }) mapHost!: ElementRef<HTMLDivElement>;
+  @ViewChild('sidebarPanel', {static: true}) sidebarPanel!: ElementRef<HTMLDivElement>;
+  @ViewChild('sidebarContent', {static: true}) sidebarContent!: ElementRef<HTMLDivElement>;
+  @ViewChild('mapHost', {static: true}) mapHost!: ElementRef<HTMLDivElement>;
 
 
   @Input() showMap: boolean = true;
@@ -65,10 +69,15 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
 
   public lastAction: (() => void) | null = null;
 
-  public newCenter: [number, number] = [0,0];
+  public newCenter: [number, number] = [0, 0];
 
   panelOpen = false;
   panelHTML = '';
+
+  isAdding = false;
+  showAddForm = false;
+
+  newPointCoords: { lat: number, lon: number } | null = null;
 
 
   constructor(
@@ -77,8 +86,11 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
     public routeService: RouteService,
     public layerService: LayerService,
     public interactionService: InteractionService,
-    public languageService: LanguageService
-  ) {}
+    public languageService: LanguageService,
+    public userService: UserService,
+    public http: HttpClient
+  ) {
+  }
 
   ngOnInit(): void {
     this.interactionService.translations = this.translations;
@@ -108,6 +120,11 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
           this.routeService.fetchRoute();
           this.routeService.routePoints = []; // reset pour prochain itinéraire
         }
+      }
+
+      // Mode ajout feature
+      if (this.isAdding) {
+        this.onMapClick(event);
       }
     });
 
@@ -181,7 +198,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
       }, 0);
     }
 
-    if(changes['translations']){
+    if (changes['translations']) {
       this.interactionService.updateTranslations(this.translations);
       this.layerService.translations = this.translations;
       this.layerService.initLayerLabels();
@@ -218,7 +235,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
   }
 
   toggleBaseLayer(layer: 'osm' | 'satellite'): void {
-    const { osmLayer, satelliteLayer, labelsLayer } = this.mapService;
+    const {osmLayer, satelliteLayer, labelsLayer} = this.mapService;
     if (layer === 'osm') {
       osmLayer.setVisible(true);
       satelliteLayer.setVisible(false);
@@ -269,7 +286,7 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
 
   onModalOk(event: { name: string }) {
     if (this.interactionService.selectedFeature) {
-      const tags = { ...this.interactionService.selectedFeature.get('tags'), name: event.name };
+      const tags = {...this.interactionService.selectedFeature.get('tags'), name: event.name};
       this.interactionService.selectedFeature.set('tags', tags);
     }
     this.interactionService.showModal = false;
@@ -296,7 +313,6 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
   tooltipHeader: string = '';
   tooltipTags: string = '';
 
-  // Quand tu récupères le tooltip d’un restaurant ou d’une église :
   async showTooltip(feature: Feature<Geometry>, key: string) {
     this.tooltipHeader = `<div class="title">${feature.get('tags')?.name || 'Nom'}</div>
                         <div class="subtitle">${feature.get('tags')?.shop || feature.get('tags')?.amenity || key}</div>`;
@@ -304,6 +320,72 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
     this.tooltipTags = await this.interactionService.buildTagListHTML(feature.get('tags'), feature);
   }
 
+  startAddMode() {
+    this.isAdding = true;
+    alert("Clique sur la carte pour placer le nouveau point.");
+  }
+
+  onMapClick(e: any) {
+    if (this.isAdding) {
+      // Coordonnées en projection de la carte (EPSG:3857)
+      const coords = e.coordinate;
+
+      // Conversion en lat/lon WGS84
+      const lonLat = toLonLat(coords);
+
+      this.newPointCoords = {
+        lat: lonLat[1],
+        lon: lonLat[0]
+      };
+
+      this.showAddForm = true;
+      this.isAdding = false;
+    }
+  }
+
+  onFormSubmit(data: any) {
+
+    console.log("📌 DATA REÇUE :", data);
+
+    if (data.mode === "event") {
+      // INSERT DIRECT DANS EVENEMENTS
+      const user = this.userService.userSignal();
+
+      this.http.post("http://localhost:3000/nodejs/evenements", {
+        _id: `${data.coords.lat}_${data.coords.lon}`,
+        name: data.name,
+        coords: data.coords,
+        duration: data.duration,
+        tags: data.tags,
+        createdBy: data.createdBy,
+      }).subscribe({
+        next: res => console.log("Événement créé :", res),
+        error: err => console.error("Erreur création événement :", err)
+      });
+    } else {
+      const user = this.userService.userSignal();
+
+      this.http.post("http://localhost:3000/nodejs/admin/validation", {
+        targetCollection: data.type,
+        targetId: `${data.coords.lat}_${data.coords.lon}`,
+        newData: {
+          name: data.name,
+          coords: data.coords,
+          tags: data.tags,
+          type: data.type
+        },
+        createdBy: data.createdBy,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }).subscribe({
+        next: res => console.log("ValidationAdmin créée :", res),
+        error: err => console.error("Erreur création validation :", err)
+      });
+
+      this.showAddForm = false;
+    }
 
 
+  }
 }

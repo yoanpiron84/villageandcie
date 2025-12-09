@@ -1,0 +1,140 @@
+.add-form {
+  position: absolute;
+  top: 20px;
+  left: 40%;
+  width: 320px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px;          // moins de padding
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  font-family: Arial, sans-serif;
+  font-size: 0.9rem;      // texte un peu plus petit
+
+  h3 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    text-align: center;
+    color: #333;
+  }
+
+  p.coords {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 10px;
+  }
+
+  label {
+    display: block;
+    margin-top: 6px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: #444;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 6px 8px;      // moins de padding
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 6px;    // moins d'espacement
+    font-size: 0.85rem;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 10px;
+  }
+
+  .event-duration {
+    background: #f9f9f9;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+
+    h4 {
+      margin-top: 0;
+      font-size: 1rem;
+      color: #555;
+    }
+
+    label {
+      margin-bottom: 2px;
+    }
+  }
+
+  .tag-line {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+
+    input {
+      flex: 1;
+      padding: 5px;
+      font-size: 0.85rem;
+    }
+
+    button {
+      padding: 0 10px;
+      border-radius: 5px;
+      font-size: 0.85rem;
+    }
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 10px;
+
+    li {
+      background: #f1f1f1;
+      padding: 3px 8px;
+      border-radius: 5px;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+    }
+  }
+
+  .opening-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+
+    .day {
+      width: 50px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input[type="time"] {
+      flex: 1;
+      padding: 4px;
+      font-size: 0.85rem;
+    }
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+
+    button {
+      padding: 6px 12px;
+      border-radius: 5px;
+      font-size: 0.85rem;
+    }
+  }
+}

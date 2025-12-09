@@ -1,0 +1,69 @@
+<div class="add-form">
+
+  <h3>Ajout d'un événement ou lieu</h3>
+
+  <p class="coords">
+    Coordonnées : lat {{coords.lat}} | lon {{coords.lon}}
+  </p>
+
+  <label>Nom *</label>
+  <input type="text" [(ngModel)]="name">
+
+  <label>Type *</label>
+  <select [(ngModel)]="type" required>
+    <option value="">-- Choisir --</option>
+    <option value="event">Événement</option>
+    <option value="custom">Custom (autre)</option>
+  </select>
+
+  <!-- Input type réel si custom -->
+  <div class="form-group" *ngIf="type === 'custom'">
+    <label>Précisez le type du custom *</label>
+    <input type="text" [(ngModel)]="customType" required placeholder="Type du custom">
+  </div>
+
+  <div *ngIf="type === 'event'" class="event-duration">
+
+    <h4>Durée de l'événement *</h4>
+
+    <label>Début</label>
+    <input type="datetime-local" [(ngModel)]="eventStart">
+
+    <label>Fin</label>
+    <input type="datetime-local" [(ngModel)]="eventEnd">
+  </div>
+
+
+  <h4>Tags</h4>
+
+  <div class="tag-line">
+    <input placeholder="clé" [(ngModel)]="newTagKey">
+    <input placeholder="valeur" [(ngModel)]="newTagValue">
+    <button (click)="addTag()">+</button>
+  </div>
+
+  <ul>
+    <li *ngFor="let t of tags">{{t.key}} : {{t.value}}</li>
+  </ul>
+
+  <h4>Horaires d'ouverture *</h4>
+
+  <div class="opening-row" *ngFor="let day of openingHoursDays">
+    <span class="day">{{ day.toUpperCase() }}</span>
+
+    <input type="time"
+           [(ngModel)]="openingHoursValues[day].start" />
+
+    <input type="time"
+           [(ngModel)]="openingHoursValues[day].end" />
+  </div>
+
+  <p class="hint">Vous devez renseigner au moins 1 jour.</p>
+
+
+  <div class="buttons">
+    <button (click)="submit()">Envoyer</button>
+    <button (click)="cancel.emit()">Annuler</button>
+  </div>
+
+</div>

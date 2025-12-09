@@ -1,0 +1,174 @@
+{
+	"_type": "Project",
+	"_id": "AAAAAAGa7eCtXN5yD+8=",
+	"name": "ImportPlantUML",
+	"ownedElements": [
+		{
+			"_type": "Model",
+			"_id": "AAAAAAGa7eCtXN5zxHk=",
+			"name": "ImportedModel",
+			"ownedElements": [
+				{
+					"_type": "UMLClass",
+					"_id": "ent0002",
+					"name": "TranslationEntry"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0003",
+					"name": "CustomEntity"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0004",
+					"name": "RouteStep"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0005",
+					"name": "RouteInfo"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0006",
+					"name": "NominatimResult"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0007",
+					"name": "UserRole"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0008",
+					"name": "UserProfile"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0009",
+					"name": "ValidationItem"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0010",
+					"name": "AppComponent"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0011",
+					"name": "InteractionService"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0012",
+					"name": "LanguageService"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0013",
+					"name": "LayerService"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0014",
+					"name": "MapService"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0015",
+					"name": "RouteService"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0016",
+					"name": "SearchService"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0017",
+					"name": "TranslationService"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0018",
+					"name": "UserService"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0019",
+					"name": "AdminValidation"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0020",
+					"name": "EditFormComponent"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0021",
+					"name": "MapComponent"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0022",
+					"name": "SafeUrlPipe"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0023",
+					"name": "ProfileComponent"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0024",
+					"name": "VoiceComponent"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0028",
+					"name": "AuthService"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0045",
+					"name": "HttpClient"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0047",
+					"name": "NgZone"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0056",
+					"name": "VectorLayer"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0063",
+					"name": "OnInit"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0068",
+					"name": "OnDestroy"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0071",
+					"name": "AfterViewInit"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0074",
+					"name": "OnChanges"
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "ent0076",
+					"name": "PipeTransform"
+				}
+			]
+		}
+	]
+}

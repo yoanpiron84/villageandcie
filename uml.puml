@@ -1,0 +1,494 @@
+@startuml
+skinparam dpi 90
+
+' ===== Couleurs Nomnoml =====
+skinparam class {
+    BackgroundColor<<interface>> lightblue
+    BackgroundColor<<enumeration>> lightgreen
+    BackgroundColor<<type>> lightgray
+}
+
+' ===== Interfaces =====
+interface TranslationEntry {
+    +message: string
+}
+
+interface CustomEntity {
+    +_id: string | number
+    +type: string
+    +name: string
+    +coords: { lat: number; lon: number; }
+    +tags: Record<string, any>
+}
+
+interface RouteStep {
+    +distance?: number
+    +duration?: number
+    +maneuver?: any
+    +name?: string
+    +completed?: boolean
+}
+
+interface RouteInfo {
+    +distance: number
+    +duration: number
+    +steps: RouteStep[]
+    +nextStepIndex?: number
+}
+
+interface NominatimResult {
+    +display_name: string
+    +lat: string
+    +lon: string
+    +address?: { city?: string; town?: string; village?: string; postcode?: string; state?: string; county?: string; country?: string; }
+}
+
+interface UserRole {
+    +id: string
+    +name: string
+    +description?: string
+}
+
+interface UserProfile {
+    +sub?: string
+    +name?: string
+    +picture?: string
+    +email?: string
+    +created_at?: string
+    +updated_at?: string
+    +email_verified?: boolean
+    +logins_count?: number
+    +locale?: string
+    +roles?: UserRole[]
+}
+
+interface ValidationItem {
+    +_id: string
+    +type: string
+    +name: string
+    +coords: { lat: number; lon: number; }
+    +tags: any
+    +targetCollection?: string
+    +status?: "pending" | "accepted" | "refused"
+}
+
+' ===== Classes =====
+class AppComponent {
+    +loginForm: FormGroup<any>
+    +resetForm: FormGroup<any>
+    +showResetForm: boolean
+    +resetSent: boolean
+    +showHome: boolean
+    +showChat: boolean
+    +showMap: boolean
+    +showProfile: boolean
+    +showAdminValidation: boolean
+    +menuActive: boolean
+    +showLanguageMenu: boolean
+    +translations: Record<string, TranslationEntry>
+    +languages: { code: string; label: string; flag: string }[]
+    +slides: { image: string; text: string }[]
+    +currentSlide: number
+    +slideInterval: any
+    +mapRef: MapComponent
+    +profilComponent: ProfileComponent
+    +user: any
+    #window: <T>(windowBoundaries: ObservableInput<any>) => OperatorFunction<T, Observable<T>>
+    #getWindow: () => Window
+    -http: HttpClient
+    +auth: AuthService<AppState>
+    +userService: UserService
+    -fb: FormBuilder
+    #languageService: LanguageService
+    +login(): void
+    +loginWithGoogle(): void
+    +resetPasswordSubmit(): void
+    +logout(): void
+    +ngOnInit(): void
+    +ngOnChanges(): void
+    +ngOnDestroy(): void
+    +toggleView(): void
+    +toggleMenu(): void
+    +toggleLanguageMenu(): void
+    +changeLanguage(): void
+    -loadTranslations(): void
+    +startAutoSlide(): void
+    +nextSlide(): void
+    +prevSlide(): void
+    +restartAutoSlide(): void
+    +updateSlides(): void
+}
+
+class InteractionService {
+    +isPinModeActive: boolean
+    +isLocalisationActive: boolean
+    +userPosition: { lat: number; lon: number }
+    +searchResults: any[]
+    +translations: Record<string, TranslationEntry>
+    +isSatellite: boolean
+    -tooltipEl: HTMLDivElement
+    -tooltipOverlay: Overlay
+    -tooltipLayerMap: Record<string, (feature: Feature<Geometry>) => Promise<string>>
+    -currentFeature: Feature<Geometry>
+    +sidebarPanel: HTMLDivElement
+    +sidebarContent: HTMLDivElement
+    +mapElement: HTMLDivElement
+    +countryCenters: Record<string, [number, number]>
+    +foodShopsConfig: Record<string, { label: string | TranslationEntry; fields?: string[] }>
+    +selectedFeature: Feature<Geometry>
+    +showModal: boolean
+    +modalName: string
+    +modalTags: Record<string, any>
+    -mapService: MapService
+    -http: HttpClient
+    -layerService: LayerService
+    -routeService: RouteService
+    -appRef: ApplicationRef
+    -envInjector: EnvironmentInjector
+    -languageService: LanguageService
+    -translationService: TranslationService
+    -userService: UserService
+    +setSidebarElements(): void
+    -updateTooltipContent(): Promise<void>
+    +togglePinMode(): void
+    +toggleViewOptions(): void
+    +setMapView(): void
+    +toggleLocalisation(): void
+    +placePin(): void
+    +initTooltip(): void
+    -fillTooltip(): Promise<string>
+    +updateTranslations(): Promise<void>
+    +openEditForm(): void
+    -translateOSMTag(): Promise<string>
+    -capitalize(): string
+    +buildTagListHTML(): Promise<string>
+    +getTranslation(): string
+}
+
+class LanguageService {
+    -langSubject: BehaviorSubject<"fr" | "en" | "es">
+    +lang$: Observable<"fr" | "en" | "es">
+    +setLanguage(): void
+}
+
+class LayerService {
+    +activeLayers: Set<string>
+    +selectedLayerAction: string
+    +layerRadii: { [action: string]: number }
+    +currentRadius: number
+    +showFilterCard: boolean
+    +canApplyFilter: boolean
+    +coords: string
+    +translations: Record<string, TranslationEntry>
+    +layerLabels: Record<string, string>
+    +overpassCache: Map<string, any>
+    +customTagsMap: Map<string, any>
+    -mapService: MapService
+    -searchService: SearchService
+    -http: HttpClient
+    -languageService: LanguageService
+    +initLayerLabels(): void
+    +toggleFilterCard(): void
+    +applyFilter(): void
+    -isFeatureWithinRadius(): boolean
+    -getDistanceInMeters(): number
+    +fetchOverpassAndCustom(): Promise<any>
+    +convertOverpassToGeoJSON(): Feature<Geometry>[]
+    +zoomToResult(): void
+    +updateCoordsForCity(): void
+    +showWater(): void
+    +hideWater(): void
+    +showGreen(): void
+    +hideGreen(): void
+    +showCity(): void
+    +showRestaurant(): void
+    +hideRestaurant(): void
+    +showChurch(): void
+    +hideChurch(): void
+    +showHotel(): void
+    +hideHotel(): void
+    +showAlimentaire(): void
+    +hideAlimentaire(): void
+}
+
+class MapService {
+    +map: Map
+    +waitingMessage: string
+    +osmLayer: TileLayer<OSM>
+    +satelliteLayer: TileLayer<XYZ>
+    +labelsLayer: TileLayer<XYZ>
+    +pinLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +searchLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +waterLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +greenLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +restaurantLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +churchLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +hotelLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +alimentaireLayer: Record<string, VectorLayer<Cluster<Feature<Geometry>>, Feature<Geometry>>>
+    +routePointLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +routeLineLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +userPosition: { lat: number; lon: number }
+    +initAlimentaireLayers(): void
+}
+
+class RouteService {
+    +isRouteModeActive: boolean
+    +routePoints: [number, number][]
+    +lastRoutePoints: [number, number][]
+    +routeInfo: RouteInfo
+    +routeMode: String
+    +showStepsCard: boolean
+    +routeLineLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    +routePointLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    -routeHoverListener: any
+    +userMarkerLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>
+    -mapService: MapService
+    -http: HttpClient
+    -initUserMarkerLayer(): void
+    +updateUserPositionMarker(): void
+    +watchUserPosition(): void
+    +toggleRouteMode(): void
+    +onDestinationSelected(): void
+    -clearRoute(): void
+    +setRouteMode(): void
+    -reverseGeocode(): Promise<string>
+    +advanceToNextStep(): void
+    +updateRouteFromPin(): void
+    +fetchRouteWithUserPosition(): void
+    +fetchRoute(): void
+}
+
+class SearchService {
+    +searchTerm: string
+    +searchResults: any[]
+    +showDropdown: boolean
+    -mapService: MapService
+    -http: HttpClient
+    +searchSubject: Subject<string>
+    +performSearch(): void
+}
+
+class TranslationService {
+    -http: HttpClient
+    +translate(): Observable<any>
+}
+
+class UserService {
+    +userSignal: WritableSignal<Partial<UserProfile>>
+    -http: HttpClient
+    +setSub(): void
+    +fetchUser(): void
+    +updateLocale(): void
+    +updateProfile(): void
+    +isAdmin(): boolean
+}
+
+class AdminValidation {
+    +items: ValidationItem[]
+    +loading: boolean
+    -http: HttpClient
+    +ngOnInit(): void
+    +fetchValidationItems(): void
+    +updateStatus(): void
+}
+
+class EditFormComponent {
+    +name: string
+    +tags: Record<string, any>
+    +ok: EventEmitter<{ name: string; tags: Record<string, any> }>
+    +cancel: EventEmitter<void>
+    +isEditing: boolean
+    +translations: Record<string, TranslationEntry>
+    +featureName: string
+    +tagKeys: string[]
+    +newKey: string
+    +newValue: any
+    +newType: string
+    +selectedKey: string
+    +formError: string
+    +isEditingName: boolean
+    +availableKeys: string[]
+    +openingHoursDays: string[]
+    +openingHoursValues: Record<string, { startMorning: string; endMorning: string; startAfternoon: string; endAfternoon: string; status: string }>
+    #translationService: TranslationService
+    #languageService: LanguageService
+    +ngOnInit(): void
+    +prefillOpeningHours(): void
+    +confirm(): void
+    +cancelEdit(): void
+    +getInputType(): string
+    -hasInvalidOpeningHours(): boolean
+    -verifyOpeningHoursBeforeSubmit(): boolean
+    +addTag(): void
+    +isOpeningHours(): boolean
+    +buildOpeningHoursTag(): string
+    +updateOpeningHoursTag(): void
+    +shouldDisable(): boolean
+    +cleanInvalidFields(): void
+    +isFieldInvalid(): boolean
+    +isEditingExistingKey(): boolean
+    +onPrimaryAction(): void
+}
+
+class MapComponent {
+    +sidebarPanel: ElementRef<HTMLDivElement>
+    +sidebarContent: ElementRef<HTMLDivElement>
+    +mapHost: ElementRef<HTMLDivElement>
+    +showMap: boolean
+    +translations: Record<string, TranslationEntry>
+    +searchQuery: string
+    +selectedMode: String
+    +userLocation: { lat: number; lon: number }
+    +showViewOptions: boolean
+    -mapClickSub?: Subscription
+    -mapInitialized: boolean
+    +lastAction: () => void
+    +newCenter: [number, number]
+    +panelOpen: boolean
+    +panelHTML: string
+    +tooltipHeader: string
+    +tooltipTags: string
+    +mapService: MapService
+    +searchService: SearchService
+    +routeService: RouteService
+    +layerService: LayerService
+    +interactionService: InteractionService
+    +languageService: LanguageService
+    +ngOnInit(): void
+    +ngAfterViewInit(): void
+    +ngOnChanges(): void
+    +ngOnDestroy(): void
+    -attachMap(): void
+    +toggleRouteMode(): void
+    +setRouteMode(): void
+    +toggleBaseLayer(): void
+    +toggleViewOptions(): void
+    +setMapView(): void
+    +onSearchInput(): void
+    +onSearchBlur(): void
+    +selectResult(): void
+    +onFeatureClick(): void
+    +onModalOk(): void
+    +onModalCancel(): void
+    +closePanel(): void
+    +showTooltip(): Promise<void>
+}
+
+class SafeUrlPipe {
+    -sanitizer: DomSanitizer
+    +transform(): SafeResourceUrl
+}
+
+class ProfileComponent {
+    +editedName: string
+    +tempPhoto: string
+    +editingName: boolean
+    +translations: Record<string, TranslationEntry>
+    +auth: AuthService<AppState>
+    +userService: UserService
+    +toggleEditName(): void
+    +cancelEdit(): void
+    +saveChanges(): void
+    +onPhotoChange(): void
+    +normalizeDate(): string
+}
+
+class VoiceComponent {
+    +mapComponent: MapComponent
+    +translations: Record<string, TranslationEntry>
+    +chatModal: ElementRef<HTMLDivElement>
+    #showChat: boolean
+    #chatMessages: { user: "user" | "ai"; text: string }[]
+    #userMessage: string
+    +isMinimized: boolean
+    -offsetX: number
+    -offsetY: number
+    -initialWidth: number
+    -initialHeight: number
+    -dragging: boolean
+    -stream: MediaStream
+    -listeningRecorder: MediaRecorder
+    -commandRecorder: MediaRecorder
+    -audioChunks: Blob[]
+    -silenceTimeout: any
+    #isRecording: boolean
+    -rmsThreshold: number
+    -initialPinchDistance: number
+    -initialModalWidth: number
+    -initialModalHeight: number
+    -wordMap: Record<string, string[]>
+    -http: HttpClient
+    -ngZone: NgZone
+    -languageService: LanguageService
+    +ngOnChanges(): void
+    +ngOnInit(): void
+    +ngAfterViewInit(): void
+    +ngOnDestroy(): void
+    -loadWords(): void
+    -detectAction(): { action: string; word: string }
+    -getDistance(): number
+    -onPinchStart(): void
+    -onPinchMove(): void
+    -onPinchEnd(): void
+    +toggleMinimize(): void
+    +toggleChat(): void
+    +startDrag(): void
+    -startListening(): void
+    -restartListening(): void
+    +startRecording(): void
+    -resetSilenceTimer(): void
+    +stopRecording(): void
+    -stopAll(): void
+    +sendMessage(): void
+}
+
+' ===== Relations =====
+AppComponent ..> MapComponent
+AppComponent ..> ProfileComponent
+AppComponent ..> UserService
+AppComponent ..> AuthService
+InteractionService ..> MapService
+InteractionService ..> LayerService
+InteractionService ..> RouteService
+InteractionService ..> UserService
+InteractionService ..> LanguageService
+InteractionService ..> TranslationService
+EditFormComponent ..> TranslationService
+EditFormComponent ..> LanguageService
+MapComponent ..> MapService
+MapComponent ..> SearchService
+MapComponent ..> RouteService
+MapComponent ..> LayerService
+MapComponent ..> InteractionService
+MapComponent ..> LanguageService
+VoiceComponent ..> MapComponent
+VoiceComponent ..> HttpClient
+VoiceComponent ..> NgZone
+VoiceComponent ..> LanguageService
+LayerService ..> MapService
+LayerService ..> SearchService
+LayerService ..> HttpClient
+LayerService ..> LanguageService
+RouteService ..> MapService
+RouteService ..> HttpClient
+RouteService ..> VectorLayer
+SearchService ..> MapService
+SearchService ..> HttpClient
+TranslationService ..> HttpClient
+UserService ..> HttpClient
+AdminValidation ..> HttpClient
+
+' ===== Implémentations Angular =====
+OnInit <|.. AppComponent
+OnInit <|.. EditFormComponent
+OnInit <|.. MapComponent
+OnInit <|.. VoiceComponent
+OnDestroy <|.. MapComponent
+OnDestroy <|.. VoiceComponent
+AfterViewInit <|.. MapComponent
+AfterViewInit <|.. VoiceComponent
+OnChanges <|.. MapComponent
+PipeTransform <|.. SafeUrlPipe
+OnInit <|.. AdminValidation
+
+@enduml

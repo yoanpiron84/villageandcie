@@ -6,6 +6,15 @@
   (cancel)="onModalCancel()">
 </app-edit-form>
 
+
+<app-add-form
+  *ngIf="showAddForm && newPointCoords"
+  [coords]="newPointCoords"
+  (submitForm)="onFormSubmit($event)"
+  (cancel)="showAddForm = false">
+</app-add-form>
+
+
 <div id="map-container" class="map-container">
 
   <!-- Carte en premier -->
@@ -64,6 +73,8 @@
         <option value="routed-bike">{{ translations['routed_bike'] || 'Vélo' }}</option>
       </select>
     </div>
+
+    <button class="add-btn" (click)="startAddMode()">+</button>
 
     <!-- 🧭 Carte déroulante des étapes -->
     <div class="steps-card" *ngIf="routeService.showStepsCard && routeService.routeInfo?.steps?.length">

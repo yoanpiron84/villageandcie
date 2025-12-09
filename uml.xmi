@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="UTF-8"?><XMI xmlns:UML="href://org.omg/UML/1.3" xmi.version="1.1">
+    <XMI.header>
+        <XMI.documentation>
+            <XMI.exporter>PlantUML</XMI.exporter>
+            <XMI.exporterVersion>1.2025.10</XMI.exporterVersion>
+        </XMI.documentation>
+        <XMI.metamodel xmi.name="UML" xmi.version="1.4"/>
+    </XMI.header>
+    <XMI.content>
+        <UML:Model name="PlantUML" xmi.id="model1">
+            <UML:Namespace.ownedElement>
+                <UML:Class isInterface="true" name="TranslationEntry" xmi.id="ent0002">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="message: string" visibility="public" xmi.id="att86"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class isInterface="true" name="CustomEntity" xmi.id="ent0003">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="_id: string | number" visibility="public" xmi.id="att87"/>
+                        <UML:Attribute name="type: string" visibility="public" xmi.id="att88"/>
+                        <UML:Attribute name="name: string" visibility="public" xmi.id="att89"/>
+                        <UML:Attribute name="coords: { lat: number; lon: number; }" visibility="public" xmi.id="att90"/>
+                        <UML:Attribute name="tags: Record&lt;string, any&gt;" visibility="public" xmi.id="att91"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class isInterface="true" name="RouteStep" xmi.id="ent0004">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="distance?: number" visibility="public" xmi.id="att92"/>
+                        <UML:Attribute name="duration?: number" visibility="public" xmi.id="att93"/>
+                        <UML:Attribute name="maneuver?: any" visibility="public" xmi.id="att94"/>
+                        <UML:Attribute name="name?: string" visibility="public" xmi.id="att95"/>
+                        <UML:Attribute name="completed?: boolean" visibility="public" xmi.id="att96"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class isInterface="true" name="RouteInfo" xmi.id="ent0005">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="distance: number" visibility="public" xmi.id="att97"/>
+                        <UML:Attribute name="duration: number" visibility="public" xmi.id="att98"/>
+                        <UML:Attribute name="steps: RouteStep[]" visibility="public" xmi.id="att99"/>
+                        <UML:Attribute name="nextStepIndex?: number" visibility="public" xmi.id="att100"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class isInterface="true" name="NominatimResult" xmi.id="ent0006">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="display_name: string" visibility="public" xmi.id="att101"/>
+                        <UML:Attribute name="lat: string" visibility="public" xmi.id="att102"/>
+                        <UML:Attribute name="lon: string" visibility="public" xmi.id="att103"/>
+                        <UML:Attribute name="address?: { city?: string; town?: string; village?: string; postcode?: string; state?: string; county?: string; country?: string; }" visibility="public" xmi.id="att104"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class isInterface="true" name="UserRole" xmi.id="ent0007">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="id: string" visibility="public" xmi.id="att105"/>
+                        <UML:Attribute name="name: string" visibility="public" xmi.id="att106"/>
+                        <UML:Attribute name="description?: string" visibility="public" xmi.id="att107"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class isInterface="true" name="UserProfile" xmi.id="ent0008">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="sub?: string" visibility="public" xmi.id="att108"/>
+                        <UML:Attribute name="name?: string" visibility="public" xmi.id="att109"/>
+                        <UML:Attribute name="picture?: string" visibility="public" xmi.id="att110"/>
+                        <UML:Attribute name="email?: string" visibility="public" xmi.id="att111"/>
+                        <UML:Attribute name="created_at?: string" visibility="public" xmi.id="att112"/>
+                        <UML:Attribute name="updated_at?: string" visibility="public" xmi.id="att113"/>
+                        <UML:Attribute name="email_verified?: boolean" visibility="public" xmi.id="att114"/>
+                        <UML:Attribute name="logins_count?: number" visibility="public" xmi.id="att115"/>
+                        <UML:Attribute name="locale?: string" visibility="public" xmi.id="att116"/>
+                        <UML:Attribute name="roles?: UserRole[]" visibility="public" xmi.id="att117"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class isInterface="true" name="ValidationItem" xmi.id="ent0009">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="_id: string" visibility="public" xmi.id="att118"/>
+                        <UML:Attribute name="type: string" visibility="public" xmi.id="att119"/>
+                        <UML:Attribute name="name: string" visibility="public" xmi.id="att120"/>
+                        <UML:Attribute name="coords: { lat: number; lon: number; }" visibility="public" xmi.id="att121"/>
+                        <UML:Attribute name="tags: any" visibility="public" xmi.id="att122"/>
+                        <UML:Attribute name="targetCollection?: string" visibility="public" xmi.id="att123"/>
+                        <UML:Attribute name="status?: &quot;pending&quot; | &quot;accepted&quot; | &quot;refused&quot;" visibility="public" xmi.id="att124"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="AppComponent" xmi.id="ent0010">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="loginForm: FormGroup&lt;any&gt;" visibility="public" xmi.id="att125"/>
+                        <UML:Attribute name="resetForm: FormGroup&lt;any&gt;" visibility="public" xmi.id="att126"/>
+                        <UML:Attribute name="showResetForm: boolean" visibility="public" xmi.id="att127"/>
+                        <UML:Attribute name="resetSent: boolean" visibility="public" xmi.id="att128"/>
+                        <UML:Attribute name="showHome: boolean" visibility="public" xmi.id="att129"/>
+                        <UML:Attribute name="showChat: boolean" visibility="public" xmi.id="att130"/>
+                        <UML:Attribute name="showMap: boolean" visibility="public" xmi.id="att131"/>
+                        <UML:Attribute name="showProfile: boolean" visibility="public" xmi.id="att132"/>
+                        <UML:Attribute name="showAdminValidation: boolean" visibility="public" xmi.id="att133"/>
+                        <UML:Attribute name="menuActive: boolean" visibility="public" xmi.id="att134"/>
+                        <UML:Attribute name="showLanguageMenu: boolean" visibility="public" xmi.id="att135"/>
+                        <UML:Attribute name="translations: Record&lt;string, TranslationEntry&gt;" visibility="public" xmi.id="att136"/>
+                        <UML:Attribute name="languages: { code: string; label: string; flag: string }[]" visibility="public" xmi.id="att137"/>
+                        <UML:Attribute name="slides: { image: string; text: string }[]" visibility="public" xmi.id="att138"/>
+                        <UML:Attribute name="currentSlide: number" visibility="public" xmi.id="att139"/>
+                        <UML:Attribute name="slideInterval: any" visibility="public" xmi.id="att140"/>
+                        <UML:Attribute name="mapRef: MapComponent" visibility="public" xmi.id="att141"/>
+                        <UML:Attribute name="profilComponent: ProfileComponent" visibility="public" xmi.id="att142"/>
+                        <UML:Attribute name="user: any" visibility="public" xmi.id="att143"/>
+                        <UML:Attribute name="http: HttpClient" visibility="private" xmi.id="att144"/>
+                        <UML:Attribute name="auth: AuthService&lt;AppState&gt;" visibility="public" xmi.id="att145"/>
+                        <UML:Attribute name="userService: UserService" visibility="public" xmi.id="att146"/>
+                        <UML:Attribute name="fb: FormBuilder" visibility="private" xmi.id="att147"/>
+                        <UML:Attribute name="languageService: LanguageService" visibility="protected" xmi.id="att148"/>
+                        <UML:Operation name="window: &lt;T&gt;(windowBoundaries: ObservableInput&lt;any&gt;) =&gt; OperatorFunction&lt;T, Observable&lt;T&gt;&gt;" visibility="protected" xmi.id="att149"/>
+                        <UML:Operation name="getWindow: () =&gt; Window" visibility="protected" xmi.id="att150"/>
+                        <UML:Operation name="login(): void" visibility="public" xmi.id="att151"/>
+                        <UML:Operation name="loginWithGoogle(): void" visibility="public" xmi.id="att152"/>
+                        <UML:Operation name="resetPasswordSubmit(): void" visibility="public" xmi.id="att153"/>
+                        <UML:Operation name="logout(): void" visibility="public" xmi.id="att154"/>
+                        <UML:Operation name="ngOnInit(): void" visibility="public" xmi.id="att155"/>
+                        <UML:Operation name="ngOnChanges(): void" visibility="public" xmi.id="att156"/>
+                        <UML:Operation name="ngOnDestroy(): void" visibility="public" xmi.id="att157"/>
+                        <UML:Operation name="toggleView(): void" visibility="public" xmi.id="att158"/>
+                        <UML:Operation name="toggleMenu(): void" visibility="public" xmi.id="att159"/>
+                        <UML:Operation name="toggleLanguageMenu(): void" visibility="public" xmi.id="att160"/>
+                        <UML:Operation name="changeLanguage(): void" visibility="public" xmi.id="att161"/>
+                        <UML:Operation name="loadTranslations(): void" visibility="private" xmi.id="att162"/>
+                        <UML:Operation name="startAutoSlide(): void" visibility="public" xmi.id="att163"/>
+                        <UML:Operation name="nextSlide(): void" visibility="public" xmi.id="att164"/>
+                        <UML:Operation name="prevSlide(): void" visibility="public" xmi.id="att165"/>
+                        <UML:Operation name="restartAutoSlide(): void" visibility="public" xmi.id="att166"/>
+                        <UML:Operation name="updateSlides(): void" visibility="public" xmi.id="att167"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="InteractionService" xmi.id="ent0011">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="isPinModeActive: boolean" visibility="public" xmi.id="att168"/>
+                        <UML:Attribute name="isLocalisationActive: boolean" visibility="public" xmi.id="att169"/>
+                        <UML:Attribute name="userPosition: { lat: number; lon: number }" visibility="public" xmi.id="att170"/>
+                        <UML:Attribute name="searchResults: any[]" visibility="public" xmi.id="att171"/>
+                        <UML:Attribute name="translations: Record&lt;string, TranslationEntry&gt;" visibility="public" xmi.id="att172"/>
+                        <UML:Attribute name="isSatellite: boolean" visibility="public" xmi.id="att173"/>
+                        <UML:Attribute name="tooltipEl: HTMLDivElement" visibility="private" xmi.id="att174"/>
+                        <UML:Attribute name="tooltipOverlay: Overlay" visibility="private" xmi.id="att175"/>
+                        <UML:Attribute name="currentFeature: Feature&lt;Geometry&gt;" visibility="private" xmi.id="att176"/>
+                        <UML:Attribute name="sidebarPanel: HTMLDivElement" visibility="public" xmi.id="att177"/>
+                        <UML:Attribute name="sidebarContent: HTMLDivElement" visibility="public" xmi.id="att178"/>
+                        <UML:Attribute name="mapElement: HTMLDivElement" visibility="public" xmi.id="att179"/>
+                        <UML:Attribute name="countryCenters: Record&lt;string, [number, number]&gt;" visibility="public" xmi.id="att180"/>
+                        <UML:Attribute name="foodShopsConfig: Record&lt;string, { label: string | TranslationEntry; fields?: string[] }&gt;" visibility="public" xmi.id="att181"/>
+                        <UML:Attribute name="selectedFeature: Feature&lt;Geometry&gt;" visibility="public" xmi.id="att182"/>
+                        <UML:Attribute name="showModal: boolean" visibility="public" xmi.id="att183"/>
+                        <UML:Attribute name="modalName: string" visibility="public" xmi.id="att184"/>
+                        <UML:Attribute name="modalTags: Record&lt;string, any&gt;" visibility="public" xmi.id="att185"/>
+                        <UML:Attribute name="mapService: MapService" visibility="private" xmi.id="att186"/>
+                        <UML:Attribute name="http: HttpClient" visibility="private" xmi.id="att187"/>
+                        <UML:Attribute name="layerService: LayerService" visibility="private" xmi.id="att188"/>
+                        <UML:Attribute name="routeService: RouteService" visibility="private" xmi.id="att189"/>
+                        <UML:Attribute name="appRef: ApplicationRef" visibility="private" xmi.id="att190"/>
+                        <UML:Attribute name="envInjector: EnvironmentInjector" visibility="private" xmi.id="att191"/>
+                        <UML:Attribute name="languageService: LanguageService" visibility="private" xmi.id="att192"/>
+                        <UML:Attribute name="translationService: TranslationService" visibility="private" xmi.id="att193"/>
+                        <UML:Attribute name="userService: UserService" visibility="private" xmi.id="att194"/>
+                        <UML:Operation name="tooltipLayerMap: Record&lt;string, (feature: Feature&lt;Geometry&gt;) =&gt; Promise&lt;string&gt;&gt;" visibility="private" xmi.id="att195"/>
+                        <UML:Operation name="setSidebarElements(): void" visibility="public" xmi.id="att196"/>
+                        <UML:Operation name="updateTooltipContent(): Promise&lt;void&gt;" visibility="private" xmi.id="att197"/>
+                        <UML:Operation name="togglePinMode(): void" visibility="public" xmi.id="att198"/>
+                        <UML:Operation name="toggleViewOptions(): void" visibility="public" xmi.id="att199"/>
+                        <UML:Operation name="setMapView(): void" visibility="public" xmi.id="att200"/>
+                        <UML:Operation name="toggleLocalisation(): void" visibility="public" xmi.id="att201"/>
+                        <UML:Operation name="placePin(): void" visibility="public" xmi.id="att202"/>
+                        <UML:Operation name="initTooltip(): void" visibility="public" xmi.id="att203"/>
+                        <UML:Operation name="fillTooltip(): Promise&lt;string&gt;" visibility="private" xmi.id="att204"/>
+                        <UML:Operation name="updateTranslations(): Promise&lt;void&gt;" visibility="public" xmi.id="att205"/>
+                        <UML:Operation name="openEditForm(): void" visibility="public" xmi.id="att206"/>
+                        <UML:Operation name="translateOSMTag(): Promise&lt;string&gt;" visibility="private" xmi.id="att207"/>
+                        <UML:Operation name="capitalize(): string" visibility="private" xmi.id="att208"/>
+                        <UML:Operation name="buildTagListHTML(): Promise&lt;string&gt;" visibility="public" xmi.id="att209"/>
+                        <UML:Operation name="getTranslation(): string" visibility="public" xmi.id="att210"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="LanguageService" xmi.id="ent0012">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="langSubject: BehaviorSubject&lt;&quot;fr&quot; | &quot;en&quot; | &quot;es&quot;&gt;" visibility="private" xmi.id="att211"/>
+                        <UML:Attribute name="lang$: Observable&lt;&quot;fr&quot; | &quot;en&quot; | &quot;es&quot;&gt;" visibility="public" xmi.id="att212"/>
+                        <UML:Operation name="setLanguage(): void" visibility="public" xmi.id="att213"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="LayerService" xmi.id="ent0013">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="activeLayers: Set&lt;string&gt;" visibility="public" xmi.id="att214"/>
+                        <UML:Attribute name="selectedLayerAction: string" visibility="public" xmi.id="att215"/>
+                        <UML:Attribute name="layerRadii: { [action: string]: number }" visibility="public" xmi.id="att216"/>
+                        <UML:Attribute name="currentRadius: number" visibility="public" xmi.id="att217"/>
+                        <UML:Attribute name="showFilterCard: boolean" visibility="public" xmi.id="att218"/>
+                        <UML:Attribute name="canApplyFilter: boolean" visibility="public" xmi.id="att219"/>
+                        <UML:Attribute name="coords: string" visibility="public" xmi.id="att220"/>
+                        <UML:Attribute name="translations: Record&lt;string, TranslationEntry&gt;" visibility="public" xmi.id="att221"/>
+                        <UML:Attribute name="layerLabels: Record&lt;string, string&gt;" visibility="public" xmi.id="att222"/>
+                        <UML:Attribute name="overpassCache: Map&lt;string, any&gt;" visibility="public" xmi.id="att223"/>
+                        <UML:Attribute name="customTagsMap: Map&lt;string, any&gt;" visibility="public" xmi.id="att224"/>
+                        <UML:Attribute name="mapService: MapService" visibility="private" xmi.id="att225"/>
+                        <UML:Attribute name="searchService: SearchService" visibility="private" xmi.id="att226"/>
+                        <UML:Attribute name="http: HttpClient" visibility="private" xmi.id="att227"/>
+                        <UML:Attribute name="languageService: LanguageService" visibility="private" xmi.id="att228"/>
+                        <UML:Operation name="initLayerLabels(): void" visibility="public" xmi.id="att229"/>
+                        <UML:Operation name="toggleFilterCard(): void" visibility="public" xmi.id="att230"/>
+                        <UML:Operation name="applyFilter(): void" visibility="public" xmi.id="att231"/>
+                        <UML:Operation name="isFeatureWithinRadius(): boolean" visibility="private" xmi.id="att232"/>
+                        <UML:Operation name="getDistanceInMeters(): number" visibility="private" xmi.id="att233"/>
+                        <UML:Operation name="fetchOverpassAndCustom(): Promise&lt;any&gt;" visibility="public" xmi.id="att234"/>
+                        <UML:Operation name="convertOverpassToGeoJSON(): Feature&lt;Geometry&gt;[]" visibility="public" xmi.id="att235"/>
+                        <UML:Operation name="zoomToResult(): void" visibility="public" xmi.id="att236"/>
+                        <UML:Operation name="updateCoordsForCity(): void" visibility="public" xmi.id="att237"/>
+                        <UML:Operation name="showWater(): void" visibility="public" xmi.id="att238"/>
+                        <UML:Operation name="hideWater(): void" visibility="public" xmi.id="att239"/>
+                        <UML:Operation name="showGreen(): void" visibility="public" xmi.id="att240"/>
+                        <UML:Operation name="hideGreen(): void" visibility="public" xmi.id="att241"/>
+                        <UML:Operation name="showCity(): void" visibility="public" xmi.id="att242"/>
+                        <UML:Operation name="showRestaurant(): void" visibility="public" xmi.id="att243"/>
+                        <UML:Operation name="hideRestaurant(): void" visibility="public" xmi.id="att244"/>
+                        <UML:Operation name="showChurch(): void" visibility="public" xmi.id="att245"/>
+                        <UML:Operation name="hideChurch(): void" visibility="public" xmi.id="att246"/>
+                        <UML:Operation name="showHotel(): void" visibility="public" xmi.id="att247"/>
+                        <UML:Operation name="hideHotel(): void" visibility="public" xmi.id="att248"/>
+                        <UML:Operation name="showAlimentaire(): void" visibility="public" xmi.id="att249"/>
+                        <UML:Operation name="hideAlimentaire(): void" visibility="public" xmi.id="att250"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="MapService" xmi.id="ent0014">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="map: Map" visibility="public" xmi.id="att251"/>
+                        <UML:Attribute name="waitingMessage: string" visibility="public" xmi.id="att252"/>
+                        <UML:Attribute name="osmLayer: TileLayer&lt;OSM&gt;" visibility="public" xmi.id="att253"/>
+                        <UML:Attribute name="satelliteLayer: TileLayer&lt;XYZ&gt;" visibility="public" xmi.id="att254"/>
+                        <UML:Attribute name="labelsLayer: TileLayer&lt;XYZ&gt;" visibility="public" xmi.id="att255"/>
+                        <UML:Attribute name="pinLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att256"/>
+                        <UML:Attribute name="searchLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att257"/>
+                        <UML:Attribute name="waterLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att258"/>
+                        <UML:Attribute name="greenLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att259"/>
+                        <UML:Attribute name="restaurantLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att260"/>
+                        <UML:Attribute name="churchLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att261"/>
+                        <UML:Attribute name="hotelLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att262"/>
+                        <UML:Attribute name="alimentaireLayer: Record&lt;string, VectorLayer&lt;Cluster&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;&gt;" visibility="public" xmi.id="att263"/>
+                        <UML:Attribute name="routePointLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att264"/>
+                        <UML:Attribute name="routeLineLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att265"/>
+                        <UML:Attribute name="userPosition: { lat: number; lon: number }" visibility="public" xmi.id="att266"/>
+                        <UML:Operation name="initAlimentaireLayers(): void" visibility="public" xmi.id="att267"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="RouteService" xmi.id="ent0015">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="isRouteModeActive: boolean" visibility="public" xmi.id="att268"/>
+                        <UML:Attribute name="routePoints: [number, number][]" visibility="public" xmi.id="att269"/>
+                        <UML:Attribute name="lastRoutePoints: [number, number][]" visibility="public" xmi.id="att270"/>
+                        <UML:Attribute name="routeInfo: RouteInfo" visibility="public" xmi.id="att271"/>
+                        <UML:Attribute name="routeMode: String" visibility="public" xmi.id="att272"/>
+                        <UML:Attribute name="showStepsCard: boolean" visibility="public" xmi.id="att273"/>
+                        <UML:Attribute name="routeLineLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att274"/>
+                        <UML:Attribute name="routePointLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att275"/>
+                        <UML:Attribute name="routeHoverListener: any" visibility="private" xmi.id="att276"/>
+                        <UML:Attribute name="userMarkerLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;" visibility="public" xmi.id="att277"/>
+                        <UML:Attribute name="mapService: MapService" visibility="private" xmi.id="att278"/>
+                        <UML:Attribute name="http: HttpClient" visibility="private" xmi.id="att279"/>
+                        <UML:Operation name="initUserMarkerLayer(): void" visibility="private" xmi.id="att280"/>
+                        <UML:Operation name="updateUserPositionMarker(): void" visibility="public" xmi.id="att281"/>
+                        <UML:Operation name="watchUserPosition(): void" visibility="public" xmi.id="att282"/>
+                        <UML:Operation name="toggleRouteMode(): void" visibility="public" xmi.id="att283"/>
+                        <UML:Operation name="onDestinationSelected(): void" visibility="public" xmi.id="att284"/>
+                        <UML:Operation name="clearRoute(): void" visibility="private" xmi.id="att285"/>
+                        <UML:Operation name="setRouteMode(): void" visibility="public" xmi.id="att286"/>
+                        <UML:Operation name="reverseGeocode(): Promise&lt;string&gt;" visibility="private" xmi.id="att287"/>
+                        <UML:Operation name="advanceToNextStep(): void" visibility="public" xmi.id="att288"/>
+                        <UML:Operation name="updateRouteFromPin(): void" visibility="public" xmi.id="att289"/>
+                        <UML:Operation name="fetchRouteWithUserPosition(): void" visibility="public" xmi.id="att290"/>
+                        <UML:Operation name="fetchRoute(): void" visibility="public" xmi.id="att291"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="SearchService" xmi.id="ent0016">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="searchTerm: string" visibility="public" xmi.id="att292"/>
+                        <UML:Attribute name="searchResults: any[]" visibility="public" xmi.id="att293"/>
+                        <UML:Attribute name="showDropdown: boolean" visibility="public" xmi.id="att294"/>
+                        <UML:Attribute name="mapService: MapService" visibility="private" xmi.id="att295"/>
+                        <UML:Attribute name="http: HttpClient" visibility="private" xmi.id="att296"/>
+                        <UML:Attribute name="searchSubject: Subject&lt;string&gt;" visibility="public" xmi.id="att297"/>
+                        <UML:Operation name="performSearch(): void" visibility="public" xmi.id="att298"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="TranslationService" xmi.id="ent0017">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="http: HttpClient" visibility="private" xmi.id="att299"/>
+                        <UML:Operation name="translate(): Observable&lt;any&gt;" visibility="public" xmi.id="att300"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="UserService" xmi.id="ent0018">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="userSignal: WritableSignal&lt;Partial&lt;UserProfile&gt;&gt;" visibility="public" xmi.id="att301"/>
+                        <UML:Attribute name="http: HttpClient" visibility="private" xmi.id="att302"/>
+                        <UML:Operation name="setSub(): void" visibility="public" xmi.id="att303"/>
+                        <UML:Operation name="fetchUser(): void" visibility="public" xmi.id="att304"/>
+                        <UML:Operation name="updateLocale(): void" visibility="public" xmi.id="att305"/>
+                        <UML:Operation name="updateProfile(): void" visibility="public" xmi.id="att306"/>
+                        <UML:Operation name="isAdmin(): boolean" visibility="public" xmi.id="att307"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="AdminValidation" xmi.id="ent0019">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="items: ValidationItem[]" visibility="public" xmi.id="att308"/>
+                        <UML:Attribute name="loading: boolean" visibility="public" xmi.id="att309"/>
+                        <UML:Attribute name="http: HttpClient" visibility="private" xmi.id="att310"/>
+                        <UML:Operation name="ngOnInit(): void" visibility="public" xmi.id="att311"/>
+                        <UML:Operation name="fetchValidationItems(): void" visibility="public" xmi.id="att312"/>
+                        <UML:Operation name="updateStatus(): void" visibility="public" xmi.id="att313"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="EditFormComponent" xmi.id="ent0020">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="name: string" visibility="public" xmi.id="att314"/>
+                        <UML:Attribute name="tags: Record&lt;string, any&gt;" visibility="public" xmi.id="att315"/>
+                        <UML:Attribute name="ok: EventEmitter&lt;{ name: string; tags: Record&lt;string, any&gt; }&gt;" visibility="public" xmi.id="att316"/>
+                        <UML:Attribute name="cancel: EventEmitter&lt;void&gt;" visibility="public" xmi.id="att317"/>
+                        <UML:Attribute name="isEditing: boolean" visibility="public" xmi.id="att318"/>
+                        <UML:Attribute name="translations: Record&lt;string, TranslationEntry&gt;" visibility="public" xmi.id="att319"/>
+                        <UML:Attribute name="featureName: string" visibility="public" xmi.id="att320"/>
+                        <UML:Attribute name="tagKeys: string[]" visibility="public" xmi.id="att321"/>
+                        <UML:Attribute name="newKey: string" visibility="public" xmi.id="att322"/>
+                        <UML:Attribute name="newValue: any" visibility="public" xmi.id="att323"/>
+                        <UML:Attribute name="newType: string" visibility="public" xmi.id="att324"/>
+                        <UML:Attribute name="selectedKey: string" visibility="public" xmi.id="att325"/>
+                        <UML:Attribute name="formError: string" visibility="public" xmi.id="att326"/>
+                        <UML:Attribute name="isEditingName: boolean" visibility="public" xmi.id="att327"/>
+                        <UML:Attribute name="availableKeys: string[]" visibility="public" xmi.id="att328"/>
+                        <UML:Attribute name="openingHoursDays: string[]" visibility="public" xmi.id="att329"/>
+                        <UML:Attribute name="openingHoursValues: Record&lt;string, { startMorning: string; endMorning: string; startAfternoon: string; endAfternoon: string; status: string }&gt;" visibility="public" xmi.id="att330"/>
+                        <UML:Attribute name="translationService: TranslationService" visibility="protected" xmi.id="att331"/>
+                        <UML:Attribute name="languageService: LanguageService" visibility="protected" xmi.id="att332"/>
+                        <UML:Operation name="ngOnInit(): void" visibility="public" xmi.id="att333"/>
+                        <UML:Operation name="prefillOpeningHours(): void" visibility="public" xmi.id="att334"/>
+                        <UML:Operation name="confirm(): void" visibility="public" xmi.id="att335"/>
+                        <UML:Operation name="cancelEdit(): void" visibility="public" xmi.id="att336"/>
+                        <UML:Operation name="getInputType(): string" visibility="public" xmi.id="att337"/>
+                        <UML:Operation name="hasInvalidOpeningHours(): boolean" visibility="private" xmi.id="att338"/>
+                        <UML:Operation name="verifyOpeningHoursBeforeSubmit(): boolean" visibility="private" xmi.id="att339"/>
+                        <UML:Operation name="addTag(): void" visibility="public" xmi.id="att340"/>
+                        <UML:Operation name="isOpeningHours(): boolean" visibility="public" xmi.id="att341"/>
+                        <UML:Operation name="buildOpeningHoursTag(): string" visibility="public" xmi.id="att342"/>
+                        <UML:Operation name="updateOpeningHoursTag(): void" visibility="public" xmi.id="att343"/>
+                        <UML:Operation name="shouldDisable(): boolean" visibility="public" xmi.id="att344"/>
+                        <UML:Operation name="cleanInvalidFields(): void" visibility="public" xmi.id="att345"/>
+                        <UML:Operation name="isFieldInvalid(): boolean" visibility="public" xmi.id="att346"/>
+                        <UML:Operation name="isEditingExistingKey(): boolean" visibility="public" xmi.id="att347"/>
+                        <UML:Operation name="onPrimaryAction(): void" visibility="public" xmi.id="att348"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="MapComponent" xmi.id="ent0021">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="sidebarPanel: ElementRef&lt;HTMLDivElement&gt;" visibility="public" xmi.id="att349"/>
+                        <UML:Attribute name="sidebarContent: ElementRef&lt;HTMLDivElement&gt;" visibility="public" xmi.id="att350"/>
+                        <UML:Attribute name="mapHost: ElementRef&lt;HTMLDivElement&gt;" visibility="public" xmi.id="att351"/>
+                        <UML:Attribute name="showMap: boolean" visibility="public" xmi.id="att352"/>
+                        <UML:Attribute name="translations: Record&lt;string, TranslationEntry&gt;" visibility="public" xmi.id="att353"/>
+                        <UML:Attribute name="searchQuery: string" visibility="public" xmi.id="att354"/>
+                        <UML:Attribute name="selectedMode: String" visibility="public" xmi.id="att355"/>
+                        <UML:Attribute name="userLocation: { lat: number; lon: number }" visibility="public" xmi.id="att356"/>
+                        <UML:Attribute name="showViewOptions: boolean" visibility="public" xmi.id="att357"/>
+                        <UML:Attribute name="mapClickSub?: Subscription" visibility="private" xmi.id="att358"/>
+                        <UML:Attribute name="mapInitialized: boolean" visibility="private" xmi.id="att359"/>
+                        <UML:Attribute name="newCenter: [number, number]" visibility="public" xmi.id="att360"/>
+                        <UML:Attribute name="panelOpen: boolean" visibility="public" xmi.id="att361"/>
+                        <UML:Attribute name="panelHTML: string" visibility="public" xmi.id="att362"/>
+                        <UML:Attribute name="tooltipHeader: string" visibility="public" xmi.id="att363"/>
+                        <UML:Attribute name="tooltipTags: string" visibility="public" xmi.id="att364"/>
+                        <UML:Attribute name="mapService: MapService" visibility="public" xmi.id="att365"/>
+                        <UML:Attribute name="searchService: SearchService" visibility="public" xmi.id="att366"/>
+                        <UML:Attribute name="routeService: RouteService" visibility="public" xmi.id="att367"/>
+                        <UML:Attribute name="layerService: LayerService" visibility="public" xmi.id="att368"/>
+                        <UML:Attribute name="interactionService: InteractionService" visibility="public" xmi.id="att369"/>
+                        <UML:Attribute name="languageService: LanguageService" visibility="public" xmi.id="att370"/>
+                        <UML:Operation name="lastAction: () =&gt; void" visibility="public" xmi.id="att371"/>
+                        <UML:Operation name="ngOnInit(): void" visibility="public" xmi.id="att372"/>
+                        <UML:Operation name="ngAfterViewInit(): void" visibility="public" xmi.id="att373"/>
+                        <UML:Operation name="ngOnChanges(): void" visibility="public" xmi.id="att374"/>
+                        <UML:Operation name="ngOnDestroy(): void" visibility="public" xmi.id="att375"/>
+                        <UML:Operation name="attachMap(): void" visibility="private" xmi.id="att376"/>
+                        <UML:Operation name="toggleRouteMode(): void" visibility="public" xmi.id="att377"/>
+                        <UML:Operation name="setRouteMode(): void" visibility="public" xmi.id="att378"/>
+                        <UML:Operation name="toggleBaseLayer(): void" visibility="public" xmi.id="att379"/>
+                        <UML:Operation name="toggleViewOptions(): void" visibility="public" xmi.id="att380"/>
+                        <UML:Operation name="setMapView(): void" visibility="public" xmi.id="att381"/>
+                        <UML:Operation name="onSearchInput(): void" visibility="public" xmi.id="att382"/>
+                        <UML:Operation name="onSearchBlur(): void" visibility="public" xmi.id="att383"/>
+                        <UML:Operation name="selectResult(): void" visibility="public" xmi.id="att384"/>
+                        <UML:Operation name="onFeatureClick(): void" visibility="public" xmi.id="att385"/>
+                        <UML:Operation name="onModalOk(): void" visibility="public" xmi.id="att386"/>
+                        <UML:Operation name="onModalCancel(): void" visibility="public" xmi.id="att387"/>
+                        <UML:Operation name="closePanel(): void" visibility="public" xmi.id="att388"/>
+                        <UML:Operation name="showTooltip(): Promise&lt;void&gt;" visibility="public" xmi.id="att389"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="SafeUrlPipe" xmi.id="ent0022">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="sanitizer: DomSanitizer" visibility="private" xmi.id="att390"/>
+                        <UML:Operation name="transform(): SafeResourceUrl" visibility="public" xmi.id="att391"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="ProfileComponent" xmi.id="ent0023">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="editedName: string" visibility="public" xmi.id="att392"/>
+                        <UML:Attribute name="tempPhoto: string" visibility="public" xmi.id="att393"/>
+                        <UML:Attribute name="editingName: boolean" visibility="public" xmi.id="att394"/>
+                        <UML:Attribute name="translations: Record&lt;string, TranslationEntry&gt;" visibility="public" xmi.id="att395"/>
+                        <UML:Attribute name="auth: AuthService&lt;AppState&gt;" visibility="public" xmi.id="att396"/>
+                        <UML:Attribute name="userService: UserService" visibility="public" xmi.id="att397"/>
+                        <UML:Operation name="toggleEditName(): void" visibility="public" xmi.id="att398"/>
+                        <UML:Operation name="cancelEdit(): void" visibility="public" xmi.id="att399"/>
+                        <UML:Operation name="saveChanges(): void" visibility="public" xmi.id="att400"/>
+                        <UML:Operation name="onPhotoChange(): void" visibility="public" xmi.id="att401"/>
+                        <UML:Operation name="normalizeDate(): string" visibility="public" xmi.id="att402"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="VoiceComponent" xmi.id="ent0024">
+                    <UML:Classifier.feature>
+                        <UML:Attribute name="mapComponent: MapComponent" visibility="public" xmi.id="att403"/>
+                        <UML:Attribute name="translations: Record&lt;string, TranslationEntry&gt;" visibility="public" xmi.id="att404"/>
+                        <UML:Attribute name="chatModal: ElementRef&lt;HTMLDivElement&gt;" visibility="public" xmi.id="att405"/>
+                        <UML:Attribute name="showChat: boolean" visibility="protected" xmi.id="att406"/>
+                        <UML:Attribute name="chatMessages: { user: &quot;user&quot; | &quot;ai&quot;; text: string }[]" visibility="protected" xmi.id="att407"/>
+                        <UML:Attribute name="userMessage: string" visibility="protected" xmi.id="att408"/>
+                        <UML:Attribute name="isMinimized: boolean" visibility="public" xmi.id="att409"/>
+                        <UML:Attribute name="offsetX: number" visibility="private" xmi.id="att410"/>
+                        <UML:Attribute name="offsetY: number" visibility="private" xmi.id="att411"/>
+                        <UML:Attribute name="initialWidth: number" visibility="private" xmi.id="att412"/>
+                        <UML:Attribute name="initialHeight: number" visibility="private" xmi.id="att413"/>
+                        <UML:Attribute name="dragging: boolean" visibility="private" xmi.id="att414"/>
+                        <UML:Attribute name="stream: MediaStream" visibility="private" xmi.id="att415"/>
+                        <UML:Attribute name="listeningRecorder: MediaRecorder" visibility="private" xmi.id="att416"/>
+                        <UML:Attribute name="commandRecorder: MediaRecorder" visibility="private" xmi.id="att417"/>
+                        <UML:Attribute name="audioChunks: Blob[]" visibility="private" xmi.id="att418"/>
+                        <UML:Attribute name="silenceTimeout: any" visibility="private" xmi.id="att419"/>
+                        <UML:Attribute name="isRecording: boolean" visibility="protected" xmi.id="att420"/>
+                        <UML:Attribute name="rmsThreshold: number" visibility="private" xmi.id="att421"/>
+                        <UML:Attribute name="initialPinchDistance: number" visibility="private" xmi.id="att422"/>
+                        <UML:Attribute name="initialModalWidth: number" visibility="private" xmi.id="att423"/>
+                        <UML:Attribute name="initialModalHeight: number" visibility="private" xmi.id="att424"/>
+                        <UML:Attribute name="wordMap: Record&lt;string, string[]&gt;" visibility="private" xmi.id="att425"/>
+                        <UML:Attribute name="http: HttpClient" visibility="private" xmi.id="att426"/>
+                        <UML:Attribute name="ngZone: NgZone" visibility="private" xmi.id="att427"/>
+                        <UML:Attribute name="languageService: LanguageService" visibility="private" xmi.id="att428"/>
+                        <UML:Operation name="ngOnChanges(): void" visibility="public" xmi.id="att429"/>
+                        <UML:Operation name="ngOnInit(): void" visibility="public" xmi.id="att430"/>
+                        <UML:Operation name="ngAfterViewInit(): void" visibility="public" xmi.id="att431"/>
+                        <UML:Operation name="ngOnDestroy(): void" visibility="public" xmi.id="att432"/>
+                        <UML:Operation name="loadWords(): void" visibility="private" xmi.id="att433"/>
+                        <UML:Operation name="detectAction(): { action: string; word: string }" visibility="private" xmi.id="att434"/>
+                        <UML:Operation name="getDistance(): number" visibility="private" xmi.id="att435"/>
+                        <UML:Operation name="onPinchStart(): void" visibility="private" xmi.id="att436"/>
+                        <UML:Operation name="onPinchMove(): void" visibility="private" xmi.id="att437"/>
+                        <UML:Operation name="onPinchEnd(): void" visibility="private" xmi.id="att438"/>
+                        <UML:Operation name="toggleMinimize(): void" visibility="public" xmi.id="att439"/>
+                        <UML:Operation name="toggleChat(): void" visibility="public" xmi.id="att440"/>
+                        <UML:Operation name="startDrag(): void" visibility="public" xmi.id="att441"/>
+                        <UML:Operation name="startListening(): void" visibility="private" xmi.id="att442"/>
+                        <UML:Operation name="restartListening(): void" visibility="private" xmi.id="att443"/>
+                        <UML:Operation name="startRecording(): void" visibility="public" xmi.id="att444"/>
+                        <UML:Operation name="resetSilenceTimer(): void" visibility="private" xmi.id="att445"/>
+                        <UML:Operation name="stopRecording(): void" visibility="public" xmi.id="att446"/>
+                        <UML:Operation name="stopAll(): void" visibility="private" xmi.id="att447"/>
+                        <UML:Operation name="sendMessage(): void" visibility="public" xmi.id="att448"/>
+                    </UML:Classifier.feature>
+                </UML:Class>
+                <UML:Class name="AuthService" xmi.id="ent0028">
+                    <UML:Classifier.feature/>
+                </UML:Class>
+                <UML:Class name="HttpClient" xmi.id="ent0045">
+                    <UML:Classifier.feature/>
+                </UML:Class>
+                <UML:Class name="NgZone" xmi.id="ent0047">
+                    <UML:Classifier.feature/>
+                </UML:Class>
+                <UML:Class name="VectorLayer" xmi.id="ent0056">
+                    <UML:Classifier.feature/>
+                </UML:Class>
+                <UML:Class name="OnInit" xmi.id="ent0063">
+                    <UML:Classifier.feature/>
+                </UML:Class>
+                <UML:Class name="OnDestroy" xmi.id="ent0068">
+                    <UML:Classifier.feature/>
+                </UML:Class>
+                <UML:Class name="AfterViewInit" xmi.id="ent0071">
+                    <UML:Classifier.feature/>
+                </UML:Class>
+                <UML:Class name="OnChanges" xmi.id="ent0074">
+                    <UML:Classifier.feature/>
+                </UML:Class>
+                <UML:Class name="PipeTransform" xmi.id="ent0076">
+                    <UML:Classifier.feature/>
+                </UML:Class>
+            </UML:Namespace.ownedElement>
+        </UML:Model>
+    </XMI.content>
+</XMI>

@@ -1,0 +1,1396 @@
+{
+  "_type": "Project",
+  "name": "ImportPlantUML",
+  "ownedElements": [
+    {
+      "_type": "Model",
+      "name": "ImportedModel",
+      "ownedElements": [
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "TranslationEntry",
+          "isInterface": true,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "message: string",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "CustomEntity",
+          "isInterface": true,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "_id: string | number",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "type: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "name: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "coords: { lat: number; lon: number; }",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "tags: Record<string, any>",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "RouteStep",
+          "isInterface": true,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "distance?: number",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "duration?: number",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "maneuver?: any",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "name?: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "completed?: boolean",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "RouteInfo",
+          "isInterface": true,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "distance: number",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "duration: number",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "steps: RouteStep[]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "nextStepIndex?: number",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "NominatimResult",
+          "isInterface": true,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "display_name: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "lat: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "lon: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "address?: { city?: string; town?: string; village?: string; postcode?: string; state?: string; county?: string; country?: string; }",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "UserRole",
+          "isInterface": true,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "id: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "name: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "description?: string",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "UserProfile",
+          "isInterface": true,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "sub?: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "name?: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "picture?: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "email?: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "created_at?: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "updated_at?: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "email_verified?: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "logins_count?: number",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "locale?: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "roles?: UserRole[]",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "ValidationItem",
+          "isInterface": true,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "_id: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "type: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "name: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "coords: { lat: number; lon: number; }",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "tags: any",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "targetCollection?: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "status?: \"pending\" | \"accepted\" | \"refused\"",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "AppComponent",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "loginForm: FormGroup<any>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "resetForm: FormGroup<any>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showResetForm: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "resetSent: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showHome: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showChat: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showMap: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showProfile: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showAdminValidation: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "menuActive: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showLanguageMenu: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "translations: Record<string, TranslationEntry>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "languages: { code: string; label: string; flag: string }[]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "slides: { image: string; text: string }[]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "currentSlide: number",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "slideInterval: any",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "mapRef: MapComponent",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "profilComponent: ProfileComponent",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "user: any",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "http: HttpClient",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "auth: AuthService<AppState>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "userService: UserService",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "fb: FormBuilder",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "languageService: LanguageService",
+              "visibility": "protected",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "InteractionService",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "isPinModeActive: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "isLocalisationActive: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "userPosition: { lat: number; lon: number }",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "searchResults: any[]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "translations: Record<string, TranslationEntry>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "isSatellite: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "tooltipEl: HTMLDivElement",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "tooltipOverlay: Overlay",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "currentFeature: Feature<Geometry>",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "sidebarPanel: HTMLDivElement",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "sidebarContent: HTMLDivElement",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "mapElement: HTMLDivElement",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "countryCenters: Record<string, [number, number]>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "foodShopsConfig: Record<string, { label: string | TranslationEntry; fields?: string[] }>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "selectedFeature: Feature<Geometry>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showModal: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "modalName: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "modalTags: Record<string, any>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "mapService: MapService",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "http: HttpClient",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "layerService: LayerService",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "routeService: RouteService",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "appRef: ApplicationRef",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "envInjector: EnvironmentInjector",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "languageService: LanguageService",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "translationService: TranslationService",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "userService: UserService",
+              "visibility": "private",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "LanguageService",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "langSubject: BehaviorSubject<\"fr\" | \"en\" | \"es\">",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "lang$: Observable<\"fr\" | \"en\" | \"es\">",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "LayerService",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "activeLayers: Set<string>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "selectedLayerAction: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "layerRadii: { [action: string]: number }",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "currentRadius: number",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showFilterCard: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "canApplyFilter: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "coords: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "translations: Record<string, TranslationEntry>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "layerLabels: Record<string, string>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "overpassCache: Map<string, any>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "customTagsMap: Map<string, any>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "mapService: MapService",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "searchService: SearchService",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "http: HttpClient",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "languageService: LanguageService",
+              "visibility": "private",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "MapService",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "map: Map",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "waitingMessage: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "osmLayer: TileLayer<OSM>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "satelliteLayer: TileLayer<XYZ>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "labelsLayer: TileLayer<XYZ>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "pinLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "searchLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "waterLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "greenLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "restaurantLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "churchLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "hotelLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "alimentaireLayer: Record<string, VectorLayer<Cluster<Feature<Geometry>>, Feature<Geometry>>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "routePointLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "routeLineLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "userPosition: { lat: number; lon: number }",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "RouteService",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "isRouteModeActive: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "routePoints: [number, number][]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "lastRoutePoints: [number, number][]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "routeInfo: RouteInfo",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "routeMode: String",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showStepsCard: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "routeLineLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "routePointLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "routeHoverListener: any",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "userMarkerLayer: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "mapService: MapService",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "http: HttpClient",
+              "visibility": "private",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "SearchService",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "searchTerm: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "searchResults: any[]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showDropdown: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "mapService: MapService",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "http: HttpClient",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "searchSubject: Subject<string>",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "TranslationService",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "http: HttpClient",
+              "visibility": "private",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "UserService",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "userSignal: WritableSignal<Partial<UserProfile>>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "http: HttpClient",
+              "visibility": "private",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "AdminValidation",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "items: ValidationItem[]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "loading: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "http: HttpClient",
+              "visibility": "private",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "EditFormComponent",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "name: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "tags: Record<string, any>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "ok: EventEmitter<{ name: string; tags: Record<string, any> }>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "cancel: EventEmitter<void>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "isEditing: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "translations: Record<string, TranslationEntry>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "featureName: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "tagKeys: string[]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "newKey: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "newValue: any",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "newType: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "selectedKey: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "formError: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "isEditingName: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "availableKeys: string[]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "openingHoursDays: string[]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "openingHoursValues: Record<string, { startMorning: string; endMorning: string; startAfternoon: string; endAfternoon: string; status: string }>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "translationService: TranslationService",
+              "visibility": "protected",
+              "type": "string"
+            },
+            {
+              "name": "languageService: LanguageService",
+              "visibility": "protected",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "MapComponent",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "sidebarPanel: ElementRef<HTMLDivElement>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "sidebarContent: ElementRef<HTMLDivElement>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "mapHost: ElementRef<HTMLDivElement>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showMap: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "translations: Record<string, TranslationEntry>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "searchQuery: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "selectedMode: String",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "userLocation: { lat: number; lon: number }",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showViewOptions: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "mapClickSub?: Subscription",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "mapInitialized: boolean",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "newCenter: [number, number]",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "panelOpen: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "panelHTML: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "tooltipHeader: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "tooltipTags: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "mapService: MapService",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "searchService: SearchService",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "routeService: RouteService",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "layerService: LayerService",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "interactionService: InteractionService",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "languageService: LanguageService",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "SafeUrlPipe",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "sanitizer: DomSanitizer",
+              "visibility": "private",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "ProfileComponent",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "editedName: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "tempPhoto: string",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "editingName: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "translations: Record<string, TranslationEntry>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "auth: AuthService<AppState>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "userService: UserService",
+              "visibility": "public",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "VoiceComponent",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": [
+            {
+              "name": "mapComponent: MapComponent",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "translations: Record<string, TranslationEntry>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "chatModal: ElementRef<HTMLDivElement>",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "showChat: boolean",
+              "visibility": "protected",
+              "type": "string"
+            },
+            {
+              "name": "chatMessages: { user: \"user\" | \"ai\"; text: string }[]",
+              "visibility": "protected",
+              "type": "string"
+            },
+            {
+              "name": "userMessage: string",
+              "visibility": "protected",
+              "type": "string"
+            },
+            {
+              "name": "isMinimized: boolean",
+              "visibility": "public",
+              "type": "string"
+            },
+            {
+              "name": "offsetX: number",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "offsetY: number",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "initialWidth: number",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "initialHeight: number",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "dragging: boolean",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "stream: MediaStream",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "listeningRecorder: MediaRecorder",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "commandRecorder: MediaRecorder",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "audioChunks: Blob[]",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "silenceTimeout: any",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "isRecording: boolean",
+              "visibility": "protected",
+              "type": "string"
+            },
+            {
+              "name": "rmsThreshold: number",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "initialPinchDistance: number",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "initialModalWidth: number",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "initialModalHeight: number",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "wordMap: Record<string, string[]>",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "http: HttpClient",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "ngZone: NgZone",
+              "visibility": "private",
+              "type": "string"
+            },
+            {
+              "name": "languageService: LanguageService",
+              "visibility": "private",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "AuthService",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": []
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "HttpClient",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": []
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "NgZone",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": []
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "VectorLayer",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": []
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "OnInit",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": []
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "OnDestroy",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": []
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "AfterViewInit",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": []
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "OnChanges",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": []
+        },
+        {
+          "_id": null,
+          "_type": "UMLClass",
+          "name": "PipeTransform",
+          "isInterface": false,
+          "ownedElements": [],
+          "attributes": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1073 @@
+<svg version="1.1" baseProfile="full" width="9021.3" height="1811.0" viewBox="0 0 9021.25 1811" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events">
+<desc >#.interface: fill=lightblue
+#.enumeration: fill=lightgreen
+#.type: fill=lightgray
+
+[AppComponent|+loginForm: FormGroup&lt;any&gt;;+resetForm: FormGroup&lt;any&gt;;+showResetForm: boolean;+resetSent: boolean;+showHome: boolean;+showChat: boolean;+showMap: boolean;+showProfile: boolean;+showAdminValidation: boolean;+menuActive: boolean;+showLanguageMenu: boolean;+translations: Record&lt;string, TranslationEntry&gt;;+languages: { code: string; label: string; flag: string; }\[\];+slides: { image: string; text: string; }\[\];+currentSlide: number;+slideInterval: any;+mapRef: MapComponent;+profilComponent: ProfileComponent;+user: any;\#window: &lt;T&gt;(windowBoundaries: ObservableInput&lt;any&gt;) =&gt; OperatorFunction&lt;T, Observable&lt;T&gt;&gt;;\#getWindow: () =&gt; Window;-http: HttpClient;+auth: AuthService&lt;AppState&gt;;+userService: UserService;-fb: FormBuilder;\#languageService: LanguageService|+login(): void;+loginWithGoogle(): void;+resetPasswordSubmit(): void;+logout(): void;+ngOnInit(): void;+ngOnChanges(): void;+ngOnDestroy(): void;+toggleView(): void;+toggleMenu(): void;+toggleLanguageMenu(): void;+changeLanguage(): void;-loadTranslations(): void;+startAutoSlide(): void;+nextSlide(): void;+prevSlide(): void;+restartAutoSlide(): void;+updateSlides(): void]
+[&lt;interface&gt;TranslationEntry|+message: string|]
+[InteractionService|+isPinModeActive: boolean;+isLocalisationActive: boolean;+userPosition: { lat: number; lon: number; };+searchResults: any\[\];+translations: Record&lt;string, TranslationEntry&gt;;+isSatellite: boolean;-tooltipEl: HTMLDivElement;-tooltipOverlay: Overlay;-tooltipLayerMap: Record&lt;string, (feature: Feature&lt;Geometry&gt;) =&gt; Promise&lt;string&gt;&gt;;-currentFeature: Feature&lt;Geometry&gt;;+sidebarPanel: HTMLDivElement;+sidebarContent: HTMLDivElement;+mapElement: HTMLDivElement;+countryCenters: Record&lt;string, \[number, number\]&gt;;+foodShopsConfig: Record&lt;string, { label: string \| TranslationEntry; fields?: string\[\]; }&gt;;+selectedFeature: Feature&lt;Geometry&gt;;+showModal: boolean;+modalName: string;+modalTags: Record&lt;string, any&gt;;-mapService: MapService;-http: HttpClient;-layerService: LayerService;-routeService: RouteService;-appRef: ApplicationRef;-envInjector: EnvironmentInjector;-languageService: LanguageService;-translationService: TranslationService;-userService: UserService|+setSidebarElements(): void;-updateTooltipContent(): Promise&lt;void&gt;;+togglePinMode(): void;+toggleViewOptions(): void;+setMapView(): void;+toggleLocalisation(): void;+placePin(): void;+initTooltip(): void;-fillTooltip(): Promise&lt;string&gt;;+updateTranslations(): Promise&lt;void&gt;;+openEditForm(): void;-translateOSMTag(): Promise&lt;string&gt;;-capitalize(): string;+buildTagListHTML(): Promise&lt;string&gt;;+getTranslation(): string]
+[LanguageService|-langSubject: BehaviorSubject&lt;&quot;fr&quot; \| &quot;en&quot; \| &quot;es&quot;&gt;;+lang$: Observable&lt;&quot;fr&quot; \| &quot;en&quot; \| &quot;es&quot;&gt;|+setLanguage(): void]
+[LayerService|+activeLayers: Set&lt;string&gt;;+selectedLayerAction: string;+layerRadii: { \[action: string\]: number; };+currentRadius: number;+showFilterCard: boolean;+canApplyFilter: boolean;+coords: string;+translations: Record&lt;string, TranslationEntry&gt;;+layerLabels: Record&lt;string, string&gt;;+overpassCache: Map&lt;string, any&gt;;+customTagsMap: Map&lt;string, any&gt;;-mapService: MapService;-searchService: SearchService;-http: HttpClient;-languageService: LanguageService|+initLayerLabels(): void;+toggleFilterCard(): void;+applyFilter(): void;-isFeatureWithinRadius(): boolean;-getDistanceInMeters(): number;+fetchOverpassAndCustom(): Promise&lt;any&gt;;+convertOverpassToGeoJSON(): Feature&lt;Geometry&gt;\[\];+zoomToResult(): void;+updateCoordsForCity(): void;+showWater(): void;+hideWater(): void;+showGreen(): void;+hideGreen(): void;+showCity(): void;+showRestaurant(): void;+hideRestaurant(): void;+showChurch(): void;+hideChurch(): void;+showHotel(): void;+hideHotel(): void;+showAlimentaire(): void;+hideAlimentaire(): void]
+[&lt;interface&gt;CustomEntity|+_id: string \| number;+type: string;+name: string;+coords: { lat: number; lon: number; };+tags: Record&lt;string, any&gt;|]
+[MapService|+map: Map;+waitingMessage: string;+osmLayer: TileLayer&lt;OSM&gt;;+satelliteLayer: TileLayer&lt;XYZ&gt;;+labelsLayer: TileLayer&lt;XYZ&gt;;+pinLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+searchLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+waterLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+greenLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+restaurantLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+churchLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+hotelLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+alimentaireLayer: Record&lt;string, VectorLayer&lt;Cluster&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;&gt;;+routePointLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+routeLineLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+userPosition: { lat: number; lon: number; }|+initAlimentaireLayers(): void]
+[RouteService|+isRouteModeActive: boolean;+routePoints: \[number, number\]\[\];+lastRoutePoints: \[number, number\]\[\];+routeInfo: RouteInfo;+routeMode: String;+showStepsCard: boolean;+routeLineLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;+routePointLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;-routeHoverListener: any;+userMarkerLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;;-mapService: MapService;-http: HttpClient|-initUserMarkerLayer(): void;+updateUserPositionMarker(): void;+watchUserPosition(): void;+toggleRouteMode(): void;+onDestinationSelected(): void;-clearRoute(): void;+setRouteMode(): void;-reverseGeocode(): Promise&lt;string&gt;;+advanceToNextStep(): void;+updateRouteFromPin(): void;+fetchRouteWithUserPosition(): void;+fetchRoute(): void]
+[&lt;interface&gt;RouteStep|+distance?: number;+duration?: number;+maneuver?: any;+name?: string;+completed?: boolean|]
+[&lt;interface&gt;RouteInfo|+distance: number;+duration: number;+steps: RouteStep\[\];+nextStepIndex?: number|]
+[SearchService|+searchTerm: string;+searchResults: any\[\];+showDropdown: boolean;-mapService: MapService;-http: HttpClient;+searchSubject: Subject&lt;string&gt;|+performSearch(): void]
+[&lt;interface&gt;NominatimResult|+display_name: string;+lat: string;+lon: string;+address?: { city?: string; town?: string; village?: string; postcode?: string; state?: string; county?: string; country?: string; }|]
+[TranslationService|-http: HttpClient|+translate(): Observable&lt;any&gt;]
+[UserService|+userSignal: WritableSignal&lt;Partial&lt;UserProfile&gt;&gt;;-http: HttpClient|+setSub(): void;+fetchUser(): void;+updateLocale(): void;+updateProfile(): void;+isAdmin(): boolean]
+[&lt;interface&gt;UserRole|+id: string;+name: string;+description?: string|]
+[&lt;interface&gt;UserProfile|+sub?: string;+name?: string;+picture?: string;+email?: string;+created_at?: string;+updated_at?: string;+email_verified?: boolean;+logins_count?: number;+locale?: string;+roles?: UserRole\[\]|]
+[AdminValidation|+items: ValidationItem\[\];+loading: boolean;-http: HttpClient|+ngOnInit(): void;+fetchValidationItems(): void;+updateStatus(): void]
+[&lt;interface&gt;ValidationItem|+_id: string;+type: string;+name: string;+coords: { lat: number; lon: number; };+tags: any;+targetCollection?: string;+status?: &quot;pending&quot; \| &quot;accepted&quot; \| &quot;refused&quot;|]
+[OnInit]&lt;:--[AdminValidation]
+[EditFormComponent|+name: string;+tags: Record&lt;string, any&gt;;+ok: EventEmitter&lt;{ name: string; tags: Record&lt;string, any&gt;; }&gt;;+cancel: EventEmitter&lt;void&gt;;+isEditing: boolean;+translations: Record&lt;string, TranslationEntry&gt;;+featureName: string;+tagKeys: string\[\];+newKey: string;+newValue: any;+newType: string;+selectedKey: string;+formError: string;+isEditingName: boolean;+availableKeys: string\[\];+openingHoursDays: string\[\];+openingHoursValues: Record&lt;string, { startMorning: string; endMorning: string; startAfternoon: string; endAfternoon: string; status: string; }&gt;;\#translationService: TranslationService;\#languageService: LanguageService|+ngOnInit(): void;+prefillOpeningHours(): void;+confirm(): void;+cancelEdit(): void;+getInputType(): string;-hasInvalidOpeningHours(): boolean;-verifyOpeningHoursBeforeSubmit(): boolean;+addTag(): void;+isOpeningHours(): boolean;+buildOpeningHoursTag(): string;+updateOpeningHoursTag(): void;+shouldDisable(): boolean;+cleanInvalidFields(): void;+isFieldInvalid(): boolean;+isEditingExistingKey(): boolean;+onPrimaryAction(): void]
+[OnInit]&lt;:--[EditFormComponent]
+[MapComponent|+sidebarPanel: ElementRef&lt;HTMLDivElement&gt;;+sidebarContent: ElementRef&lt;HTMLDivElement&gt;;+mapHost: ElementRef&lt;HTMLDivElement&gt;;+showMap: boolean;+translations: Record&lt;string, TranslationEntry&gt;;+searchQuery: string;+selectedMode: String;+userLocation: { lat: number; lon: number; };+showViewOptions: boolean;-mapClickSub?: Subscription;-mapInitialized: boolean;+lastAction: () =&gt; void;+newCenter: \[number, number\];+panelOpen: boolean;+panelHTML: string;+tooltipHeader: string;+tooltipTags: string;+mapService: MapService;+searchService: SearchService;+routeService: RouteService;+layerService: LayerService;+interactionService: InteractionService;+languageService: LanguageService|+ngOnInit(): void;+ngAfterViewInit(): void;+ngOnChanges(): void;+ngOnDestroy(): void;-attachMap(): void;+toggleRouteMode(): void;+setRouteMode(): void;+toggleBaseLayer(): void;+toggleViewOptions(): void;+setMapView(): void;+onSearchInput(): void;+onSearchBlur(): void;+selectResult(): void;+onFeatureClick(): void;+onModalOk(): void;+onModalCancel(): void;+closePanel(): void;+showTooltip(): Promise&lt;void&gt;]
+[OnInit]&lt;:--[MapComponent]
+[OnDestroy]&lt;:--[MapComponent]
+[AfterViewInit]&lt;:--[MapComponent]
+[OnChanges]&lt;:--[MapComponent]
+[SafeUrlPipe|-sanitizer: DomSanitizer|+transform(): SafeResourceUrl]
+[PipeTransform]&lt;:--[SafeUrlPipe]
+[ProfileComponent|+editedName: string;+tempPhoto: string;+editingName: boolean;+translations: Record&lt;string, TranslationEntry&gt;;+auth: AuthService&lt;AppState&gt;;+userService: UserService|+toggleEditName(): void;+cancelEdit(): void;+saveChanges(): void;+onPhotoChange(): void;+normalizeDate(): string]
+[VoiceComponent|+mapComponent: MapComponent;+translations: Record&lt;string, TranslationEntry&gt;;+chatModal: ElementRef&lt;HTMLDivElement&gt;;\#showChat: boolean;\#chatMessages: { user: &quot;user&quot; \| &quot;ai&quot;; text: string; }\[\];\#userMessage: string;+isMinimized: boolean;-offsetX: number;-offsetY: number;-initialWidth: number;-initialHeight: number;-dragging: boolean;-stream: MediaStream;-listeningRecorder: MediaRecorder;-commandRecorder: MediaRecorder;-audioChunks: Blob\[\];-silenceTimeout: any;\#isRecording: boolean;-rmsThreshold: number;-initialPinchDistance: number;-initialModalWidth: number;-initialModalHeight: number;-wordMap: Record&lt;string, string\[\]&gt;;-http: HttpClient;-ngZone: NgZone;-languageService: LanguageService|+ngOnChanges(): void;+ngOnInit(): void;+ngAfterViewInit(): void;+ngOnDestroy(): void;-loadWords(): void;-detectAction(): { action: string; word: string; };-getDistance(): number;-onPinchStart(): void;-onPinchMove(): void;-onPinchEnd(): void;+toggleMinimize(): void;+toggleChat(): void;+startDrag(): void;-startListening(): void;-restartListening(): void;+startRecording(): void;-resetSilenceTimer(): void;+stopRecording(): void;-stopAll(): void;+sendMessage(): void]
+[OnInit]&lt;:--[VoiceComponent]
+[OnDestroy]&lt;:--[VoiceComponent]
+[AfterViewInit]&lt;:--[VoiceComponent]</desc>
+<g stroke-width="1.0" text-align="left" font="12pt Helvetica, Arial, sans-serif" font-size="12pt" font-family="Helvetica" font-weight="normal" font-style="normal">
+<g font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" stroke-width="3.0" stroke-linejoin="round" stroke-linecap="round" stroke="#33322E">
+<g stroke="transparent" fill="transparent">
+<rect x="0.0" y="0.0" height="1811.0" width="9021.3" stroke="none"></rect>
+</g>
+<g transform="translate(8, 8)" fill="#33322E">
+<g transform="translate(20, 20)" fill="#eee8d5" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal">
+<g stroke-dasharray="6 6">
+<path d="M7262.9 444.6 L6717.25 861 L6717.25 1237 L6717.3 1237.0 " fill="none"></path>
+</g>
+<path d="M7266.2 448.8 L7262.9 444.6 L7259.7 440.3 L7273.5 436.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M7283.3 448.9 L7120.75 861 L7120.75 946 L7120.8 946.0 " fill="none"></path>
+</g>
+<path d="M7288.3 450.9 L7283.3 448.9 L7278.3 446.9 L7288.2 436.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M7304.7 449.1 L7452 861 L7477.653446389497 937.5 L7477.7 937.5 " fill="none"></path>
+</g>
+<path d="M7309.7 447.3 L7304.7 449.1 L7299.7 450.9 L7300.2 436.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M7962.4 448.5 L7758.5 861 L7732.846553610503 937.5 L7732.8 937.5 " fill="none"></path>
+</g>
+<path d="M7967.2 450.8 L7962.4 448.5 L7957.7 446.1 L7968.3 436.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M8305.5 449.7 L8253.25 861 L7806.75 1175.8927469135801 L7806.8 1175.9 " fill="none"></path>
+</g>
+<path d="M8310.8 450.4 L8305.5 449.7 L8300.2 449.1 L8307.2 436.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M8157.3 449.8 L8157.25 861 L7806.75 1151.1784420289855 L7806.8 1151.2 " fill="none"></path>
+</g>
+<path d="M8162.6 449.8 L8157.3 449.8 L8151.9 449.8 L8157.3 436.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M8471.8 449.8 L8471.75 861 L8471.75 1270 L8471.8 1270.0 " fill="none"></path>
+</g>
+<path d="M8477.1 449.8 L8471.8 449.8 L8466.4 449.8 L8471.8 436.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M7319.1 446.1 L7718.5 861 L7846.75 1042.878200155159 L7846.8 1042.9 " fill="none"></path>
+</g>
+<path d="M7323.0 442.4 L7319.1 446.1 L7315.3 449.8 L7309.9 436.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M7982.1 449.6 L8064.75 861 L8063.699671772429 881 L8063.7 881.0 " fill="none"></path>
+</g>
+<path d="M7987.3 448.5 L7982.1 449.6 L7976.9 450.6 L7979.5 436.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M8313.3 449.7 L8370.5 861 L8234.75 1049.1357088703562 L8234.8 1049.1 " fill="none"></path>
+</g>
+<path d="M8318.6 449.0 L8313.3 449.7 L8308.0 450.4 L8311.5 436.5 Z"></path>
+<g data-name="AppComponent">
+<g fill="#eee8d5" stroke="#33322E" data-name="AppComponent">
+<rect x="0.0" y="0.0" height="841.0" width="803.0" data-name="AppComponent"></rect>
+<path d="M0.0 32.0 L803.0 32.0" fill="none" data-name="AppComponent"></path>
+<path d="M0.0 550.0 L803.0 550.0" fill="none" data-name="AppComponent"></path>
+</g>
+<g transform="translate(0, 0)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="AppComponent" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="AppComponent" data-compartment="0">
+<a id="src\app\app.ts.AppComponent" xlink:href="src\app\app.ts"><text x="393.5" y="14.1" stroke="none" text-anchor="middle" data-name="AppComponent" data-compartment="0">AppComponent</text></a>
+
+</g>
+</g>
+<g transform="translate(0, 32)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="AppComponent" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="AppComponent" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="AppComponent" data-compartment="1">+loginForm: FormGroup&lt;any&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="AppComponent" data-compartment="1">+resetForm: FormGroup&lt;any&gt;</text>
+<text x="0.0" y="46.5" stroke="none" data-name="AppComponent" data-compartment="1">+showResetForm: boolean</text>
+<text x="0.0" y="62.7" stroke="none" data-name="AppComponent" data-compartment="1">+resetSent: boolean</text>
+<text x="0.0" y="78.9" stroke="none" data-name="AppComponent" data-compartment="1">+showHome: boolean</text>
+<text x="0.0" y="95.1" stroke="none" data-name="AppComponent" data-compartment="1">+showChat: boolean</text>
+<text x="0.0" y="111.3" stroke="none" data-name="AppComponent" data-compartment="1">+showMap: boolean</text>
+<text x="0.0" y="127.5" stroke="none" data-name="AppComponent" data-compartment="1">+showProfile: boolean</text>
+<text x="0.0" y="143.7" stroke="none" data-name="AppComponent" data-compartment="1">+showAdminValidation: boolean</text>
+<text x="0.0" y="159.9" stroke="none" data-name="AppComponent" data-compartment="1">+menuActive: boolean</text>
+<text x="0.0" y="176.1" stroke="none" data-name="AppComponent" data-compartment="1">+showLanguageMenu: boolean</text>
+<text x="0.0" y="192.3" stroke="none" data-name="AppComponent" data-compartment="1">+translations: Record&lt;string, TranslationEntry&gt;</text>
+<text x="0.0" y="208.5" stroke="none" data-name="AppComponent" data-compartment="1">+languages: { code: string</text>
+<text x="0.0" y="224.7" stroke="none" data-name="AppComponent" data-compartment="1">label: string</text>
+<text x="0.0" y="240.9" stroke="none" data-name="AppComponent" data-compartment="1">flag: string</text>
+<text x="0.0" y="257.1" stroke="none" data-name="AppComponent" data-compartment="1">}[]</text>
+<text x="0.0" y="273.3" stroke="none" data-name="AppComponent" data-compartment="1">+slides: { image: string</text>
+<text x="0.0" y="289.5" stroke="none" data-name="AppComponent" data-compartment="1">text: string</text>
+<text x="0.0" y="305.7" stroke="none" data-name="AppComponent" data-compartment="1">}[]</text>
+<text x="0.0" y="321.9" stroke="none" data-name="AppComponent" data-compartment="1">+currentSlide: number</text>
+<text x="0.0" y="338.1" stroke="none" data-name="AppComponent" data-compartment="1">+slideInterval: any</text>
+<text x="0.0" y="354.3" stroke="none" data-name="AppComponent" data-compartment="1">+mapRef: MapComponent</text>
+<text x="0.0" y="370.5" stroke="none" data-name="AppComponent" data-compartment="1">+profilComponent: ProfileComponent</text>
+<text x="0.0" y="386.7" stroke="none" data-name="AppComponent" data-compartment="1">+user: any</text>
+<text x="0.0" y="402.9" stroke="none" data-name="AppComponent" data-compartment="1">#window: &lt;T&gt;(windowBoundaries: ObservableInput&lt;any&gt;) =&gt; OperatorFunction&lt;T, Observable&lt;T&gt;&gt;</text>
+<text x="0.0" y="419.1" stroke="none" data-name="AppComponent" data-compartment="1">#getWindow: () =&gt; Window</text>
+<text x="0.0" y="435.3" stroke="none" data-name="AppComponent" data-compartment="1">-http: HttpClient</text>
+<text x="0.0" y="451.5" stroke="none" data-name="AppComponent" data-compartment="1">+auth: AuthService&lt;AppState&gt;</text>
+<text x="0.0" y="467.7" stroke="none" data-name="AppComponent" data-compartment="1">+userService: UserService</text>
+<text x="0.0" y="483.9" stroke="none" data-name="AppComponent" data-compartment="1">-fb: FormBuilder</text>
+<text x="0.0" y="500.1" stroke="none" data-name="AppComponent" data-compartment="1">#languageService: LanguageService</text>
+
+</g>
+</g>
+<g transform="translate(0, 550)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="AppComponent" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="AppComponent" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="AppComponent" data-compartment="2">+login(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="AppComponent" data-compartment="2">+loginWithGoogle(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="AppComponent" data-compartment="2">+resetPasswordSubmit(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="AppComponent" data-compartment="2">+logout(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="AppComponent" data-compartment="2">+ngOnInit(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="AppComponent" data-compartment="2">+ngOnChanges(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="AppComponent" data-compartment="2">+ngOnDestroy(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="AppComponent" data-compartment="2">+toggleView(): void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="AppComponent" data-compartment="2">+toggleMenu(): void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="AppComponent" data-compartment="2">+toggleLanguageMenu(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="AppComponent" data-compartment="2">+changeLanguage(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="AppComponent" data-compartment="2">-loadTranslations(): void</text>
+<text x="0.0" y="208.5" stroke="none" data-name="AppComponent" data-compartment="2">+startAutoSlide(): void</text>
+<text x="0.0" y="224.7" stroke="none" data-name="AppComponent" data-compartment="2">+nextSlide(): void</text>
+<text x="0.0" y="240.9" stroke="none" data-name="AppComponent" data-compartment="2">+prevSlide(): void</text>
+<text x="0.0" y="257.1" stroke="none" data-name="AppComponent" data-compartment="2">+restartAutoSlide(): void</text>
+<text x="0.0" y="273.3" stroke="none" data-name="AppComponent" data-compartment="2">+updateSlides(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="TranslationEntry">
+<g fill="lightblue" stroke="#33322E" data-name="TranslationEntry">
+<rect x="843.0" y="384.5" height="72.0" width="152.0" data-name="TranslationEntry"></rect>
+<path d="M843.0 416.5 L995.0 416.5" fill="none" data-name="TranslationEntry"></path>
+<path d="M843.0 448.5 L995.0 448.5" fill="none" data-name="TranslationEntry"></path>
+</g>
+<g transform="translate(843, 384.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TranslationEntry" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="TranslationEntry" data-compartment="0">
+<a id="src\app\app.ts.TranslationEntry" xlink:href="src\app\app.ts"><text x="68.0" y="14.1" stroke="none" text-anchor="middle" data-name="TranslationEntry" data-compartment="0">TranslationEntry</text></a>
+
+</g>
+</g>
+<g transform="translate(843, 416.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TranslationEntry" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="TranslationEntry" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="TranslationEntry" data-compartment="1">+message: string</text>
+
+</g>
+</g>
+<g transform="translate(843, 448.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TranslationEntry" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="TranslationEntry" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="InteractionService">
+<g fill="#eee8d5" stroke="#33322E" data-name="InteractionService">
+<rect x="1035.0" y="8.0" height="825.0" width="684.0" data-name="InteractionService"></rect>
+<path d="M1035.0 40.0 L1719.0 40.0" fill="none" data-name="InteractionService"></path>
+<path d="M1035.0 574.0 L1719.0 574.0" fill="none" data-name="InteractionService"></path>
+</g>
+<g transform="translate(1035, 8)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="InteractionService" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="InteractionService" data-compartment="0">
+<a id="src\services\interaction.ts.InteractionService" xlink:href="src\services\interaction.ts"><text x="334.0" y="14.1" stroke="none" text-anchor="middle" data-name="InteractionService" data-compartment="0">InteractionService</text></a>
+
+</g>
+</g>
+<g transform="translate(1035, 40)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InteractionService" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="InteractionService" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="InteractionService" data-compartment="1">+isPinModeActive: boolean</text>
+<text x="0.0" y="30.3" stroke="none" data-name="InteractionService" data-compartment="1">+isLocalisationActive: boolean</text>
+<text x="0.0" y="46.5" stroke="none" data-name="InteractionService" data-compartment="1">+userPosition: { lat: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="InteractionService" data-compartment="1">lon: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="InteractionService" data-compartment="1">}</text>
+<text x="0.0" y="95.1" stroke="none" data-name="InteractionService" data-compartment="1">+searchResults: any[]</text>
+<text x="0.0" y="111.3" stroke="none" data-name="InteractionService" data-compartment="1">+translations: Record&lt;string, TranslationEntry&gt;</text>
+<text x="0.0" y="127.5" stroke="none" data-name="InteractionService" data-compartment="1">+isSatellite: boolean</text>
+<text x="0.0" y="143.7" stroke="none" data-name="InteractionService" data-compartment="1">-tooltipEl: HTMLDivElement</text>
+<text x="0.0" y="159.9" stroke="none" data-name="InteractionService" data-compartment="1">-tooltipOverlay: Overlay</text>
+<text x="0.0" y="176.1" stroke="none" data-name="InteractionService" data-compartment="1">-tooltipLayerMap: Record&lt;string, (feature: Feature&lt;Geometry&gt;) =&gt; Promise&lt;string&gt;&gt;</text>
+<text x="0.0" y="192.3" stroke="none" data-name="InteractionService" data-compartment="1">-currentFeature: Feature&lt;Geometry&gt;</text>
+<text x="0.0" y="208.5" stroke="none" data-name="InteractionService" data-compartment="1">+sidebarPanel: HTMLDivElement</text>
+<text x="0.0" y="224.7" stroke="none" data-name="InteractionService" data-compartment="1">+sidebarContent: HTMLDivElement</text>
+<text x="0.0" y="240.9" stroke="none" data-name="InteractionService" data-compartment="1">+mapElement: HTMLDivElement</text>
+<text x="0.0" y="257.1" stroke="none" data-name="InteractionService" data-compartment="1">+countryCenters: Record&lt;string, [number, number]&gt;</text>
+<text x="0.0" y="273.3" stroke="none" data-name="InteractionService" data-compartment="1">+foodShopsConfig: Record&lt;string, { label: string | TranslationEntry</text>
+<text x="0.0" y="289.5" stroke="none" data-name="InteractionService" data-compartment="1">fields?: string[]</text>
+<text x="0.0" y="305.7" stroke="none" data-name="InteractionService" data-compartment="1">}&gt;</text>
+<text x="0.0" y="321.9" stroke="none" data-name="InteractionService" data-compartment="1">+selectedFeature: Feature&lt;Geometry&gt;</text>
+<text x="0.0" y="338.1" stroke="none" data-name="InteractionService" data-compartment="1">+showModal: boolean</text>
+<text x="0.0" y="354.3" stroke="none" data-name="InteractionService" data-compartment="1">+modalName: string</text>
+<text x="0.0" y="370.5" stroke="none" data-name="InteractionService" data-compartment="1">+modalTags: Record&lt;string, any&gt;</text>
+<text x="0.0" y="386.7" stroke="none" data-name="InteractionService" data-compartment="1">-mapService: MapService</text>
+<text x="0.0" y="402.9" stroke="none" data-name="InteractionService" data-compartment="1">-http: HttpClient</text>
+<text x="0.0" y="419.1" stroke="none" data-name="InteractionService" data-compartment="1">-layerService: LayerService</text>
+<text x="0.0" y="435.3" stroke="none" data-name="InteractionService" data-compartment="1">-routeService: RouteService</text>
+<text x="0.0" y="451.5" stroke="none" data-name="InteractionService" data-compartment="1">-appRef: ApplicationRef</text>
+<text x="0.0" y="467.7" stroke="none" data-name="InteractionService" data-compartment="1">-envInjector: EnvironmentInjector</text>
+<text x="0.0" y="483.9" stroke="none" data-name="InteractionService" data-compartment="1">-languageService: LanguageService</text>
+<text x="0.0" y="500.1" stroke="none" data-name="InteractionService" data-compartment="1">-translationService: TranslationService</text>
+<text x="0.0" y="516.3" stroke="none" data-name="InteractionService" data-compartment="1">-userService: UserService</text>
+
+</g>
+</g>
+<g transform="translate(1035, 574)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InteractionService" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="InteractionService" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="InteractionService" data-compartment="2">+setSidebarElements(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="InteractionService" data-compartment="2">-updateTooltipContent(): Promise&lt;void&gt;</text>
+<text x="0.0" y="46.5" stroke="none" data-name="InteractionService" data-compartment="2">+togglePinMode(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="InteractionService" data-compartment="2">+toggleViewOptions(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="InteractionService" data-compartment="2">+setMapView(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="InteractionService" data-compartment="2">+toggleLocalisation(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="InteractionService" data-compartment="2">+placePin(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="InteractionService" data-compartment="2">+initTooltip(): void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="InteractionService" data-compartment="2">-fillTooltip(): Promise&lt;string&gt;</text>
+<text x="0.0" y="159.9" stroke="none" data-name="InteractionService" data-compartment="2">+updateTranslations(): Promise&lt;void&gt;</text>
+<text x="0.0" y="176.1" stroke="none" data-name="InteractionService" data-compartment="2">+openEditForm(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="InteractionService" data-compartment="2">-translateOSMTag(): Promise&lt;string&gt;</text>
+<text x="0.0" y="208.5" stroke="none" data-name="InteractionService" data-compartment="2">-capitalize(): string</text>
+<text x="0.0" y="224.7" stroke="none" data-name="InteractionService" data-compartment="2">+buildTagListHTML(): Promise&lt;string&gt;</text>
+<text x="0.0" y="240.9" stroke="none" data-name="InteractionService" data-compartment="2">+getTranslation(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="LanguageService">
+<g fill="#eee8d5" stroke="#33322E" data-name="LanguageService">
+<rect x="1759.0" y="364.5" height="112.0" width="390.0" data-name="LanguageService"></rect>
+<path d="M1759.0 396.5 L2149.0 396.5" fill="none" data-name="LanguageService"></path>
+<path d="M1759.0 444.5 L2149.0 444.5" fill="none" data-name="LanguageService"></path>
+</g>
+<g transform="translate(1759, 364.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="LanguageService" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="LanguageService" data-compartment="0">
+<a id="src\services\language.ts.LanguageService" xlink:href="src\services\language.ts"><text x="187.0" y="14.1" stroke="none" text-anchor="middle" data-name="LanguageService" data-compartment="0">LanguageService</text></a>
+
+</g>
+</g>
+<g transform="translate(1759, 396.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="LanguageService" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="LanguageService" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="LanguageService" data-compartment="1">-langSubject: BehaviorSubject&lt;&quot;fr&quot; | &quot;en&quot; | &quot;es&quot;&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="LanguageService" data-compartment="1">+lang$: Observable&lt;&quot;fr&quot; | &quot;en&quot; | &quot;es&quot;&gt;</text>
+
+</g>
+</g>
+<g transform="translate(1759, 444.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="LanguageService" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="LanguageService" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="LanguageService" data-compartment="2">+setLanguage(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="LayerService">
+<g fill="#eee8d5" stroke="#33322E" data-name="LayerService">
+<rect x="2189.0" y="81.0" height="679.0" width="449.0" data-name="LayerService"></rect>
+<path d="M2189.0 113.0 L2638.0 113.0" fill="none" data-name="LayerService"></path>
+<path d="M2189.0 388.0 L2638.0 388.0" fill="none" data-name="LayerService"></path>
+</g>
+<g transform="translate(2189, 81)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="LayerService" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="LayerService" data-compartment="0">
+<a id="src\services\layer.ts.LayerService" xlink:href="src\services\layer.ts"><text x="216.5" y="14.1" stroke="none" text-anchor="middle" data-name="LayerService" data-compartment="0">LayerService</text></a>
+
+</g>
+</g>
+<g transform="translate(2189, 113)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="LayerService" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="LayerService" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="LayerService" data-compartment="1">+activeLayers: Set&lt;string&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="LayerService" data-compartment="1">+selectedLayerAction: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="LayerService" data-compartment="1">+layerRadii: { [action: string]: number</text>
+<text x="0.0" y="62.7" stroke="none" data-name="LayerService" data-compartment="1">}</text>
+<text x="0.0" y="78.9" stroke="none" data-name="LayerService" data-compartment="1">+currentRadius: number</text>
+<text x="0.0" y="95.1" stroke="none" data-name="LayerService" data-compartment="1">+showFilterCard: boolean</text>
+<text x="0.0" y="111.3" stroke="none" data-name="LayerService" data-compartment="1">+canApplyFilter: boolean</text>
+<text x="0.0" y="127.5" stroke="none" data-name="LayerService" data-compartment="1">+coords: string</text>
+<text x="0.0" y="143.7" stroke="none" data-name="LayerService" data-compartment="1">+translations: Record&lt;string, TranslationEntry&gt;</text>
+<text x="0.0" y="159.9" stroke="none" data-name="LayerService" data-compartment="1">+layerLabels: Record&lt;string, string&gt;</text>
+<text x="0.0" y="176.1" stroke="none" data-name="LayerService" data-compartment="1">+overpassCache: Map&lt;string, any&gt;</text>
+<text x="0.0" y="192.3" stroke="none" data-name="LayerService" data-compartment="1">+customTagsMap: Map&lt;string, any&gt;</text>
+<text x="0.0" y="208.5" stroke="none" data-name="LayerService" data-compartment="1">-mapService: MapService</text>
+<text x="0.0" y="224.7" stroke="none" data-name="LayerService" data-compartment="1">-searchService: SearchService</text>
+<text x="0.0" y="240.9" stroke="none" data-name="LayerService" data-compartment="1">-http: HttpClient</text>
+<text x="0.0" y="257.1" stroke="none" data-name="LayerService" data-compartment="1">-languageService: LanguageService</text>
+
+</g>
+</g>
+<g transform="translate(2189, 388)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="LayerService" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="LayerService" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="LayerService" data-compartment="2">+initLayerLabels(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="LayerService" data-compartment="2">+toggleFilterCard(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="LayerService" data-compartment="2">+applyFilter(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="LayerService" data-compartment="2">-isFeatureWithinRadius(): boolean</text>
+<text x="0.0" y="78.9" stroke="none" data-name="LayerService" data-compartment="2">-getDistanceInMeters(): number</text>
+<text x="0.0" y="95.1" stroke="none" data-name="LayerService" data-compartment="2">+fetchOverpassAndCustom(): Promise&lt;any&gt;</text>
+<text x="0.0" y="111.3" stroke="none" data-name="LayerService" data-compartment="2">+convertOverpassToGeoJSON(): Feature&lt;Geometry&gt;[]</text>
+<text x="0.0" y="127.5" stroke="none" data-name="LayerService" data-compartment="2">+zoomToResult(): void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="LayerService" data-compartment="2">+updateCoordsForCity(): void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="LayerService" data-compartment="2">+showWater(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="LayerService" data-compartment="2">+hideWater(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="LayerService" data-compartment="2">+showGreen(): void</text>
+<text x="0.0" y="208.5" stroke="none" data-name="LayerService" data-compartment="2">+hideGreen(): void</text>
+<text x="0.0" y="224.7" stroke="none" data-name="LayerService" data-compartment="2">+showCity(): void</text>
+<text x="0.0" y="240.9" stroke="none" data-name="LayerService" data-compartment="2">+showRestaurant(): void</text>
+<text x="0.0" y="257.1" stroke="none" data-name="LayerService" data-compartment="2">+hideRestaurant(): void</text>
+<text x="0.0" y="273.3" stroke="none" data-name="LayerService" data-compartment="2">+showChurch(): void</text>
+<text x="0.0" y="289.5" stroke="none" data-name="LayerService" data-compartment="2">+hideChurch(): void</text>
+<text x="0.0" y="305.7" stroke="none" data-name="LayerService" data-compartment="2">+showHotel(): void</text>
+<text x="0.0" y="321.9" stroke="none" data-name="LayerService" data-compartment="2">+hideHotel(): void</text>
+<text x="0.0" y="338.1" stroke="none" data-name="LayerService" data-compartment="2">+showAlimentaire(): void</text>
+<text x="0.0" y="354.3" stroke="none" data-name="LayerService" data-compartment="2">+hideAlimentaire(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="CustomEntity">
+<g fill="lightblue" stroke="#33322E" data-name="CustomEntity">
+<rect x="2678.0" y="336.0" height="169.0" width="230.0" data-name="CustomEntity"></rect>
+<path d="M2678.0 368.0 L2908.0 368.0" fill="none" data-name="CustomEntity"></path>
+<path d="M2678.0 497.0 L2908.0 497.0" fill="none" data-name="CustomEntity"></path>
+</g>
+<g transform="translate(2678, 336)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="CustomEntity" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="CustomEntity" data-compartment="0">
+<a id="src\services\layer.ts.CustomEntity" xlink:href="src\services\layer.ts"><text x="107.0" y="14.1" stroke="none" text-anchor="middle" data-name="CustomEntity" data-compartment="0">CustomEntity</text></a>
+
+</g>
+</g>
+<g transform="translate(2678, 368)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="CustomEntity" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="CustomEntity" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="CustomEntity" data-compartment="1">+_id: string | number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="CustomEntity" data-compartment="1">+type: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="CustomEntity" data-compartment="1">+name: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="CustomEntity" data-compartment="1">+coords: { lat: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="CustomEntity" data-compartment="1">lon: number</text>
+<text x="0.0" y="95.1" stroke="none" data-name="CustomEntity" data-compartment="1">}</text>
+<text x="0.0" y="111.3" stroke="none" data-name="CustomEntity" data-compartment="1">+tags: Record&lt;string, any&gt;</text>
+
+</g>
+</g>
+<g transform="translate(2678, 497)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="CustomEntity" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="CustomEntity" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="MapService">
+<g fill="#eee8d5" stroke="#33322E" data-name="MapService">
+<rect x="2948.0" y="234.5" height="372.0" width="817.0" data-name="MapService"></rect>
+<path d="M2948.0 266.5 L3765.0 266.5" fill="none" data-name="MapService"></path>
+<path d="M2948.0 574.5 L3765.0 574.5" fill="none" data-name="MapService"></path>
+</g>
+<g transform="translate(2948, 234.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="MapService" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="MapService" data-compartment="0">
+<a id="src\services\map.ts.MapService" xlink:href="src\services\map.ts"><text x="400.5" y="14.1" stroke="none" text-anchor="middle" data-name="MapService" data-compartment="0">MapService</text></a>
+
+</g>
+</g>
+<g transform="translate(2948, 266.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MapService" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="MapService" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="MapService" data-compartment="1">+map: Map</text>
+<text x="0.0" y="30.3" stroke="none" data-name="MapService" data-compartment="1">+waitingMessage: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="MapService" data-compartment="1">+osmLayer: TileLayer&lt;OSM&gt;</text>
+<text x="0.0" y="62.7" stroke="none" data-name="MapService" data-compartment="1">+satelliteLayer: TileLayer&lt;XYZ&gt;</text>
+<text x="0.0" y="78.9" stroke="none" data-name="MapService" data-compartment="1">+labelsLayer: TileLayer&lt;XYZ&gt;</text>
+<text x="0.0" y="95.1" stroke="none" data-name="MapService" data-compartment="1">+pinLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="111.3" stroke="none" data-name="MapService" data-compartment="1">+searchLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="127.5" stroke="none" data-name="MapService" data-compartment="1">+waterLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="143.7" stroke="none" data-name="MapService" data-compartment="1">+greenLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="159.9" stroke="none" data-name="MapService" data-compartment="1">+restaurantLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="176.1" stroke="none" data-name="MapService" data-compartment="1">+churchLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="192.3" stroke="none" data-name="MapService" data-compartment="1">+hotelLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="208.5" stroke="none" data-name="MapService" data-compartment="1">+alimentaireLayer: Record&lt;string, VectorLayer&lt;Cluster&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;&gt;</text>
+<text x="0.0" y="224.7" stroke="none" data-name="MapService" data-compartment="1">+routePointLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="240.9" stroke="none" data-name="MapService" data-compartment="1">+routeLineLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="257.1" stroke="none" data-name="MapService" data-compartment="1">+userPosition: { lat: number</text>
+<text x="0.0" y="273.3" stroke="none" data-name="MapService" data-compartment="1">lon: number</text>
+<text x="0.0" y="289.5" stroke="none" data-name="MapService" data-compartment="1">}</text>
+
+</g>
+</g>
+<g transform="translate(2948, 574.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MapService" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="MapService" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="MapService" data-compartment="2">+initAlimentaireLayers(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="RouteService">
+<g fill="#eee8d5" stroke="#33322E" data-name="RouteService">
+<rect x="3805.0" y="194.5" height="452.0" width="740.0" data-name="RouteService"></rect>
+<path d="M3805.0 226.5 L4545.0 226.5" fill="none" data-name="RouteService"></path>
+<path d="M3805.0 436.5 L4545.0 436.5" fill="none" data-name="RouteService"></path>
+</g>
+<g transform="translate(3805, 194.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="RouteService" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RouteService" data-compartment="0">
+<a id="src\services\route.ts.RouteService" xlink:href="src\services\route.ts"><text x="362.0" y="14.1" stroke="none" text-anchor="middle" data-name="RouteService" data-compartment="0">RouteService</text></a>
+
+</g>
+</g>
+<g transform="translate(3805, 226.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteService" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteService" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteService" data-compartment="1">+isRouteModeActive: boolean</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteService" data-compartment="1">+routePoints: [number, number][]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteService" data-compartment="1">+lastRoutePoints: [number, number][]</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteService" data-compartment="1">+routeInfo: RouteInfo</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteService" data-compartment="1">+routeMode: String</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RouteService" data-compartment="1">+showStepsCard: boolean</text>
+<text x="0.0" y="111.3" stroke="none" data-name="RouteService" data-compartment="1">+routeLineLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="127.5" stroke="none" data-name="RouteService" data-compartment="1">+routePointLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="143.7" stroke="none" data-name="RouteService" data-compartment="1">-routeHoverListener: any</text>
+<text x="0.0" y="159.9" stroke="none" data-name="RouteService" data-compartment="1">+userMarkerLayer: VectorLayer&lt;VectorSource&lt;Feature&lt;Geometry&gt;&gt;, Feature&lt;Geometry&gt;&gt;</text>
+<text x="0.0" y="176.1" stroke="none" data-name="RouteService" data-compartment="1">-mapService: MapService</text>
+<text x="0.0" y="192.3" stroke="none" data-name="RouteService" data-compartment="1">-http: HttpClient</text>
+
+</g>
+</g>
+<g transform="translate(3805, 436.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteService" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteService" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteService" data-compartment="2">-initUserMarkerLayer(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteService" data-compartment="2">+updateUserPositionMarker(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteService" data-compartment="2">+watchUserPosition(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteService" data-compartment="2">+toggleRouteMode(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteService" data-compartment="2">+onDestinationSelected(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="RouteService" data-compartment="2">-clearRoute(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="RouteService" data-compartment="2">+setRouteMode(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="RouteService" data-compartment="2">-reverseGeocode(): Promise&lt;string&gt;</text>
+<text x="0.0" y="143.7" stroke="none" data-name="RouteService" data-compartment="2">+advanceToNextStep(): void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="RouteService" data-compartment="2">+updateRouteFromPin(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="RouteService" data-compartment="2">+fetchRouteWithUserPosition(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="RouteService" data-compartment="2">+fetchRoute(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="RouteStep">
+<g fill="lightblue" stroke="#33322E" data-name="RouteStep">
+<rect x="4585.0" y="352.0" height="137.0" width="192.0" data-name="RouteStep"></rect>
+<path d="M4585.0 384.0 L4777.0 384.0" fill="none" data-name="RouteStep"></path>
+<path d="M4585.0 481.0 L4777.0 481.0" fill="none" data-name="RouteStep"></path>
+</g>
+<g transform="translate(4585, 352)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteStep" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RouteStep" data-compartment="0">
+<a id="src\services\route.ts.RouteStep" xlink:href="src\services\route.ts"><text x="88.0" y="14.1" stroke="none" text-anchor="middle" data-name="RouteStep" data-compartment="0">RouteStep</text></a>
+
+</g>
+</g>
+<g transform="translate(4585, 384)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteStep" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteStep" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteStep" data-compartment="1">+distance?: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteStep" data-compartment="1">+duration?: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteStep" data-compartment="1">+maneuver?: any</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteStep" data-compartment="1">+name?: string</text>
+<text x="0.0" y="78.9" stroke="none" data-name="RouteStep" data-compartment="1">+completed?: boolean</text>
+
+</g>
+</g>
+<g transform="translate(4585, 481)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteStep" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="RouteStep" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="RouteInfo">
+<g fill="lightblue" stroke="#33322E" data-name="RouteInfo">
+<rect x="4817.0" y="360.0" height="121.0" width="220.0" data-name="RouteInfo"></rect>
+<path d="M4817.0 392.0 L5037.0 392.0" fill="none" data-name="RouteInfo"></path>
+<path d="M4817.0 473.0 L5037.0 473.0" fill="none" data-name="RouteInfo"></path>
+</g>
+<g transform="translate(4817, 360)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteInfo" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="RouteInfo" data-compartment="0">
+<a id="src\services\route.ts.RouteInfo" xlink:href="src\services\route.ts"><text x="102.0" y="14.1" stroke="none" text-anchor="middle" data-name="RouteInfo" data-compartment="0">RouteInfo</text></a>
+
+</g>
+</g>
+<g transform="translate(4817, 392)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteInfo" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="RouteInfo" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="RouteInfo" data-compartment="1">+distance: number</text>
+<text x="0.0" y="30.3" stroke="none" data-name="RouteInfo" data-compartment="1">+duration: number</text>
+<text x="0.0" y="46.5" stroke="none" data-name="RouteInfo" data-compartment="1">+steps: RouteStep[]</text>
+<text x="0.0" y="62.7" stroke="none" data-name="RouteInfo" data-compartment="1">+nextStepIndex?: number</text>
+
+</g>
+</g>
+<g transform="translate(4817, 473)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="RouteInfo" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="RouteInfo" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="SearchService">
+<g fill="#eee8d5" stroke="#33322E" data-name="SearchService">
+<rect x="5077.0" y="332.0" height="177.0" width="272.0" data-name="SearchService"></rect>
+<path d="M5077.0 364.0 L5349.0 364.0" fill="none" data-name="SearchService"></path>
+<path d="M5077.0 477.0 L5349.0 477.0" fill="none" data-name="SearchService"></path>
+</g>
+<g transform="translate(5077, 332)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="SearchService" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="SearchService" data-compartment="0">
+<a id="src\services\search.ts.SearchService" xlink:href="src\services\search.ts"><text x="128.0" y="14.1" stroke="none" text-anchor="middle" data-name="SearchService" data-compartment="0">SearchService</text></a>
+
+</g>
+</g>
+<g transform="translate(5077, 364)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SearchService" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="SearchService" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="SearchService" data-compartment="1">+searchTerm: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="SearchService" data-compartment="1">+searchResults: any[]</text>
+<text x="0.0" y="46.5" stroke="none" data-name="SearchService" data-compartment="1">+showDropdown: boolean</text>
+<text x="0.0" y="62.7" stroke="none" data-name="SearchService" data-compartment="1">-mapService: MapService</text>
+<text x="0.0" y="78.9" stroke="none" data-name="SearchService" data-compartment="1">-http: HttpClient</text>
+<text x="0.0" y="95.1" stroke="none" data-name="SearchService" data-compartment="1">+searchSubject: Subject&lt;string&gt;</text>
+
+</g>
+</g>
+<g transform="translate(5077, 477)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SearchService" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="SearchService" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="SearchService" data-compartment="2">+performSearch(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="NominatimResult">
+<g fill="lightblue" stroke="#33322E" data-name="NominatimResult">
+<rect x="5389.0" y="303.5" height="234.0" width="212.0" data-name="NominatimResult"></rect>
+<path d="M5389.0 335.5 L5601.0 335.5" fill="none" data-name="NominatimResult"></path>
+<path d="M5389.0 529.5 L5601.0 529.5" fill="none" data-name="NominatimResult"></path>
+</g>
+<g transform="translate(5389, 303.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="NominatimResult" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="NominatimResult" data-compartment="0">
+<a id="src\services\search.ts.NominatimResult" xlink:href="src\services\search.ts"><text x="98.0" y="14.1" stroke="none" text-anchor="middle" data-name="NominatimResult" data-compartment="0">NominatimResult</text></a>
+
+</g>
+</g>
+<g transform="translate(5389, 335.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="NominatimResult" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="NominatimResult" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="NominatimResult" data-compartment="1">+display_name: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="NominatimResult" data-compartment="1">+lat: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="NominatimResult" data-compartment="1">+lon: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="NominatimResult" data-compartment="1">+address?: { city?: string</text>
+<text x="0.0" y="78.9" stroke="none" data-name="NominatimResult" data-compartment="1">town?: string</text>
+<text x="0.0" y="95.1" stroke="none" data-name="NominatimResult" data-compartment="1">village?: string</text>
+<text x="0.0" y="111.3" stroke="none" data-name="NominatimResult" data-compartment="1">postcode?: string</text>
+<text x="0.0" y="127.5" stroke="none" data-name="NominatimResult" data-compartment="1">state?: string</text>
+<text x="0.0" y="143.7" stroke="none" data-name="NominatimResult" data-compartment="1">county?: string</text>
+<text x="0.0" y="159.9" stroke="none" data-name="NominatimResult" data-compartment="1">country?: string</text>
+<text x="0.0" y="176.1" stroke="none" data-name="NominatimResult" data-compartment="1">}</text>
+
+</g>
+</g>
+<g transform="translate(5389, 529.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="NominatimResult" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="NominatimResult" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="TranslationService">
+<g fill="#eee8d5" stroke="#33322E" data-name="TranslationService">
+<rect x="5641.0" y="372.5" height="96.0" width="257.0" data-name="TranslationService"></rect>
+<path d="M5641.0 404.5 L5898.0 404.5" fill="none" data-name="TranslationService"></path>
+<path d="M5641.0 436.5 L5898.0 436.5" fill="none" data-name="TranslationService"></path>
+</g>
+<g transform="translate(5641, 372.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="TranslationService" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="TranslationService" data-compartment="0">
+<a id="src\services\translation.ts.TranslationService" xlink:href="src\services\translation.ts"><text x="120.5" y="14.1" stroke="none" text-anchor="middle" data-name="TranslationService" data-compartment="0">TranslationService</text></a>
+
+</g>
+</g>
+<g transform="translate(5641, 404.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TranslationService" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="TranslationService" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="TranslationService" data-compartment="1">-http: HttpClient</text>
+
+</g>
+</g>
+<g transform="translate(5641, 436.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TranslationService" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="TranslationService" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="TranslationService" data-compartment="2">+translate(): Observable&lt;any&gt;</text>
+
+</g>
+</g>
+</g>
+<g data-name="UserService">
+<g fill="#eee8d5" stroke="#33322E" data-name="UserService">
+<rect x="5938.0" y="332.0" height="177.0" width="411.0" data-name="UserService"></rect>
+<path d="M5938.0 364.0 L6349.0 364.0" fill="none" data-name="UserService"></path>
+<path d="M5938.0 412.0 L6349.0 412.0" fill="none" data-name="UserService"></path>
+</g>
+<g transform="translate(5938, 332)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="UserService" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="UserService" data-compartment="0">
+<a id="src\services\user.ts.UserService" xlink:href="src\services\user.ts"><text x="197.5" y="14.1" stroke="none" text-anchor="middle" data-name="UserService" data-compartment="0">UserService</text></a>
+
+</g>
+</g>
+<g transform="translate(5938, 364)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="UserService" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="UserService" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="UserService" data-compartment="1">+userSignal: WritableSignal&lt;Partial&lt;UserProfile&gt;&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="UserService" data-compartment="1">-http: HttpClient</text>
+
+</g>
+</g>
+<g transform="translate(5938, 412)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="UserService" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="UserService" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="UserService" data-compartment="2">+setSub(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="UserService" data-compartment="2">+fetchUser(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="UserService" data-compartment="2">+updateLocale(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="UserService" data-compartment="2">+updateProfile(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="UserService" data-compartment="2">+isAdmin(): boolean</text>
+
+</g>
+</g>
+</g>
+<g data-name="UserRole">
+<g fill="lightblue" stroke="#33322E" data-name="UserRole">
+<rect x="6389.0" y="368.0" height="105.0" width="177.0" data-name="UserRole"></rect>
+<path d="M6389.0 400.0 L6566.0 400.0" fill="none" data-name="UserRole"></path>
+<path d="M6389.0 465.0 L6566.0 465.0" fill="none" data-name="UserRole"></path>
+</g>
+<g transform="translate(6389, 368)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="UserRole" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="UserRole" data-compartment="0">
+<a id="src\services\user.ts.UserRole" xlink:href="src\services\user.ts"><text x="80.5" y="14.1" stroke="none" text-anchor="middle" data-name="UserRole" data-compartment="0">UserRole</text></a>
+
+</g>
+</g>
+<g transform="translate(6389, 400)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="UserRole" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="UserRole" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="UserRole" data-compartment="1">+id: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="UserRole" data-compartment="1">+name: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="UserRole" data-compartment="1">+description?: string</text>
+
+</g>
+</g>
+<g transform="translate(6389, 465)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="UserRole" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="UserRole" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="UserProfile">
+<g fill="lightblue" stroke="#33322E" data-name="UserProfile">
+<rect x="6606.0" y="311.5" height="218.0" width="220.0" data-name="UserProfile"></rect>
+<path d="M6606.0 343.5 L6826.0 343.5" fill="none" data-name="UserProfile"></path>
+<path d="M6606.0 521.5 L6826.0 521.5" fill="none" data-name="UserProfile"></path>
+</g>
+<g transform="translate(6606, 311.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="UserProfile" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="UserProfile" data-compartment="0">
+<a id="src\services\user.ts.UserProfile" xlink:href="src\services\user.ts"><text x="102.0" y="14.1" stroke="none" text-anchor="middle" data-name="UserProfile" data-compartment="0">UserProfile</text></a>
+
+</g>
+</g>
+<g transform="translate(6606, 343.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="UserProfile" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="UserProfile" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="UserProfile" data-compartment="1">+sub?: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="UserProfile" data-compartment="1">+name?: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="UserProfile" data-compartment="1">+picture?: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="UserProfile" data-compartment="1">+email?: string</text>
+<text x="0.0" y="78.9" stroke="none" data-name="UserProfile" data-compartment="1">+created_at?: string</text>
+<text x="0.0" y="95.1" stroke="none" data-name="UserProfile" data-compartment="1">+updated_at?: string</text>
+<text x="0.0" y="111.3" stroke="none" data-name="UserProfile" data-compartment="1">+email_verified?: boolean</text>
+<text x="0.0" y="127.5" stroke="none" data-name="UserProfile" data-compartment="1">+logins_count?: number</text>
+<text x="0.0" y="143.7" stroke="none" data-name="UserProfile" data-compartment="1">+locale?: string</text>
+<text x="0.0" y="159.9" stroke="none" data-name="UserProfile" data-compartment="1">+roles?: UserRole[]</text>
+
+</g>
+</g>
+<g transform="translate(6606, 521.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="UserProfile" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="UserProfile" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="AdminValidation">
+<g fill="#eee8d5" stroke="#33322E" data-name="AdminValidation">
+<rect x="6596.8" y="1237.0" height="162.0" width="241.0" data-name="AdminValidation"></rect>
+<path d="M6596.8 1269.0 L6837.8 1269.0" fill="none" data-name="AdminValidation"></path>
+<path d="M6596.8 1334.0 L6837.8 1334.0" fill="none" data-name="AdminValidation"></path>
+</g>
+<g transform="translate(6596.75, 1237)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="AdminValidation" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="AdminValidation" data-compartment="0">
+<a id="src\app\admin-validation\admin-validation.ts.AdminValidation" xlink:href="src\app\admin-validation\admin-validation.ts"><text x="112.5" y="14.1" stroke="none" text-anchor="middle" data-name="AdminValidation" data-compartment="0">AdminValidation</text></a>
+
+</g>
+</g>
+<g transform="translate(6596.75, 1269)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="AdminValidation" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="AdminValidation" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="AdminValidation" data-compartment="1">+items: ValidationItem[]</text>
+<text x="0.0" y="30.3" stroke="none" data-name="AdminValidation" data-compartment="1">+loading: boolean</text>
+<text x="0.0" y="46.5" stroke="none" data-name="AdminValidation" data-compartment="1">-http: HttpClient</text>
+
+</g>
+</g>
+<g transform="translate(6596.75, 1334)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="AdminValidation" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="AdminValidation" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="AdminValidation" data-compartment="2">+ngOnInit(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="AdminValidation" data-compartment="2">+fetchValidationItems(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="AdminValidation" data-compartment="2">+updateStatus(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="ValidationItem">
+<g fill="lightblue" stroke="#33322E" data-name="ValidationItem">
+<rect x="6866.0" y="319.5" height="202.0" width="357.0" data-name="ValidationItem"></rect>
+<path d="M6866.0 351.5 L7223.0 351.5" fill="none" data-name="ValidationItem"></path>
+<path d="M6866.0 513.5 L7223.0 513.5" fill="none" data-name="ValidationItem"></path>
+</g>
+<g transform="translate(6866, 319.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ValidationItem" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ValidationItem" data-compartment="0">
+<a id="src\app\admin-validation\admin-validation.ts.ValidationItem" xlink:href="src\app\admin-validation\admin-validation.ts"><text x="170.5" y="14.1" stroke="none" text-anchor="middle" data-name="ValidationItem" data-compartment="0">ValidationItem</text></a>
+
+</g>
+</g>
+<g transform="translate(6866, 351.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ValidationItem" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ValidationItem" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="ValidationItem" data-compartment="1">+_id: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="ValidationItem" data-compartment="1">+type: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="ValidationItem" data-compartment="1">+name: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="ValidationItem" data-compartment="1">+coords: { lat: number</text>
+<text x="0.0" y="78.9" stroke="none" data-name="ValidationItem" data-compartment="1">lon: number</text>
+<text x="0.0" y="95.1" stroke="none" data-name="ValidationItem" data-compartment="1">}</text>
+<text x="0.0" y="111.3" stroke="none" data-name="ValidationItem" data-compartment="1">+tags: any</text>
+<text x="0.0" y="127.5" stroke="none" data-name="ValidationItem" data-compartment="1">+targetCollection?: string</text>
+<text x="0.0" y="143.7" stroke="none" data-name="ValidationItem" data-compartment="1">+status?: &quot;pending&quot; | &quot;accepted&quot; | &quot;refused&quot;</text>
+
+</g>
+</g>
+<g transform="translate(6866, 513.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ValidationItem" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ValidationItem" data-compartment="2">
+
+</g>
+</g>
+</g>
+<g data-name="OnInit">
+<g fill="#eee8d5" stroke="#33322E" data-name="OnInit">
+<rect x="7263.0" y="404.5" height="32.0" width="63.0" data-name="OnInit"></rect>
+</g>
+<g transform="translate(7263, 404.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="OnInit" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="OnInit" data-compartment="0">
+<text x="23.5" y="14.1" stroke="none" text-anchor="middle" data-name="OnInit" data-compartment="0">OnInit</text>
+
+</g>
+</g>
+</g>
+<g data-name="EditFormComponent">
+<g fill="#eee8d5" stroke="#33322E" data-name="EditFormComponent">
+<rect x="6877.8" y="946.0" height="744.0" width="486.0" data-name="EditFormComponent"></rect>
+<path d="M6877.8 978.0 L7363.8 978.0" fill="none" data-name="EditFormComponent"></path>
+<path d="M6877.8 1415.0 L7363.8 1415.0" fill="none" data-name="EditFormComponent"></path>
+</g>
+<g transform="translate(6877.75, 946)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="EditFormComponent" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="EditFormComponent" data-compartment="0">
+<a id="src\app\edit-form\edit-form.ts.EditFormComponent" xlink:href="src\app\edit-form\edit-form.ts"><text x="235.0" y="14.1" stroke="none" text-anchor="middle" data-name="EditFormComponent" data-compartment="0">EditFormComponent</text></a>
+
+</g>
+</g>
+<g transform="translate(6877.75, 978)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="EditFormComponent" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="EditFormComponent" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="EditFormComponent" data-compartment="1">+name: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="EditFormComponent" data-compartment="1">+tags: Record&lt;string, any&gt;</text>
+<text x="0.0" y="46.5" stroke="none" data-name="EditFormComponent" data-compartment="1">+ok: EventEmitter&lt;{ name: string</text>
+<text x="0.0" y="62.7" stroke="none" data-name="EditFormComponent" data-compartment="1">tags: Record&lt;string, any&gt;</text>
+<text x="0.0" y="78.9" stroke="none" data-name="EditFormComponent" data-compartment="1">}&gt;</text>
+<text x="0.0" y="95.1" stroke="none" data-name="EditFormComponent" data-compartment="1">+cancel: EventEmitter&lt;void&gt;</text>
+<text x="0.0" y="111.3" stroke="none" data-name="EditFormComponent" data-compartment="1">+isEditing: boolean</text>
+<text x="0.0" y="127.5" stroke="none" data-name="EditFormComponent" data-compartment="1">+translations: Record&lt;string, TranslationEntry&gt;</text>
+<text x="0.0" y="143.7" stroke="none" data-name="EditFormComponent" data-compartment="1">+featureName: string</text>
+<text x="0.0" y="159.9" stroke="none" data-name="EditFormComponent" data-compartment="1">+tagKeys: string[]</text>
+<text x="0.0" y="176.1" stroke="none" data-name="EditFormComponent" data-compartment="1">+newKey: string</text>
+<text x="0.0" y="192.3" stroke="none" data-name="EditFormComponent" data-compartment="1">+newValue: any</text>
+<text x="0.0" y="208.5" stroke="none" data-name="EditFormComponent" data-compartment="1">+newType: string</text>
+<text x="0.0" y="224.7" stroke="none" data-name="EditFormComponent" data-compartment="1">+selectedKey: string</text>
+<text x="0.0" y="240.9" stroke="none" data-name="EditFormComponent" data-compartment="1">+formError: string</text>
+<text x="0.0" y="257.1" stroke="none" data-name="EditFormComponent" data-compartment="1">+isEditingName: boolean</text>
+<text x="0.0" y="273.3" stroke="none" data-name="EditFormComponent" data-compartment="1">+availableKeys: string[]</text>
+<text x="0.0" y="289.5" stroke="none" data-name="EditFormComponent" data-compartment="1">+openingHoursDays: string[]</text>
+<text x="0.0" y="305.7" stroke="none" data-name="EditFormComponent" data-compartment="1">+openingHoursValues: Record&lt;string, { startMorning: string</text>
+<text x="0.0" y="321.9" stroke="none" data-name="EditFormComponent" data-compartment="1">endMorning: string</text>
+<text x="0.0" y="338.1" stroke="none" data-name="EditFormComponent" data-compartment="1">startAfternoon: string</text>
+<text x="0.0" y="354.3" stroke="none" data-name="EditFormComponent" data-compartment="1">endAfternoon: string</text>
+<text x="0.0" y="370.5" stroke="none" data-name="EditFormComponent" data-compartment="1">status: string</text>
+<text x="0.0" y="386.7" stroke="none" data-name="EditFormComponent" data-compartment="1">}&gt;</text>
+<text x="0.0" y="402.9" stroke="none" data-name="EditFormComponent" data-compartment="1">#translationService: TranslationService</text>
+<text x="0.0" y="419.1" stroke="none" data-name="EditFormComponent" data-compartment="1">#languageService: LanguageService</text>
+
+</g>
+</g>
+<g transform="translate(6877.75, 1415)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="EditFormComponent" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="EditFormComponent" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="EditFormComponent" data-compartment="2">+ngOnInit(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="EditFormComponent" data-compartment="2">+prefillOpeningHours(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="EditFormComponent" data-compartment="2">+confirm(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="EditFormComponent" data-compartment="2">+cancelEdit(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="EditFormComponent" data-compartment="2">+getInputType(): string</text>
+<text x="0.0" y="95.1" stroke="none" data-name="EditFormComponent" data-compartment="2">-hasInvalidOpeningHours(): boolean</text>
+<text x="0.0" y="111.3" stroke="none" data-name="EditFormComponent" data-compartment="2">-verifyOpeningHoursBeforeSubmit(): boolean</text>
+<text x="0.0" y="127.5" stroke="none" data-name="EditFormComponent" data-compartment="2">+addTag(): void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="EditFormComponent" data-compartment="2">+isOpeningHours(): boolean</text>
+<text x="0.0" y="159.9" stroke="none" data-name="EditFormComponent" data-compartment="2">+buildOpeningHoursTag(): string</text>
+<text x="0.0" y="176.1" stroke="none" data-name="EditFormComponent" data-compartment="2">+updateOpeningHoursTag(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="EditFormComponent" data-compartment="2">+shouldDisable(): boolean</text>
+<text x="0.0" y="208.5" stroke="none" data-name="EditFormComponent" data-compartment="2">+cleanInvalidFields(): void</text>
+<text x="0.0" y="224.7" stroke="none" data-name="EditFormComponent" data-compartment="2">+isFieldInvalid(): boolean</text>
+<text x="0.0" y="240.9" stroke="none" data-name="EditFormComponent" data-compartment="2">+isEditingExistingKey(): boolean</text>
+<text x="0.0" y="257.1" stroke="none" data-name="EditFormComponent" data-compartment="2">+onPrimaryAction(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="MapComponent">
+<g fill="#eee8d5" stroke="#33322E" data-name="MapComponent">
+<rect x="7403.8" y="937.5" height="761.0" width="403.0" data-name="MapComponent"></rect>
+<path d="M7403.8 969.5 L7806.8 969.5" fill="none" data-name="MapComponent"></path>
+<path d="M7403.8 1390.5 L7806.8 1390.5" fill="none" data-name="MapComponent"></path>
+</g>
+<g transform="translate(7403.75, 937.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="MapComponent" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="MapComponent" data-compartment="0">
+<a id="src\app\map\map.ts.MapComponent" xlink:href="src\app\map\map.ts"><text x="193.5" y="14.1" stroke="none" text-anchor="middle" data-name="MapComponent" data-compartment="0">MapComponent</text></a>
+
+</g>
+</g>
+<g transform="translate(7403.75, 969.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MapComponent" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="MapComponent" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="MapComponent" data-compartment="1">+sidebarPanel: ElementRef&lt;HTMLDivElement&gt;</text>
+<text x="0.0" y="30.3" stroke="none" data-name="MapComponent" data-compartment="1">+sidebarContent: ElementRef&lt;HTMLDivElement&gt;</text>
+<text x="0.0" y="46.5" stroke="none" data-name="MapComponent" data-compartment="1">+mapHost: ElementRef&lt;HTMLDivElement&gt;</text>
+<text x="0.0" y="62.7" stroke="none" data-name="MapComponent" data-compartment="1">+showMap: boolean</text>
+<text x="0.0" y="78.9" stroke="none" data-name="MapComponent" data-compartment="1">+translations: Record&lt;string, TranslationEntry&gt;</text>
+<text x="0.0" y="95.1" stroke="none" data-name="MapComponent" data-compartment="1">+searchQuery: string</text>
+<text x="0.0" y="111.3" stroke="none" data-name="MapComponent" data-compartment="1">+selectedMode: String</text>
+<text x="0.0" y="127.5" stroke="none" data-name="MapComponent" data-compartment="1">+userLocation: { lat: number</text>
+<text x="0.0" y="143.7" stroke="none" data-name="MapComponent" data-compartment="1">lon: number</text>
+<text x="0.0" y="159.9" stroke="none" data-name="MapComponent" data-compartment="1">}</text>
+<text x="0.0" y="176.1" stroke="none" data-name="MapComponent" data-compartment="1">+showViewOptions: boolean</text>
+<text x="0.0" y="192.3" stroke="none" data-name="MapComponent" data-compartment="1">-mapClickSub?: Subscription</text>
+<text x="0.0" y="208.5" stroke="none" data-name="MapComponent" data-compartment="1">-mapInitialized: boolean</text>
+<text x="0.0" y="224.7" stroke="none" data-name="MapComponent" data-compartment="1">+lastAction: () =&gt; void</text>
+<text x="0.0" y="240.9" stroke="none" data-name="MapComponent" data-compartment="1">+newCenter: [number, number]</text>
+<text x="0.0" y="257.1" stroke="none" data-name="MapComponent" data-compartment="1">+panelOpen: boolean</text>
+<text x="0.0" y="273.3" stroke="none" data-name="MapComponent" data-compartment="1">+panelHTML: string</text>
+<text x="0.0" y="289.5" stroke="none" data-name="MapComponent" data-compartment="1">+tooltipHeader: string</text>
+<text x="0.0" y="305.7" stroke="none" data-name="MapComponent" data-compartment="1">+tooltipTags: string</text>
+<text x="0.0" y="321.9" stroke="none" data-name="MapComponent" data-compartment="1">+mapService: MapService</text>
+<text x="0.0" y="338.1" stroke="none" data-name="MapComponent" data-compartment="1">+searchService: SearchService</text>
+<text x="0.0" y="354.3" stroke="none" data-name="MapComponent" data-compartment="1">+routeService: RouteService</text>
+<text x="0.0" y="370.5" stroke="none" data-name="MapComponent" data-compartment="1">+layerService: LayerService</text>
+<text x="0.0" y="386.7" stroke="none" data-name="MapComponent" data-compartment="1">+interactionService: InteractionService</text>
+<text x="0.0" y="402.9" stroke="none" data-name="MapComponent" data-compartment="1">+languageService: LanguageService</text>
+
+</g>
+</g>
+<g transform="translate(7403.75, 1390.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MapComponent" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="MapComponent" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="MapComponent" data-compartment="2">+ngOnInit(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="MapComponent" data-compartment="2">+ngAfterViewInit(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="MapComponent" data-compartment="2">+ngOnChanges(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="MapComponent" data-compartment="2">+ngOnDestroy(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="MapComponent" data-compartment="2">-attachMap(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="MapComponent" data-compartment="2">+toggleRouteMode(): void</text>
+<text x="0.0" y="111.3" stroke="none" data-name="MapComponent" data-compartment="2">+setRouteMode(): void</text>
+<text x="0.0" y="127.5" stroke="none" data-name="MapComponent" data-compartment="2">+toggleBaseLayer(): void</text>
+<text x="0.0" y="143.7" stroke="none" data-name="MapComponent" data-compartment="2">+toggleViewOptions(): void</text>
+<text x="0.0" y="159.9" stroke="none" data-name="MapComponent" data-compartment="2">+setMapView(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="MapComponent" data-compartment="2">+onSearchInput(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="MapComponent" data-compartment="2">+onSearchBlur(): void</text>
+<text x="0.0" y="208.5" stroke="none" data-name="MapComponent" data-compartment="2">+selectResult(): void</text>
+<text x="0.0" y="224.7" stroke="none" data-name="MapComponent" data-compartment="2">+onFeatureClick(): void</text>
+<text x="0.0" y="240.9" stroke="none" data-name="MapComponent" data-compartment="2">+onModalOk(): void</text>
+<text x="0.0" y="257.1" stroke="none" data-name="MapComponent" data-compartment="2">+onModalCancel(): void</text>
+<text x="0.0" y="273.3" stroke="none" data-name="MapComponent" data-compartment="2">+closePanel(): void</text>
+<text x="0.0" y="289.5" stroke="none" data-name="MapComponent" data-compartment="2">+showTooltip(): Promise&lt;void&gt;</text>
+
+</g>
+</g>
+</g>
+<g data-name="OnDestroy">
+<g fill="#eee8d5" stroke="#33322E" data-name="OnDestroy">
+<rect x="7926.3" y="404.5" height="32.0" width="100.0" data-name="OnDestroy"></rect>
+</g>
+<g transform="translate(7926.25, 404.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="OnDestroy" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="OnDestroy" data-compartment="0">
+<text x="42.0" y="14.1" stroke="none" text-anchor="middle" data-name="OnDestroy" data-compartment="0">OnDestroy</text>
+
+</g>
+</g>
+</g>
+<g data-name="AfterViewInit">
+<g fill="#eee8d5" stroke="#33322E" data-name="AfterViewInit">
+<rect x="8252.3" y="404.5" height="32.0" width="114.0" data-name="AfterViewInit"></rect>
+</g>
+<g transform="translate(8252.25, 404.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="AfterViewInit" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="AfterViewInit" data-compartment="0">
+<text x="49.0" y="14.1" stroke="none" text-anchor="middle" data-name="AfterViewInit" data-compartment="0">AfterViewInit</text>
+
+</g>
+</g>
+</g>
+<g data-name="OnChanges">
+<g fill="#eee8d5" stroke="#33322E" data-name="OnChanges">
+<rect x="8102.3" y="404.5" height="32.0" width="110.0" data-name="OnChanges"></rect>
+</g>
+<g transform="translate(8102.25, 404.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="OnChanges" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="OnChanges" data-compartment="0">
+<text x="47.0" y="14.1" stroke="none" text-anchor="middle" data-name="OnChanges" data-compartment="0">OnChanges</text>
+
+</g>
+</g>
+</g>
+<g data-name="SafeUrlPipe">
+<g fill="#eee8d5" stroke="#33322E" data-name="SafeUrlPipe">
+<rect x="8343.3" y="1270.0" height="96.0" width="257.0" data-name="SafeUrlPipe"></rect>
+<path d="M8343.3 1302.0 L8600.3 1302.0" fill="none" data-name="SafeUrlPipe"></path>
+<path d="M8343.3 1334.0 L8600.3 1334.0" fill="none" data-name="SafeUrlPipe"></path>
+</g>
+<g transform="translate(8343.25, 1270)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="SafeUrlPipe" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="SafeUrlPipe" data-compartment="0">
+<a id="src\app\map\safe-url.pipe.ts.SafeUrlPipe" xlink:href="src\app\map\safe-url.pipe.ts"><text x="120.5" y="14.1" stroke="none" text-anchor="middle" data-name="SafeUrlPipe" data-compartment="0">SafeUrlPipe</text></a>
+
+</g>
+</g>
+<g transform="translate(8343.25, 1302)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SafeUrlPipe" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="SafeUrlPipe" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="SafeUrlPipe" data-compartment="1">-sanitizer: DomSanitizer</text>
+
+</g>
+</g>
+<g transform="translate(8343.25, 1334)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="SafeUrlPipe" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="SafeUrlPipe" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="SafeUrlPipe" data-compartment="2">+transform(): SafeResourceUrl</text>
+
+</g>
+</g>
+</g>
+<g data-name="PipeTransform">
+<g fill="#eee8d5" stroke="#33322E" data-name="PipeTransform">
+<rect x="8406.3" y="404.5" height="32.0" width="131.0" data-name="PipeTransform"></rect>
+</g>
+<g transform="translate(8406.25, 404.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="PipeTransform" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PipeTransform" data-compartment="0">
+<text x="57.5" y="14.1" stroke="none" text-anchor="middle" data-name="PipeTransform" data-compartment="0">PipeTransform</text>
+
+</g>
+</g>
+</g>
+<g data-name="ProfileComponent">
+<g fill="#eee8d5" stroke="#33322E" data-name="ProfileComponent">
+<rect x="8577.3" y="299.5" height="242.0" width="388.0" data-name="ProfileComponent"></rect>
+<path d="M8577.3 331.5 L8965.3 331.5" fill="none" data-name="ProfileComponent"></path>
+<path d="M8577.3 444.5 L8965.3 444.5" fill="none" data-name="ProfileComponent"></path>
+</g>
+<g transform="translate(8577.25, 299.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ProfileComponent" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ProfileComponent" data-compartment="0">
+<a id="src\app\profile\profile.ts.ProfileComponent" xlink:href="src\app\profile\profile.ts"><text x="186.0" y="14.1" stroke="none" text-anchor="middle" data-name="ProfileComponent" data-compartment="0">ProfileComponent</text></a>
+
+</g>
+</g>
+<g transform="translate(8577.25, 331.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ProfileComponent" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ProfileComponent" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="ProfileComponent" data-compartment="1">+editedName: string</text>
+<text x="0.0" y="30.3" stroke="none" data-name="ProfileComponent" data-compartment="1">+tempPhoto: string</text>
+<text x="0.0" y="46.5" stroke="none" data-name="ProfileComponent" data-compartment="1">+editingName: boolean</text>
+<text x="0.0" y="62.7" stroke="none" data-name="ProfileComponent" data-compartment="1">+translations: Record&lt;string, TranslationEntry&gt;</text>
+<text x="0.0" y="78.9" stroke="none" data-name="ProfileComponent" data-compartment="1">+auth: AuthService&lt;AppState&gt;</text>
+<text x="0.0" y="95.1" stroke="none" data-name="ProfileComponent" data-compartment="1">+userService: UserService</text>
+
+</g>
+</g>
+<g transform="translate(8577.25, 444.5)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ProfileComponent" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ProfileComponent" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="ProfileComponent" data-compartment="2">+toggleEditName(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="ProfileComponent" data-compartment="2">+cancelEdit(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="ProfileComponent" data-compartment="2">+saveChanges(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="ProfileComponent" data-compartment="2">+onPhotoChange(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="ProfileComponent" data-compartment="2">+normalizeDate(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="VoiceComponent">
+<g fill="#eee8d5" stroke="#33322E" data-name="VoiceComponent">
+<rect x="7846.8" y="881.0" height="874.0" width="388.0" data-name="VoiceComponent"></rect>
+<path d="M7846.8 913.0 L8234.8 913.0" fill="none" data-name="VoiceComponent"></path>
+<path d="M7846.8 1383.0 L8234.8 1383.0" fill="none" data-name="VoiceComponent"></path>
+</g>
+<g transform="translate(7846.75, 881)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="VoiceComponent" data-compartment="0">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="VoiceComponent" data-compartment="0">
+<a id="src\app\voice-component\voice-component.ts.VoiceComponent" xlink:href="src\app\voice-component\voice-component.ts"><text x="186.0" y="14.1" stroke="none" text-anchor="middle" data-name="VoiceComponent" data-compartment="0">VoiceComponent</text></a>
+
+</g>
+</g>
+<g transform="translate(7846.75, 913)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="VoiceComponent" data-compartment="1">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="VoiceComponent" data-compartment="1">
+<text x="0.0" y="14.1" stroke="none" data-name="VoiceComponent" data-compartment="1">+mapComponent: MapComponent</text>
+<text x="0.0" y="30.3" stroke="none" data-name="VoiceComponent" data-compartment="1">+translations: Record&lt;string, TranslationEntry&gt;</text>
+<text x="0.0" y="46.5" stroke="none" data-name="VoiceComponent" data-compartment="1">+chatModal: ElementRef&lt;HTMLDivElement&gt;</text>
+<text x="0.0" y="62.7" stroke="none" data-name="VoiceComponent" data-compartment="1">#showChat: boolean</text>
+<text x="0.0" y="78.9" stroke="none" data-name="VoiceComponent" data-compartment="1">#chatMessages: { user: &quot;user&quot; | &quot;ai&quot;</text>
+<text x="0.0" y="95.1" stroke="none" data-name="VoiceComponent" data-compartment="1">text: string</text>
+<text x="0.0" y="111.3" stroke="none" data-name="VoiceComponent" data-compartment="1">}[]</text>
+<text x="0.0" y="127.5" stroke="none" data-name="VoiceComponent" data-compartment="1">#userMessage: string</text>
+<text x="0.0" y="143.7" stroke="none" data-name="VoiceComponent" data-compartment="1">+isMinimized: boolean</text>
+<text x="0.0" y="159.9" stroke="none" data-name="VoiceComponent" data-compartment="1">-offsetX: number</text>
+<text x="0.0" y="176.1" stroke="none" data-name="VoiceComponent" data-compartment="1">-offsetY: number</text>
+<text x="0.0" y="192.3" stroke="none" data-name="VoiceComponent" data-compartment="1">-initialWidth: number</text>
+<text x="0.0" y="208.5" stroke="none" data-name="VoiceComponent" data-compartment="1">-initialHeight: number</text>
+<text x="0.0" y="224.7" stroke="none" data-name="VoiceComponent" data-compartment="1">-dragging: boolean</text>
+<text x="0.0" y="240.9" stroke="none" data-name="VoiceComponent" data-compartment="1">-stream: MediaStream</text>
+<text x="0.0" y="257.1" stroke="none" data-name="VoiceComponent" data-compartment="1">-listeningRecorder: MediaRecorder</text>
+<text x="0.0" y="273.3" stroke="none" data-name="VoiceComponent" data-compartment="1">-commandRecorder: MediaRecorder</text>
+<text x="0.0" y="289.5" stroke="none" data-name="VoiceComponent" data-compartment="1">-audioChunks: Blob[]</text>
+<text x="0.0" y="305.7" stroke="none" data-name="VoiceComponent" data-compartment="1">-silenceTimeout: any</text>
+<text x="0.0" y="321.9" stroke="none" data-name="VoiceComponent" data-compartment="1">#isRecording: boolean</text>
+<text x="0.0" y="338.1" stroke="none" data-name="VoiceComponent" data-compartment="1">-rmsThreshold: number</text>
+<text x="0.0" y="354.3" stroke="none" data-name="VoiceComponent" data-compartment="1">-initialPinchDistance: number</text>
+<text x="0.0" y="370.5" stroke="none" data-name="VoiceComponent" data-compartment="1">-initialModalWidth: number</text>
+<text x="0.0" y="386.7" stroke="none" data-name="VoiceComponent" data-compartment="1">-initialModalHeight: number</text>
+<text x="0.0" y="402.9" stroke="none" data-name="VoiceComponent" data-compartment="1">-wordMap: Record&lt;string, string[]&gt;</text>
+<text x="0.0" y="419.1" stroke="none" data-name="VoiceComponent" data-compartment="1">-http: HttpClient</text>
+<text x="0.0" y="435.3" stroke="none" data-name="VoiceComponent" data-compartment="1">-ngZone: NgZone</text>
+<text x="0.0" y="451.5" stroke="none" data-name="VoiceComponent" data-compartment="1">-languageService: LanguageService</text>
+
+</g>
+</g>
+<g transform="translate(7846.75, 1383)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="VoiceComponent" data-compartment="2">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="VoiceComponent" data-compartment="2">
+<text x="0.0" y="14.1" stroke="none" data-name="VoiceComponent" data-compartment="2">+ngOnChanges(): void</text>
+<text x="0.0" y="30.3" stroke="none" data-name="VoiceComponent" data-compartment="2">+ngOnInit(): void</text>
+<text x="0.0" y="46.5" stroke="none" data-name="VoiceComponent" data-compartment="2">+ngAfterViewInit(): void</text>
+<text x="0.0" y="62.7" stroke="none" data-name="VoiceComponent" data-compartment="2">+ngOnDestroy(): void</text>
+<text x="0.0" y="78.9" stroke="none" data-name="VoiceComponent" data-compartment="2">-loadWords(): void</text>
+<text x="0.0" y="95.1" stroke="none" data-name="VoiceComponent" data-compartment="2">-detectAction(): { action: string</text>
+<text x="0.0" y="111.3" stroke="none" data-name="VoiceComponent" data-compartment="2">word: string</text>
+<text x="0.0" y="127.5" stroke="none" data-name="VoiceComponent" data-compartment="2">}</text>
+<text x="0.0" y="143.7" stroke="none" data-name="VoiceComponent" data-compartment="2">-getDistance(): number</text>
+<text x="0.0" y="159.9" stroke="none" data-name="VoiceComponent" data-compartment="2">-onPinchStart(): void</text>
+<text x="0.0" y="176.1" stroke="none" data-name="VoiceComponent" data-compartment="2">-onPinchMove(): void</text>
+<text x="0.0" y="192.3" stroke="none" data-name="VoiceComponent" data-compartment="2">-onPinchEnd(): void</text>
+<text x="0.0" y="208.5" stroke="none" data-name="VoiceComponent" data-compartment="2">+toggleMinimize(): void</text>
+<text x="0.0" y="224.7" stroke="none" data-name="VoiceComponent" data-compartment="2">+toggleChat(): void</text>
+<text x="0.0" y="240.9" stroke="none" data-name="VoiceComponent" data-compartment="2">+startDrag(): void</text>
+<text x="0.0" y="257.1" stroke="none" data-name="VoiceComponent" data-compartment="2">-startListening(): void</text>
+<text x="0.0" y="273.3" stroke="none" data-name="VoiceComponent" data-compartment="2">-restartListening(): void</text>
+<text x="0.0" y="289.5" stroke="none" data-name="VoiceComponent" data-compartment="2">+startRecording(): void</text>
+<text x="0.0" y="305.7" stroke="none" data-name="VoiceComponent" data-compartment="2">-resetSilenceTimer(): void</text>
+<text x="0.0" y="321.9" stroke="none" data-name="VoiceComponent" data-compartment="2">+stopRecording(): void</text>
+<text x="0.0" y="338.1" stroke="none" data-name="VoiceComponent" data-compartment="2">-stopAll(): void</text>
+<text x="0.0" y="354.3" stroke="none" data-name="VoiceComponent" data-compartment="2">+sendMessage(): void</text>
+
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</svg>

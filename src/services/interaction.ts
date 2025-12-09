@@ -910,6 +910,8 @@ export class InteractionService {
     }
   }
 
+
+
   openEditForm(feature: Feature<Geometry>) {
     const realFeature = (feature.get('features')?.[0]) || feature;
     const props = realFeature.getProperties() as { type?: string; tags?: any };
