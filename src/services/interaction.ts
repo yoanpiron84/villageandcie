@@ -427,7 +427,43 @@ export class InteractionService {
         }
 
         return html;
+      },
+      eventLayer: async (feature: Feature) => {
+        this.tooltipEl.className = 'tooltip-event';
+
+        const name = feature.get('name') || 'Événement';
+        const tags = feature.get('tags') || {};
+        const logo = feature.get('logo') || '/images/event.jpg';
+        const duration = feature.get('duration') || {}; // { start: '...', end: '...' }
+
+        // buildTagListHTML doit retourner directement du HTML string
+        const tagsHtml = await this.buildTagListHTML(tags, feature);
+
+        // Préparer l'affichage de la durée si elle existe
+        let durationHtml = '';
+        if (duration.start || duration.end) {
+          const start = duration.start ? new Date(duration.start).toLocaleString() : '';
+          const end = duration.end ? new Date(duration.end).toLocaleString() : '';
+          durationHtml = `<div class="event-duration" style="font-size:12px; color:#555;">
+      ${start} ${start && end ? '→' : ''} ${end}
+    </div>`;
+        }
+
+        return `
+    <div class="tooltip-event-content" style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+      <img src="${logo}" alt="${name}" class="tooltip-event-logo"
+           style="width:80px; height:80px; object-fit:cover; border-radius:8px;"/>
+      <div class="tooltip-event-info" style="text-align:center;">
+        <div class="title" style="font-weight:700; font-size:16px;">${name}</div>
+        ${durationHtml}
+        ${tagsHtml}
+      </div>
+    </div>
+  `;
       }
+
+
+
     };
 
     const daysKeys = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
@@ -626,6 +662,7 @@ export class InteractionService {
 
       return html;
     };
+
 
 
 
@@ -852,7 +889,8 @@ export class InteractionService {
       churchLayer: this.mapService.churchLayer,
       pinLayer: this.mapService.pinLayer,
       hotelLayer: this.mapService.hotelLayer,
-      ...this.mapService.alimentaireLayer
+      ...this.mapService.alimentaireLayer,
+      eventLayer: this.mapService.eventLayer,
     };
 
     const getLayerForFeature = (feature: Feature<Geometry>) => {
@@ -869,16 +907,24 @@ export class InteractionService {
     };
 
     const layerName = getLayerForFeature(feature);
+    console.log("DEBUG 2");
     if (layerName && this.tooltipLayerMap[layerName]) {
+      console.log("DEBUG 3");
       this.currentFeature = feature;
 
+      console.log("DEBUG 2");
+
       const htmlOrPromise = this.tooltipLayerMap[layerName](feature);
+
+      console.log("DEBUG 3: ", htmlOrPromise);
 
       // 🔥 Supporte string ou Promise<string>
       const html =
         htmlOrPromise && typeof (htmlOrPromise as any).then === "function"
           ? await htmlOrPromise
           : htmlOrPromise;
+
+      console.log("DEBUG 4: ");
 
       // 🔥 NE PAS toucher au DOM ici → on retourne le HTML
       return html || "";
@@ -1051,6 +1097,8 @@ export class InteractionService {
   async buildTagListHTML(tags: Record<string, any>, feature: Feature<Geometry>): Promise<string> {
     if (!tags) return '';
 
+    console.log("tags: ",tags);
+
     const excluded = new Set([
       'geometry','features','id','layer','name',
       'brand','shop','amenity',
@@ -1063,6 +1111,24 @@ export class InteractionService {
     const modifiedFields: { key: string, modifiedBy: string }[] = tags['modifiedFields'] || [];
 
     let html = '<div class="tags-container">';
+
+    // 🔥 Gestion de la durée si elle existe
+    const durationKeys = ['duration', 'length', 'duration:minutes', 'duration:hours'];
+    let durationText = '';
+
+    for (const dKey of durationKeys) {
+      if (tags[dKey]) {
+        durationText = `
+        <div class="field">
+          <span class="label">Durée</span>
+          <span class="value">${tags[dKey]}</span>
+        </div>`;
+        break;
+      }
+    }
+
+    // 🔥 Si une durée existe, l’ajouter au début
+    if (durationText) html += durationText;
 
     const promises: Promise<string>[] = Object.entries(tags)
       .filter(([key, value]) => value && !excluded.has(key) && !/^name(:.+)?$/i.test(key))
@@ -1116,7 +1182,18 @@ export class InteractionService {
 
     const blocks = await Promise.all(promises);
     html += blocks.join('\n');
+
+    // 🔥 Affichage systématique "Créé par ..."
+    if (tags['createdBy']) {
+      html += `
+      <div class="created-by" style="margin-top:10px; font-size:13px; opacity:0.8;">
+        Créé par ${tags['createdBy']}
+      </div>`;
+    }
+
     html += '</div>';
+
+    console.log("debug ", html);
 
     return html;
   }

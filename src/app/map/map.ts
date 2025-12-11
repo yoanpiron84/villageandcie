@@ -343,49 +343,4 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
     }
   }
 
-  onFormSubmit(data: any) {
-
-    console.log("📌 DATA REÇUE :", data);
-
-    if (data.mode === "event") {
-      // INSERT DIRECT DANS EVENEMENTS
-      const user = this.userService.userSignal();
-
-      this.http.post("http://localhost:3000/nodejs/evenements", {
-        _id: `${data.coords.lat}_${data.coords.lon}`,
-        name: data.name,
-        coords: data.coords,
-        duration: data.duration,
-        tags: data.tags,
-        createdBy: data.createdBy,
-      }).subscribe({
-        next: res => console.log("Événement créé :", res),
-        error: err => console.error("Erreur création événement :", err)
-      });
-    } else {
-      const user = this.userService.userSignal();
-
-      this.http.post("http://localhost:3000/nodejs/admin/validation", {
-        targetCollection: data.type,
-        targetId: `${data.coords.lat}_${data.coords.lon}`,
-        newData: {
-          name: data.name,
-          coords: data.coords,
-          tags: data.tags,
-          type: data.type
-        },
-        createdBy: data.createdBy,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }).subscribe({
-        next: res => console.log("ValidationAdmin créée :", res),
-        error: err => console.error("Erreur création validation :", err)
-      });
-
-      this.showAddForm = false;
-    }
-
-
-  }
 }

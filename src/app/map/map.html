@@ -10,7 +10,6 @@
 <app-add-form
   *ngIf="showAddForm && newPointCoords"
   [coords]="newPointCoords"
-  (submitForm)="onFormSubmit($event)"
   (cancel)="showAddForm = false">
 </app-add-form>
 

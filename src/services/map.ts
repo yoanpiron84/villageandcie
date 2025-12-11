@@ -35,6 +35,7 @@ export class MapService {
   churchLayer: VectorLayer<VectorSource>;
   hotelLayer: VectorLayer<VectorSource>;
   alimentaireLayer: Record<string, VectorLayer<ClusterSource>> = {};
+  eventLayer!: VectorLayer<VectorSource>;
 
 
 
@@ -302,6 +303,12 @@ export class MapService {
     //   }
     // });
 
+    // MapService.ts
+    this.eventLayer = new VectorLayer({
+      source: new VectorSource()
+    });
+
+
 
     this.routePointLayer = new VectorLayer({ source: new VectorSource() });
     this.routeLineLayer = new VectorLayer({ source: new VectorSource() });
@@ -320,7 +327,8 @@ export class MapService {
         this.churchLayer,
         this.hotelLayer,
         ...Object.values(this.alimentaireLayer),
-        this.pinLayer
+        this.pinLayer,
+        this.eventLayer
       ],
       view: new View({
         center: [0, 0],

@@ -8,7 +8,7 @@ import {SearchService} from './search';
 import View from 'ol/View';
 import {Feature} from 'ol';
 import Point from 'ol/geom/Point';
-import {Icon, Style} from 'ol/style';
+import {Fill, Icon, Stroke, Style} from 'ol/style';
 import {Cluster} from 'ol/source';
 import ClusterSource from 'ol/source/Cluster';
 
@@ -18,6 +18,9 @@ import {Geometry} from 'ol/geom';
 import {getCenter} from 'ol/extent';
 import {LanguageService} from './language';
 import {TranslationEntry} from '../app/app';
+import {firstValueFrom} from 'rxjs';
+import {Coordinate} from 'ol/coordinate';
+import CircleStyle from 'ol/style/Circle';
 
 interface CustomEntity {
   _id: string | number;
@@ -55,6 +58,7 @@ export class LayerService {
       showChurch: this.translations["tag:church"]?.message || 'Église',
       showGreen: this.translations["tag:green_space"]?.message || 'Espaces verts',
       showHotel: this.translations["tag:hotel"]?.message || 'Hôtels',
+      showEvent: 'Evénements',
     };
 
     // labels alimentaires dynamiques depuis environment
@@ -966,23 +970,13 @@ export class LayerService {
     const clusterSource = this.mapService.hotelLayer.getSource() as ClusterSource;
     const rawSource = clusterSource?.getSource();
 
-    // Clear les deux : ClusterSource et Raw Source
     clusterSource?.clear();
     rawSource?.clear();
 
     this.activeLayers.delete('showHotel');
     this.selectedLayerAction = Array.from(this.activeLayers)[0] || '';
   }
-  //
-  // // public showAlimAction(param: string, lang: string){
-  // //
-  // //   const lowerParam = param.toLowerCase();
-  // //
-  // //   const shopMap = environment.shopTagMap[lang] as Record<string, string>;
-  // //
-  // //   this.showAlimentaire(shopMap[param])
-  // // }
-  //
+
 
   public showAlimentaire(param: string, lang: string, firstTime: boolean) {
     if (!this.mapService.userPosition) return;
@@ -1129,13 +1123,6 @@ out geom;`;
       .catch(err => console.error('Erreur showAlimentaire:', err));
   }
 
-
-
-
-
-
-
-
   public hideAlimentaire(type: string) {
     if (type === 'alimentaire') {
       Object.values(this.mapService.alimentaireLayer).forEach(layer => {
@@ -1157,10 +1144,167 @@ out geom;`;
   }
 
 
-  // public fetchCustomFeatures(lat: number, lon: number, radiusMeters: number = 500): Promise<any[]> {
-  //   const url = `/api/custom?lat=${lat}&lon=${lon}&radius=${radiusMeters}`;
-  //   return this.http.get<any[]>(url).toPromise();
-  // }
+  // SHOW EVENEMENT
+  public async showEvent() {
+    if (!this.mapService.userPosition) return;
+
+    const { lat, lon } = this.mapService.userPosition;
+    const radiusMeters = (this.layerRadii['showEvent'] || 0.5) * 1000;
+
+    try {
+      const events = await firstValueFrom(
+        this.http.get<any[]>('http://localhost:3000/evenements', {
+          params: { lat, lon, radius: radiusMeters }
+        })
+      );
+
+      const features: Feature<Point>[] = [];
+
+      for (const ev of events) {
+        const coords: Coordinate = [ev.coords.lon, ev.coords.lat];
+        const featureId = `${coords[0]}_${coords[1]}`;
+
+        const point = new Point(fromLonLat(coords));
+        const f = new Feature(point);
+        f.setId(featureId);
+
+        const logoUrl = ev.logo || '/images/event.jpg';
+
+        console.log(logoUrl);
+
+        f.setProperties({
+          name: ev.name,
+          tags: ev.tags || {},
+          duration: ev.duration,
+          type: 'evenement',
+          logo: logoUrl
+        });
+
+        if (!this.isFeatureWithinRadius(f, 'showEvent')) continue;
+
+        // Canvas pour cercle blanc + logo arrondi
+        const radius = 20; // rayon cercle
+        const logoScale = 0.9; // proportion logo dans le cercle
+        const canvas = document.createElement('canvas');
+        canvas.width = radius * 2;
+        canvas.height = radius * 2;
+        const ctx = canvas.getContext('2d');
+
+        if (ctx) {
+          // Cercle blanc
+          ctx.beginPath();
+          ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
+          ctx.fillStyle = 'white';
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = 'black';
+          ctx.stroke();
+
+          // Logo arrondi
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = logoUrl;
+          img.onload = () => {
+            const logoSize = radius * 2 * logoScale;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(radius, radius, logoSize / 2, 0, 2 * Math.PI);
+            ctx.clip();
+            ctx.drawImage(img, radius - logoSize / 2, radius - logoSize / 2, logoSize, logoSize);
+            ctx.restore();
+
+            // On applique le style **sans toucher aux propriétés**
+            const iconStyle = new Style({
+              image: new Icon({
+                src: canvas.toDataURL(),
+                anchor: [0.5, 0.5],
+                scale: 1
+              })
+            });
+
+            f.setStyle(iconStyle);
+          };
+        }
+
+
+        features.push(f);
+      }
+
+      // VectorSource classique, pas de cluster
+      const vectorSource = new VectorSource({ features });
+
+      if (!this.mapService.eventLayer) {
+        this.mapService.eventLayer = new VectorLayer({ source: vectorSource });
+        this.mapService.map.addLayer(this.mapService.eventLayer);
+      } else {
+        this.mapService.eventLayer.setSource(vectorSource);
+      }
+
+      // Ajuste scale selon zoom
+      const view = this.mapService.map.getView();
+
+      const updateScale = () => {
+        const zoom = view.getZoom() || 0;
+
+        const minScale = 0.2;
+        const growth = 0.05;
+
+        const scale = minScale + zoom * growth;
+
+        console.log('zoom:', zoom, 'scale:', scale);
+
+        const features = this.mapService.eventLayer.getSource()?.getFeatures() || [];
+
+        features.forEach(f => {
+          const styleOrArray = f.getStyle();
+
+          const update = (s: Style) => {
+            const image = s.getImage();
+            if (image instanceof Icon) {
+              image.setScale(scale);
+            }
+          };
+
+          if (styleOrArray instanceof Style) {
+            update(styleOrArray);
+            f.setStyle(styleOrArray);
+          } else if (Array.isArray(styleOrArray)) {
+            styleOrArray.forEach(s => update(s));
+            f.setStyle(styleOrArray);
+          }
+        });
+      };
+
+
+
+      view.on('change:resolution', updateScale);
+
+
+      this.activeLayers.add('showEvent');
+      this.selectedLayerAction = 'showEvent';
+
+    } catch (err) {
+      console.error('Erreur showEvent:', err);
+    }
+  }
+
+
+
+  public hideEvent() {
+    if (!this.mapService.eventLayer) return;
+
+    const layer = this.mapService.eventLayer;
+    const source = layer.getSource() as Cluster;
+
+    // Clear le cluster et recrée un VectorSource vide
+    const rawSource = source.getSource();
+    rawSource?.clear();
+    layer.setSource(new VectorSource());
+
+    this.activeLayers.delete('showEvent');
+    this.selectedLayerAction = Array.from(this.activeLayers)[0] || '';
+  }
+
 
 
 

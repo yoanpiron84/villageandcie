@@ -7,6 +7,12 @@
     "headers": {
       "User-Agent": "angular-osm-app/1.0 (yoan.p2002@gmail.com)"
     }
+  },
+  "/proxy-img": {
+    "target": "https://img.freepik.com",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": { "^/proxy-img": "" }
   }
 
 }

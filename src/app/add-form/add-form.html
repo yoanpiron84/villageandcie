@@ -16,14 +16,17 @@
     <option value="custom">Custom (autre)</option>
   </select>
 
-  <!-- Input type réel si custom -->
   <div class="form-group" *ngIf="type === 'custom'">
     <label>Précisez le type du custom *</label>
     <input type="text" [(ngModel)]="customType" required placeholder="Type du custom">
   </div>
 
-  <div *ngIf="type === 'event'" class="event-duration">
+  <label>Logo de l'événement</label>
+  <input type="file" (change)="onLogoChange($event)" accept="image/*">
+  <img *ngIf="logoFilePreview" [src]="logoFilePreview" alt="Aperçu du logo"
+       style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:2px solid white;">
 
+  <div *ngIf="type === 'event'" class="event-duration">
     <h4>Durée de l'événement *</h4>
 
     <label>Début</label>
@@ -33,9 +36,7 @@
     <input type="datetime-local" [(ngModel)]="eventEnd">
   </div>
 
-
   <h4>Tags</h4>
-
   <div class="tag-line">
     <input placeholder="clé" [(ngModel)]="newTagKey">
     <input placeholder="valeur" [(ngModel)]="newTagValue">
@@ -47,22 +48,17 @@
   </ul>
 
   <h4>Horaires d'ouverture *</h4>
-
   <div class="opening-row" *ngFor="let day of openingHoursDays">
     <span class="day">{{ day.toUpperCase() }}</span>
 
-    <input type="time"
-           [(ngModel)]="openingHoursValues[day].start" />
-
-    <input type="time"
-           [(ngModel)]="openingHoursValues[day].end" />
+    <input type="time" [(ngModel)]="openingHoursValues[day].start" />
+    <input type="time" [(ngModel)]="openingHoursValues[day].end" />
   </div>
 
   <p class="hint">Vous devez renseigner au moins 1 jour.</p>
 
-
   <div class="buttons">
-    <button (click)="submit()">Envoyer</button>
+    <button (click)="onFormSubmit()">Envoyer</button>
     <button (click)="cancel.emit()">Annuler</button>
   </div>
 
