@@ -46,6 +46,7 @@ export class MapService {
   // Position utilisateur centrale
   userPosition: { lat: number; lon: number } | null = null;
 
+
   public initAlimentaireLayers(): void {
     this.alimentaireLayer = {};
 
@@ -70,13 +71,25 @@ export class MapService {
           const features: Feature[] = clusterFeature.get('features') || [];
           if (features.length === 0) return undefined;
 
-          // Toutes les features doivent avoir la même icône pour cluster
-          const typeSet = new Set(features.map(f => f.get('icon')));
+          // 👉 ne garder que les points OUVERTS
+          const openFeatures = features.filter(f => {
+            const openingHours = f.get('tags')?.opening_hours;
+            return this.isCurrentlyOpen(openingHours);
+          });
+
+          // 👉 aucun point ouvert → cluster invisible
+          if (openFeatures.length === 0) {
+            return new Style({}); // invisible mais safe
+          }
+
+          // Toutes les features ouvertes doivent avoir la même icône
+          const typeSet = new Set(openFeatures.map(f => f.get('icon')));
           if (typeSet.size > 1) return undefined;
 
-          const size = features.length;
+          const size = openFeatures.length;
           const baseScale = Math.min(0.08, 0.5 / (resolution * 2));
           const scale = size > 1 ? baseScale * (1 + Math.log(size)) : baseScale;
+
 
           const iconSrc: string = features[0]?.get('icon') || environment.iconMap['alimentaire'];
           if (!iconSrc) return undefined;
@@ -339,5 +352,59 @@ export class MapService {
       controls: []
     });
 
+  }
+
+  public isCurrentlyOpen(openingHours?: string): boolean {
+
+    if (!openingHours) return false;
+
+    // 24/7
+    if (openingHours === '24/7') return true;
+
+    const now = new Date();
+    const currentDay = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][now.getDay()];
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    try {
+      const rules = openingHours.split(';');
+
+      for (const rule of rules) {
+        const parts = rule.trim().split(' ');
+        if (parts.length < 2) continue;
+
+        const daysPart = parts[0];
+        const timesPart = parts.slice(1).join(' ');
+
+        // Jour OK ?
+        if (!daysPart.includes(currentDay) && !daysPart.includes('-')) continue;
+
+        // Plages horaires
+        const ranges = timesPart.split(',');
+
+        for (const range of ranges) {
+          const [start, end] = range.split('-');
+          if (!start || !end) continue;
+
+          const [sh, sm] = start.split(':').map(Number);
+          const [eh, em] = end.split(':').map(Number);
+
+          if (
+            Number.isNaN(sh) || Number.isNaN(sm) ||
+            Number.isNaN(eh) || Number.isNaN(em)
+          ) continue;
+
+          const startMin = sh * 60 + sm;
+          const endMin = eh * 60 + em;
+
+          if (currentMinutes >= startMin && currentMinutes <= endMin) {
+            return true;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Erreur parsing opening_hours:', openingHours);
+    }
+
+    return false;
   }
 }

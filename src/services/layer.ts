@@ -22,6 +22,8 @@ import {firstValueFrom} from 'rxjs';
 import {Coordinate} from 'ol/coordinate';
 import CircleStyle from 'ol/style/Circle';
 
+
+
 interface CustomEntity {
   _id: string | number;
   type: string;
@@ -186,7 +188,6 @@ export class LayerService {
 
     // 3️⃣ Récupération des customData via la nouvelle route GET /entity
     const typesQuery = collections.map(c => c.mongo).join(',');
-    console.log(`http://localhost:3000/nodejs/entity?types=${typesQuery}`);
     const customPromise = typesQuery
       ? this.http.get<any[]>(`http://localhost:3000/nodejs/entity?types=${typesQuery}`).toPromise()
         .then(allData => {
@@ -417,19 +418,36 @@ export class LayerService {
   }
 
 
-  public showWater() {
+  public showWater(filterFn?: (tags: any) => boolean) {
     if (!this.mapService.userPosition) return;
 
     const { lat, lon } = this.mapService.userPosition;
-    const radiusMeters = (this.layerRadii['showWater'] || 0.5) * 1000;
+    const radiusKey = 'showWater';
+    const radiusMeters = (this.layerRadii[radiusKey] || 0.5) * 1000;
     const delta = radiusMeters / 111320;
+
     const minLat = lat - delta, maxLat = lat + delta;
     const minLon = lon - delta, maxLon = lon + delta;
 
     const overpassQuery = `[out:json];
-  (way["waterway"~"river|stream|canal|drain"](${minLat},${minLon},${maxLat},${maxLon});
-   relation["waterway"~"river|stream|canal|drain"](${minLat},${minLon},${maxLat},${maxLon}););
-  out geom;`;
+(
+  /* Cours d'eau */
+  way["waterway"~"river|stream|canal|drain"](${minLat},${minLon},${maxLat},${maxLon});
+  relation["waterway"~"river|stream|canal|drain"](${minLat},${minLon},${maxLat},${maxLon});
+
+  /* Surfaces d'eau */
+  way["natural"="water"](${minLat},${minLon},${maxLat},${maxLon});
+  relation["natural"="water"](${minLat},${minLon},${maxLat},${maxLon});
+  way["water"~"lake|pond|reservoir|basin"](${minLat},${minLon},${maxLat},${maxLon});
+  relation["water"~"lake|pond|reservoir|basin"](${minLat},${minLon},${maxLat},${maxLon});
+  way["landuse"="reservoir"](${minLat},${minLon},${maxLat},${maxLon});
+
+  /* Points d'eau */
+  node["amenity"~"fountain|drinking_water"](${minLat},${minLon},${maxLat},${maxLon});
+  node["man_made"="water_well"](${minLat},${minLon},${maxLat},${maxLon});
+  node["natural"="spring"](${minLat},${minLon},${maxLat},${maxLon});
+);
+out geom;`;
 
     this.fetchOverpassAndCustom(overpassQuery, 'water')
       .then(result => {
@@ -437,91 +455,90 @@ export class LayerService {
         const source = this.mapService.waterLayer.getSource() as VectorSource<any>;
         source?.clear();
 
-        const allCustom = (result.customDataByCollection || []).flatMap((c: any) => c.customData);
+        const allCustom = (result.customDataByCollection || [])
+          .flatMap((c: any) => c.customData);
 
         features.forEach((f: Feature<Geometry>) => {
-          // Filtrage par rayon
-          if (!this.isFeatureWithinRadius(f, 'showWater')) {
+          const geom = f.getGeometry();
+          if (!geom) return;
+
+          // 🔹 Centre logique
+          let centerFeature: Feature<Point>;
+          if (geom instanceof Point) {
+            centerFeature = f as Feature<Point>;
+          } else if (
+            geom.getType() === 'Polygon' ||
+            geom.getType() === 'MultiPolygon'
+          ) {
+            const [cx, cy] = getCenter(geom.getExtent());
+            centerFeature = new Feature({
+              geometry: new Point([cx, cy])
+            });
+          } else {
+            // LineString etc.
+            const [cx, cy] = getCenter(geom.getExtent());
+            centerFeature = new Feature({
+              geometry: new Point([cx, cy])
+            });
+          }
+
+          const centerLonLat = toLonLat(
+            (centerFeature.getGeometry() as Point).getCoordinates()
+          ) as [number, number];
+
+          const key = `${centerLonLat[0]}_${centerLonLat[1]}`;
+
+          // 🔹 Tags
+          let tags = f.get('tags') || {};
+
+          const match = allCustom.find((c: any) =>
+            Math.abs(c.coords.lat - centerLonLat[1]) < 1e-6 &&
+            Math.abs(c.coords.lon - centerLonLat[0]) < 1e-6
+          );
+
+          if (match) {
+            tags = { ...tags, ...match.tags, name: match.name };
+            this.customTagsMap.set(key, tags);
+          } else {
+            const localTags = this.customTagsMap.get(key);
+            if (localTags) tags = localTags;
+          }
+
+          // 🔹 Filtre fonctionnel facultatif
+          if (filterFn && !filterFn(tags)) {
+            f.setStyle(new Style({}));
+            return;
+          }
+
+          f.set('tags', tags);
+          f.set('type', f.get('type') || 'water');
+
+          if (!tags.name) {
+            f.set('tags', {
+              ...tags,
+              name: this.translations['tag:water']?.message || 'Point d’eau'
+            });
+          }
+
+          // 🔹 Filtrage rayon
+          if (!this.isFeatureWithinRadius(centerFeature, radiusKey)) {
             f.setStyle(new Style({}));
           } else {
             f.setStyle(undefined);
           }
-
-          const geom = f.getGeometry();
-          if (!geom) return;
-
-          let tags = f.get('tags') || {};
-          let match: any = null;
-
-          // --------------------
-          //      POINTS
-          // --------------------
-          if (geom instanceof Point) {
-            const center = toLonLat(geom.getCoordinates()) as [number, number];
-            const key = `${center[0]}_${center[1]}`;
-
-            match = allCustom.find((c: any) =>
-              Math.abs(c.coords.lat - center[1]) < 1e-6 &&
-              Math.abs(c.coords.lon - center[0]) < 1e-6
-            );
-
-            if (match) {
-              f.set('tags', { ...tags, ...match.tags, name: match.name });
-              this.customTagsMap.set(key, f.get('tags'));
-              console.log("MATCH: ",key, tags);
-            } else {
-              const localTags = this.customTagsMap.get(key);
-              if (localTags) f.set('tags', localTags);
-              console.log("UNMATCH LOCAL: ",localTags);
-            }
-
-            if (!f.get('type')) f.set('type', 'water');
-            tags = f.get('tags') || {};
-            if (!tags.name) f.set('tags', { ...tags, name: this.translations['tag:waterway']?.message || 'Waterway' });
-          }
-
-            // --------------------
-            //   LINE / POLYGON
-          // --------------------
-          else if (
-            geom.getType() === 'LineString' ||
-            geom.getType() === 'Polygon' ||
-            geom.getType() === 'MultiPolygon'
-          ) {
-            const extent = geom.getExtent();
-            const [centerX, centerY] = getCenter(extent);
-            const center = toLonLat([centerX, centerY]) as [number, number];
-            const key = `${center[0]}_${center[1]}`;
-
-            match = allCustom.find((c: any) =>
-              Math.abs(c.coords.lat - center[1]) < 1e-6 &&
-              Math.abs(c.coords.lon - center[0]) < 1e-6
-            );
-
-            if (match) {
-              f.set('tags', { ...tags, ...match.tags, name: match.name });
-              this.customTagsMap.set(key, f.get('tags'));
-            } else {
-              const localTags = this.customTagsMap.get(key);
-              if (localTags) f.set('tags', localTags);
-            }
-
-            if (!f.get('type')) f.set('type', 'water');
-            tags = f.get('tags') || {};
-            if (!tags.name) f.set('tags', { ...tags, name: this.translations['tag:waterway']?.message || 'Waterway' });
-          }
         });
 
-        // Ajout des features à la couche
         source?.addFeatures(features);
 
-        // Mise à jour état
-        this.activeLayers.add('showWater');
-        this.selectedLayerAction = 'showWater';
+        this.activeLayers.add(radiusKey);
+        this.selectedLayerAction = radiusKey;
+        this.layerRadii[radiusKey] ??= 0.5;
+        this.currentRadius = this.layerRadii[radiusKey];
 
-        // Fit map sur les features
         if (features.length > 0) {
-          this.mapService.map.getView().fit(source!.getExtent(), { padding: [50, 50, 50, 50] });
+          this.mapService.map.getView().fit(source!.getExtent(), {
+            padding: [50, 50, 50, 50]
+          });
         }
       })
       .catch(err => console.error('Erreur showWater:', err));
@@ -531,24 +548,33 @@ export class LayerService {
 
 
 
+
+
   public hideWater() { const source = this.mapService.waterLayer.getSource(); source?.clear(); this.activeLayers.delete('showWater'); this.selectedLayerAction = Array.from(this.activeLayers)[0] || ''; }
 
-  public showGreen() {
+  public showGreen(filterFn?: (tags: any) => boolean) {
     if (!this.mapService.userPosition) return;
 
     const { lat, lon } = this.mapService.userPosition;
-    const radiusMeters = (this.layerRadii['showGreen'] || 0.5) * 1000;
+    const radiusKey = 'showGreen';
+    const radiusMeters = (this.layerRadii[radiusKey] || 0.5) * 1000;
     const delta = radiusMeters / 111320;
-    const minLat = lat - delta, maxLat = lat + delta, minLon = lon - delta, maxLon = lon + delta;
+
+    const minLat = lat - delta;
+    const maxLat = lat + delta;
+    const minLon = lon - delta;
+    const maxLon = lon + delta;
 
     const overpassQuery = `[out:json];
-    (way["leisure"~"park|garden|nature_reserve"](${minLat},${minLon},${maxLat},${maxLon});
-     relation["leisure"~"park|garden|nature_reserve"](${minLat},${minLon},${maxLat},${maxLon});
-     way["landuse"~"forest|grass|meadow"](${minLat},${minLon},${maxLat},${maxLon});
-     relation["landuse"~"forest|grass|meadow"](${minLat},${minLon},${maxLat},${maxLon});
-     way["natural"="wood"](${minLat},${minLon},${maxLat},${maxLon});
-     relation["natural"="wood"](${minLat},${minLon},${maxLat},${maxLon}););
-    out geom;`;
+  (
+    way["leisure"~"park|garden|nature_reserve"](${minLat},${minLon},${maxLat},${maxLon});
+    relation["leisure"~"park|garden|nature_reserve"](${minLat},${minLon},${maxLat},${maxLon});
+    way["landuse"~"forest|grass|meadow"](${minLat},${minLon},${maxLat},${maxLon});
+    relation["landuse"~"forest|grass|meadow"](${minLat},${minLon},${maxLat},${maxLon});
+    way["natural"="wood"](${minLat},${minLon},${maxLat},${maxLon});
+    relation["natural"="wood"](${minLat},${minLon},${maxLat},${maxLon});
+  );
+  out geom;`;
 
     this.fetchOverpassAndCustom(overpassQuery, 'green')
       .then(result => {
@@ -556,65 +582,86 @@ export class LayerService {
         const source = this.mapService.greenLayer.getSource() as VectorSource<any>;
         source?.clear();
 
+        const allCustom =
+          (result.customDataByCollection || []).flatMap((c: any) => c.customData || []);
+
         features.forEach((f: Feature<Geometry>) => {
-          if (!this.isFeatureWithinRadius(f, 'showGreen')) {
+          const geom = f.getGeometry();
+          if (!geom) return;
+
+          let centerFeature: Feature<Point>;
+          if (geom instanceof Point) {
+            centerFeature = f as Feature<Point>;
+          } else {
+            const [cx, cy] = getCenter(geom.getExtent());
+            centerFeature = new Feature({
+              geometry: new Point([cx, cy])
+            });
+          }
+
+          if (!this.isFeatureWithinRadius(centerFeature, radiusKey)) {
             f.setStyle(new Style({}));
+            return;
           } else {
             f.setStyle(undefined);
           }
 
-          const geom = f.getGeometry();
-          if (!geom) return;
+          const centerLonLat = toLonLat(
+            (centerFeature.getGeometry() as Point).getCoordinates()
+          ) as [number, number];
 
-          let center: [number, number];
+          const key = `${centerLonLat[0]}_${centerLonLat[1]}`;
 
-          if (geom instanceof Point) {
-            center = toLonLat(geom.getCoordinates()) as [number, number];
-            const key = `${center[0]}_${center[1]}`;
+          let tags = f.get('tags') || {};
 
-            // Cherche un match custom pour les points uniquement
-            const match = (result.customData as CustomEntity[]).find(c =>
-              Math.abs(c.coords.lat - center[1]) < 1e-6 &&
-              Math.abs(c.coords.lon - center[0]) < 1e-6
-            );
+          const match = allCustom.find((c: any) =>
+            Math.abs(c.coords.lat - centerLonLat[1]) < 1e-6 &&
+            Math.abs(c.coords.lon - centerLonLat[0]) < 1e-6
+          );
 
-            if (match) {
-              // Merge tags custom + Overpass et stocker dans la map
-              f.set('tags', { ...f.get('tags'), ...match.tags, name: match.name });
-              this.customTagsMap.set(key, f.get('tags'));
-            } else {
-              // Récupère tags précédemment stockés si existant
-              const localTags = this.customTagsMap.get(key);
-              if (localTags) f.set('tags', localTags);
-            }
-
-            // Toujours définir un type pour éviter "unknown"
-            if (!f.get('type')) f.set('type', 'green');
-
-            // Toujours définir un nom générique si absent
-            const tags = f.get('tags') || {};
-            if (!tags.name) f.set('tags', { ...tags, name: this.translations['tag:green_space']?.message || 'Green space' });
-
-          } else if (geom.getType() === 'LineString' || geom.getType() === 'Polygon' || geom.getType() === 'MultiPolygon') {
-            const tags = f.get('tags') || {};
-            // Définit type + nom générique pour les formes
-            f.set('type', f.get('type') || 'green');
-            if (!tags.name) f.set('tags', { ...tags, name: this.translations['tag:green_space']?.message || 'Green space' });
+          if (match) {
+            tags = { ...tags, ...match.tags, name: match.name };
+            this.customTagsMap.set(key, tags);
+          } else {
+            const localTags = this.customTagsMap.get(key);
+            if (localTags) tags = localTags;
           }
+
+          // 🔹 Filtre facultatif
+          if (filterFn && !filterFn(tags)) {
+            f.setStyle(new Style({}));
+            return;
+          }
+
+          if (!f.get('type')) f.set('type', 'green');
+
+          if (!tags.name) {
+            tags = {
+              ...tags,
+              name: this.translations['tag:green_space']?.message || 'Green space'
+            };
+          }
+
+          f.set('tags', tags);
         });
 
-
-
         source?.addFeatures(features);
-        this.activeLayers.add('showGreen');
-        this.selectedLayerAction = 'showGreen';
+
+        this.activeLayers.add(radiusKey);
+        this.selectedLayerAction = radiusKey;
+        this.layerRadii[radiusKey] ??= 0.5;
+        this.currentRadius = this.layerRadii[radiusKey];
 
         if (features.length > 0) {
-          this.mapService.map.getView().fit(source!.getExtent(), { padding: [50, 50, 50, 50] });
+          this.mapService.map
+            .getView()
+            .fit(source!.getExtent(), { padding: [50, 50, 50, 50] });
         }
       })
       .catch(err => console.error('Erreur showGreen:', err));
   }
+
+
 
 
   hideGreen() { const source = this.mapService.greenLayer.getSource(); source?.clear(); this.activeLayers.delete('showGreen'); this.selectedLayerAction = Array.from(this.activeLayers)[0] || ''; }
@@ -659,7 +706,7 @@ export class LayerService {
     });
   }
 
-  public showRestaurant() {
+  public showRestaurant(filterFn?: (tags: any) => boolean) {
     if (!this.mapService.userPosition) return;
 
     const { lat, lon } = this.mapService.userPosition;
@@ -693,7 +740,7 @@ export class LayerService {
           }
 
           // Filtrage par rayon
-          if (!this.isFeatureWithinRadius(f, radiusKey)) {
+          if (!this.isFeatureWithinRadius(f, radiusKey) || (filterFn && !filterFn(f.get('tags')))) {
             f.setStyle(new Style({})); // invisible
           } else {
             f.setStyle(undefined); // style normal
@@ -751,7 +798,7 @@ export class LayerService {
 
   public hideRestaurant() { const source = this.mapService.restaurantLayer.getSource(); source?.clear(); this.activeLayers.delete('showRestaurant'); this.selectedLayerAction = Array.from(this.activeLayers)[0] || ''; }
 
-  public showChurch() {
+  public showChurch(filterFn?: (tags: any) => boolean) {
     if (!this.mapService.userPosition) return;
 
     const { lat, lon } = this.mapService.userPosition;
@@ -759,53 +806,53 @@ export class LayerService {
     const radiusMeters = (this.layerRadii[radiusKey] || 0.5) * 1000;
 
     const overpassQuery = `[out:json];
-    (node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lon});
-     way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lon});
-     relation["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lon}););
-    out geom;`;
+  (
+    node["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lon});
+    way["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lon});
+    relation["amenity"="place_of_worship"](around:${radiusMeters},${lat},${lon});
+  );
+  out geom;`;
 
     this.fetchOverpassAndCustom(overpassQuery, 'church')
       .then(result => {
         const features = this.convertOverpassToGeoJSON(result.mergedData);
 
         const clusterFeatures: Feature<Point>[] = [];
-        const otherFeatures: Feature<Geometry>[] = [];
 
         features.forEach(f => {
           const geom = f.getGeometry();
           if (!geom) return;
 
-          let center: [number, number];
+          let centerFeature: Feature<Point>;
           if (geom instanceof Point) {
-            center = toLonLat(geom.getCoordinates()) as [number, number];
+            centerFeature = f as Feature<Point>;
           } else {
             const [cx, cy] = getCenter(geom.getExtent());
-            center = toLonLat([cx, cy]) as [number, number];
+            centerFeature = new Feature({
+              geometry: new Point([cx, cy])
+            });
           }
 
-          // Vérifie le rayon
-          if (!this.isFeatureWithinRadius(f, radiusKey)) return;
+          if (!this.isFeatureWithinRadius(centerFeature, radiusKey)) return;
 
-          const featureId = `${center[0]}_${center[1]}`;
+          const centerLonLat = toLonLat(
+            (centerFeature.getGeometry() as Point).getCoordinates()
+          ) as [number, number];
+
+          const featureId = `${centerLonLat[0]}_${centerLonLat[1]}`;
           f.setId(featureId);
 
-          // Fusion tags custom
           let tags = f.get('tags') || {};
-          let match: any = undefined;
+          let match: any;
 
-          if ('customDataByCollection' in result) {
+          if (Array.isArray(result.customDataByCollection)) {
             for (const { customData } of result.customDataByCollection as any[]) {
               match = (customData as any[]).find(c =>
-                Math.abs(c.coords.lat - center[1]) < 1e-6 &&
-                Math.abs(c.coords.lon - center[0]) < 1e-6
+                Math.abs(c.coords.lat - centerLonLat[1]) < 1e-6 &&
+                Math.abs(c.coords.lon - centerLonLat[0]) < 1e-6
               );
               if (match) break;
             }
-          } else if ('customData' in result) {
-            match = (result.customData as any[]).find(c =>
-              Math.abs(c.coords.lat - center[1]) < 1e-6 &&
-              Math.abs(c.coords.lon - center[0]) < 1e-6
-            );
           }
 
           if (match) {
@@ -816,35 +863,41 @@ export class LayerService {
             if (localTags) tags = localTags;
           }
 
-          f.setProperties({ ...f.getProperties(), tags, type: 'church' });
+          // 🔹 Filtre facultatif (religion, denomination, etc.)
+          if (filterFn && !filterFn(tags)) return;
 
-          // Cluster ou autre feature
-          const rawSource = (this.mapService.churchLayer.getSource() as ClusterSource)?.getSource();
+          f.setProperties({
+            ...f.getProperties(),
+            tags,
+            type: 'church'
+          });
+
+          const rawSource = (this.mapService.churchLayer.getSource() as ClusterSource)
+            ?.getSource();
+
           const existing = rawSource?.getFeatureById(featureId);
-
           if (existing) {
             existing.setProperties(f.getProperties());
             existing.setGeometry(f.getGeometry());
           } else {
-            if (geom instanceof Point || f.get('isIconPoint')) {
-              clusterFeatures.push(f as Feature<Point>);
-            } else {
-              otherFeatures.push(f);
-            }
+            clusterFeatures.push(f as Feature<Point>);
           }
         });
 
-        // Ajout aux sources
-        const rawSource = (this.mapService.churchLayer.getSource() as ClusterSource)?.getSource();
+        const rawSource = (this.mapService.churchLayer.getSource() as ClusterSource)
+          ?.getSource();
+
         rawSource?.clear();
         rawSource?.addFeatures(clusterFeatures);
 
         this.activeLayers.add(radiusKey);
         this.selectedLayerAction = radiusKey;
-
+        this.layerRadii[radiusKey] ??= 0.5;
+        this.currentRadius = this.layerRadii[radiusKey];
       })
       .catch(err => console.error('Erreur showChurch:', err));
   }
+
 
 
 
@@ -864,7 +917,7 @@ export class LayerService {
 
 
 
-  public showHotel() {
+  public showHotel(filterFn?: (tags: any) => boolean) {
     if (!this.mapService.userPosition) return;
 
     const { lat, lon } = this.mapService.userPosition;
@@ -872,17 +925,16 @@ export class LayerService {
     const radiusMeters = (this.layerRadii[radiusKey] || 0.5) * 1000;
 
     const overpassQuery = `[out:json];
-  (
-    node["tourism"="hotel"](around:${radiusMeters},${lat},${lon});
-    way["tourism"="hotel"](around:${radiusMeters},${lat},${lon});
-    relation["tourism"="hotel"](around:${radiusMeters},${lat},${lon});
-  );
-  out geom;`;
+    (
+      node["tourism"="hotel"](around:${radiusMeters},${lat},${lon});
+      way["tourism"="hotel"](around:${radiusMeters},${lat},${lon});
+      relation["tourism"="hotel"](around:${radiusMeters},${lat},${lon});
+    );
+    out geom;`;
 
     this.fetchOverpassAndCustom(overpassQuery, 'hotel')
       .then(result => {
         const features = this.convertOverpassToGeoJSON(result.mergedData);
-
         const clusterFeatures: Feature<Point>[] = [];
         const otherFeatures: Feature<Geometry>[] = [];
 
@@ -913,16 +965,18 @@ export class LayerService {
 
           if ('customDataByCollection' in result) {
             for (const { customData } of result.customDataByCollection as any[]) {
-              match = (customData as any[]).find(c =>
-                Math.abs(c.coords.lat - center[1]) < 1e-6 &&
-                Math.abs(c.coords.lon - center[0]) < 1e-6
+              match = (customData as any[]).find(
+                c =>
+                  Math.abs(c.coords.lat - center[1]) < 1e-6 &&
+                  Math.abs(c.coords.lon - center[0]) < 1e-6
               );
               if (match) break;
             }
           } else if ('customData' in result) {
-            match = (result.customData as any[]).find(c =>
-              Math.abs(c.coords.lat - center[1]) < 1e-6 &&
-              Math.abs(c.coords.lon - center[0]) < 1e-6
+            match = (result.customData as any[]).find(
+              c =>
+                Math.abs(c.coords.lat - center[1]) < 1e-6 &&
+                Math.abs(c.coords.lon - center[0]) < 1e-6
             );
           }
 
@@ -933,6 +987,9 @@ export class LayerService {
             const localTags = this.customTagsMap.get(featureId);
             if (localTags) tags = localTags;
           }
+
+          // 🔹 Appliquer le filtre si fourni
+          if (filterFn && !filterFn(tags)) return;
 
           f.setProperties({ ...f.getProperties(), tags, type: 'hotel' });
 
@@ -965,7 +1022,6 @@ export class LayerService {
 
 
 
-
   public hideHotel() {
     const clusterSource = this.mapService.hotelLayer.getSource() as ClusterSource;
     const rawSource = clusterSource?.getSource();
@@ -978,7 +1034,7 @@ export class LayerService {
   }
 
 
-  public showAlimentaire(param: string, lang: string, firstTime: boolean) {
+  public showAlimentaire(param: string, lang: string, firstTime: boolean, filterFn?: (tags: any) => boolean) {
     if (!this.mapService.userPosition) return;
     const { lat, lon } = this.mapService.userPosition;
 
@@ -990,12 +1046,14 @@ export class LayerService {
 
     // Détermine les layers à afficher
     let layersToShow: VectorLayer<any>[] = [];
-    if (shopFilter === 'alimentaire') {
+
+    if (shopFilter === 'alimentaire' || param === 'manger' || param === 'boire') {
       layersToShow = Object.values(this.mapService.alimentaireLayer);
     } else {
       const layer = this.mapService.alimentaireLayer?.[shopFilter];
       if (layer) layersToShow.push(layer);
     }
+
 
     if (!layersToShow.length) {
       console.warn(`Aucune couche trouvée pour '${shopFilter}'`);
@@ -1006,10 +1064,67 @@ export class LayerService {
     const radiusMeters = (this.layerRadii[actionKey] || 0.5) * 1000;
 
     // Prépare la query Overpass
-    let shopQuery = shopFilter;
-    if (shopFilter === 'alimentaire') shopQuery = Object.values(shopMapLang).join('|');
-    if (shopQuery === 'organic') shopQuery = '."]["organic"~"^(yes|only)$';
-    if (shopQuery === 'beer') shopQuery = '(beer|brewery)';
+    let shopQuery: string;
+
+    switch (param) {
+      case 'boire':
+        shopQuery = [
+          'greengrocer',
+          'supermarket',
+          'convenience',
+          'cafe',
+          'tea',
+          'fast_food',
+          'pub',
+          'bar',
+          'food_court',
+          'wine',
+          'beer',
+          'deli',
+          'organic'
+        ].join('|');
+        break;
+
+      case 'manger':
+        shopQuery = [
+          'bakery',
+          'butcher',
+          'greengrocer',
+          'supermarket',
+          'convenience',
+          'fast_food',
+          'pub',
+          'bar',
+          'food_court',
+          'ice_cream',
+          'chocolate',
+          'confectionery',
+          'deli',
+          'cheese',
+          'seafood',
+          'pastry',
+          'honey',
+          'organic',
+          'spices',
+          'pasta'
+        ].join('|');
+        break;
+
+      case 'alimentaire':
+        shopQuery = Object.values(shopMapLang).join('|');
+        break;
+
+      case 'organic':
+        shopQuery = '."]["organic"~"^(yes|only)$';
+        break;
+
+      case 'beer':
+        shopQuery = '(beer|brewery)';
+        break;
+
+      default:
+        shopQuery = shopFilter;
+    }
 
     let query: string;
     if (shopFilter === 'pastry') {
@@ -1026,8 +1141,11 @@ out geom;`;
     this.fetchOverpassAndCustom(query, actionKey)
       .then(result => {
         const features = this.convertOverpassToGeoJSON(result.mergedData);
-        const iconPoints = features.filter(f => f.getGeometry() instanceof Point)
-          .filter(f => this.isFeatureWithinRadius(f, actionKey));
+        const iconPoints = features
+          .filter(f => f.getGeometry() instanceof Point)
+          .filter(f => this.isFeatureWithinRadius(f, actionKey))
+          .filter(f => !filterFn || filterFn(f.get('tags')));
+
 
         // Clear previous features
         layersToShow.forEach(layer => {
@@ -1169,8 +1287,6 @@ out geom;`;
         f.setId(featureId);
 
         const logoUrl = ev.logo || '/images/event.jpg';
-
-        console.log(logoUrl);
 
         f.setProperties({
           name: ev.name,

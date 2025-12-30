@@ -179,8 +179,7 @@ html, body, app-root {
   flex-direction: column;
   gap: 6px;
   overflow-y: auto;
-  max-height: 700px;
-  min-height: 86%;
+  max-height: 80%;
   padding-right: 6px;
 }
 
@@ -262,6 +261,23 @@ html, body, app-root {
 /* Icônes */
 .btn-go i, .btn-edit i {
   font-size: 16px;
+}
+
+// Tooltip point sans horaires
+
+.without-hours-tooltip {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: red;            // texte en rouge
+  font-weight: bold;
+  font-size: 12px;
+  pointer-events: none;  // ignore les clics
+  display: none;         // caché par défaut
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 @media (max-width: 599px) {

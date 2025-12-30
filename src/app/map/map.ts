@@ -79,6 +79,97 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
 
   newPointCoords: { lat: number, lon: number } | null = null;
 
+  showRoutineModal = false;
+
+
+  // Fonctions et variables routine
+  routineChoices = {
+    manger: false,
+    boire: false,
+    dormir: false,
+    culte: false,
+    evenements: false
+  };
+
+  selectedCity: any = null;
+
+  private timeRefreshInterval?: number;
+
+  openRoutineModal() {
+    this.showRoutineModal = true;
+  }
+
+  closeRoutineModal() {
+    this.showRoutineModal = false;
+  }
+
+  applyRoutine() {
+    const selectedChoices = Object.keys(this.routineChoices)
+      .filter(key => this.routineChoices[key as keyof typeof this.routineChoices]);
+
+    if (selectedChoices.length === 0) {
+      return;
+    }
+
+    selectedChoices.forEach(choice => {
+      switch (choice) {
+
+        // 🍽️ MANGER
+        case 'manger':
+          this.layerService.showAlimentaire(
+            'manger',
+            this.languageService.currentLanguage,
+            true,
+            tags => this.mapService.isCurrentlyOpen(tags?.opening_hours)
+          );
+          break;
+
+        // BOIRE
+        case 'boire':
+          this.layerService.showAlimentaire(
+            'boire',
+            this.languageService.currentLanguage,
+            true,
+            tags => this.mapService.isCurrentlyOpen(tags?.opening_hours)
+          );
+          break;
+
+        // 🛏️ DORMIR
+        case 'dormir':
+          this.layerService.showHotel();
+          break;
+
+        // 🎭 ÉVÉNEMENTS
+        case 'evenements':
+          this.layerService.showEvent();
+          break;
+
+        case 'culte':
+          this.layerService.showChurch(
+            (tags) => this.mapService.isCurrentlyOpen(tags?.opening_hours)
+          );
+          break;
+
+        // ⛪ CULTE
+        case 'naturel':
+          this.layerService.showGreen(
+            (tags) => this.mapService.isCurrentlyOpen(tags?.opening_hours)
+          );
+          this.layerService.showWater(
+            (tags) => this.mapService.isCurrentlyOpen(tags?.opening_hours)
+          );
+          break;
+      }
+    });
+
+    // ✅ Ferme la modal
+    this.showRoutineModal = false;
+  }
+
+
+
+
+
 
   constructor(
     public mapService: MapService,
@@ -147,25 +238,80 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
 
   ngAfterViewInit(): void {
 
-    // Initialisation de la carte après que le div soit rendu
-
     if (this.showMap && !this.mapInitialized) {
       this.mapService.map.setTarget('map-container');
       this.mapInitialized = true;
     }
+
+    this.timeRefreshInterval = window.setInterval(() => {
+      console.log("refresh");
+      this.mapService.map.render();
+    }, 10000);
 
     this.interactionService.setSidebarElements(
       this.sidebarPanel.nativeElement,
       this.sidebarContent.nativeElement,
       this.mapHost.nativeElement
     );
+
+    // Tooltip opening_hours manquant
+    const tooltip = document.createElement('div');
+    tooltip.className = 'without-hours-tooltip';
+    document.body.appendChild(tooltip);
+
+    this.mapService.map.on('pointermove', evt => {
+      const feature = this.mapService.map.forEachFeatureAtPixel(
+        evt.pixel,
+        f => f
+      );
+
+      if (!feature) {
+        tooltip.style.display = 'none';
+        return;
+      }
+
+      const clusterFeatures: Feature[] | undefined = feature.get('features');
+
+      if (clusterFeatures && clusterFeatures.length > 1) {
+        tooltip.style.display = 'none';
+        return;
+      }
+
+      const realFeature =
+        clusterFeatures && clusterFeatures.length === 1
+          ? clusterFeatures[0]
+          : feature;
+
+      if (realFeature.get('isPin')) {
+        tooltip.style.display = 'none';
+        return;
+      }
+
+      const tags = realFeature.get('tags') || {};
+
+      if (!tags.opening_hours) {
+        const { clientX, clientY } = evt.originalEvent as MouseEvent;
+
+        tooltip.innerText =
+          'Attention, il n\'y a pas d\'horaires affichées';
+
+        tooltip.style.left = clientX + 10 + 'px';
+        tooltip.style.top = clientY + 10 + 'px';
+        tooltip.style.display = 'block';
+      } else {
+        tooltip.style.display = 'none';
+      }
+    });
+
+    this.mapService.map.getViewport().addEventListener('mouseleave', () => {
+      tooltip.style.display = 'none';
+    });
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Gestion du show/hide de la carte
     if (changes['showMap']) {
       if (changes['showMap'].currentValue) {
-        // Affichage → réattache la carte
         setTimeout(() => this.attachMap(), 0);
       } else {
         // Cache → détache la carte
@@ -208,11 +354,15 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
 
   ngOnDestroy(): void {
     this.mapClickSub?.unsubscribe();
+
+    if (this.timeRefreshInterval) {
+      clearInterval(this.timeRefreshInterval);
+    }
+
     // Détache la carte si le composant est détruit
     this.mapService.map.setTarget(undefined);
   }
 
-  /** Réattache la carte à un div déjà rendu */
   private attachMap(): void {
     if (this.mapInitialized && this.mapService.map) {
       this.mapService.map.setTarget('map-container');
@@ -273,6 +423,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges
     this.searchService.showDropdown = false;
     this.layerService.updateCoordsForCity(result);
     this.layerService.zoomToResult(result);
+
+    this.selectedCity = result;
   }
 
   // MODAL EDIT

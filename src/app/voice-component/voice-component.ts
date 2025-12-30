@@ -537,6 +537,7 @@ export class VoiceComponent implements OnInit, OnDestroy, AfterViewInit {
             ? (this.translations['tag:ok_city']?.message.replace('{city}', cityName) || `Ville trouvée: ${cityName}`)
             : (this.translations['tag:not_found_city']?.message.replace('{city}', cityName) || `Ville non trouvée: ${cityName}`);
           this.chatMessages.push({ user: 'ai', text });
+          this.mapComponent.selectedCity = cityName;
         });
       } else {
         this.chatMessages.push({ user: 'ai', text: this.translations['tag:not_understood']?.message || "Je n'ai pas compris." });

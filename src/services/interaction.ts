@@ -245,19 +245,39 @@ export class InteractionService {
     const getGoButtonHTML = () => `<button class="btn-go"><i class="fa fa-location-arrow"></i> Y Aller</button>`;
     const getEditButtonHTML = () => `<button class="btn-edit"><i class="fa fa-pencil-alt"></i> Modifier</button>`;
 
+    const buildHeaderHTML = (
+      name: string,
+      type: string
+    ) => `
+      <div class="card-header">
+        <div class="title">${name}</div>
+        <div class="subtitle">
+          <span style="color:#1a73e8; font-weight:700;">Type:</span>
+          <span style="color:#000; font-weight:600; margin-left:4px;">
+            ${type}
+          </span>
+        </div>
+      </div>
+    `;
 
 
 
     this.tooltipLayerMap = {
       restaurantLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
-        const tags = feature.get('tags') || {};
+        const rawTags = feature.get('tags') || {};
 
-        const name = tags.name || feature.get('name') || 'Restaurant';
+        const name = rawTags.name || feature.get('name') || 'Restaurant';
 
-        let html = `<div class="title">${name}</div>`;
+        let html = ``;
 
-        // 🟢 Tous les autres tags passent dans tags-container
+        const tags = { ...rawTags };
+
+        if (tags.opening_hours) {
+          tags.opening_hours = formatOpeningHours(tags.opening_hours, this.translations);
+        }
+
+        html += buildHeaderHTML(name, feature.get('type').charAt(0).toUpperCase()+feature.get('type').slice(1));
         html += await this.buildTagListHTML(tags, feature);
 
         const isCluster = !!feature.get('features') && feature.get('features').length > 1;
@@ -279,35 +299,60 @@ export class InteractionService {
       churchLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
 
-        const cluster = feature.get('features');
+        const clusterFeatures: Feature[] = feature.get('features') || [];
+        const isCluster = clusterFeatures.length > 1;
 
-        // === 1) CLUSTER : plusieurs églises ===
-        if (cluster && cluster.length > 1) {
-          const count = cluster.length;
-          return `
-      <div class="title">${this.translations['tag:cluster_churches']?.message || 'églises trouvées'}: ${count}</div>
-    `;
+        const f = clusterFeatures.length ? clusterFeatures[0] : feature;
+
+        const rawTags = f.get('tags') || {};
+        const tags = { ...rawTags };
+
+        if (tags.opening_hours) {
+          tags.opening_hours = formatOpeningHours(tags.opening_hours, this.translations);
         }
 
-        // === 2) UNE SEULE ÉGLISE ===
-        const f = cluster ? cluster[0] : feature;
-        const tags = f.get('tags') || {};
-        const name = tags.name || this.translations['tag:church']?.message;
+        const typeKey = 'church';
+        const typeLabel =
+          this.translations[`tag:${typeKey}`]?.message || 'Église';
 
-        let html = `<div class="title">${name}</div>`;
+        let html = '';
 
-        // 🟢 Tous les autres tags passent dans tags-container
-        html += await this.buildTagListHTML(tags, feature);
+        if (isCluster) {
+          html += `
+      <div class="card-header">
+        <div class="title">
+          ${this.translations['tag:number_cluster']?.message
+            .replace('{type}', typeLabel)
+            .replace('{count}', clusterFeatures.length.toString())}
+        </div>
+      </div>
+    `;
+        }
+        else {
+          const name = tags.name || typeLabel;
 
-        const isCluster = !!feature.get('features') && feature.get('features').length > 1;
+          html += `
+            <div class="card-header">
+              <div class="title">${name}</div>
+              <div class="subtitle">
+                <span style="color:#1a73e8; font-weight:700;">Type:</span>
+                <span style="color:#000; font-weight:600; margin-left:4px;">
+                  ${typeLabel}
+                </span>
+              </div>
+            </div>
+          `;
+
+          html += await this.buildTagListHTML(tags, f);
+        }
 
         if (!isCluster) {
           html += `
-            <div class="card-footer">
-              ${getGoButtonHTML()}
-              ${getEditButtonHTML()}
-            </div>
-          `;
+      <div class="card-footer">
+        ${getGoButtonHTML()}
+        ${getEditButtonHTML()}
+      </div>
+    `;
         }
 
         return html;
@@ -317,50 +362,133 @@ export class InteractionService {
 
       greenLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
-        const tags = feature.get('tags') || {};
-        const name = tags.name || '';
 
-        let html = name ? `<div class="title">${name}</div>` : '';
-        html += await this.buildTagListHTML(tags, feature);
+        const clusterFeatures: Feature[] = feature.get('features') || [];
+        const isCluster = clusterFeatures.length > 1;
 
-        const isCluster = !!feature.get('features') && feature.get('features').length > 1;
+        const f = clusterFeatures.length ? clusterFeatures[0] : feature;
+
+        const rawTags = f.get('tags') || {};
+        const tags = { ...rawTags };
+
+        if (tags.opening_hours) {
+          tags.opening_hours = formatOpeningHours(tags.opening_hours, this.translations);
+        }
+
+        const typeKey = tags.leisure || tags.landuse || tags.natural || 'green';
+        const typeLabel =
+          this.translations[`tag:${typeKey}`]?.message || 'Espace vert';
+
+        let html = '';
+
+        if (isCluster) {
+          html += `
+      <div class="card-header">
+        <div class="title">
+          ${this.translations['tag:number_cluster']?.message
+            .replace('{type}', typeLabel)
+            .replace('{count}', clusterFeatures.length.toString())}
+        </div>
+      </div>
+    `;
+        }
+        else {
+          const name = tags.name || typeLabel;
+
+          html += `
+      <div class="card-header">
+        <div class="title">${name}</div>
+        <div class="subtitle">
+          <span style="color:#1a73e8; font-weight:700;">Type:</span>
+          <span style="color:#000; font-weight:600; margin-left:4px;">
+            ${typeLabel.replace(/s$/, '')}
+          </span>
+        </div>
+      </div>
+    `;
+
+          html += await this.buildTagListHTML(tags, f);
+        }
 
         if (!isCluster) {
           html += `
-            <div class="card-footer">
-              ${getGoButtonHTML()}
-              ${getEditButtonHTML()}
-            </div>
-          `;
+      <div class="card-footer">
+        ${getGoButtonHTML()}
+        ${getEditButtonHTML()}
+      </div>
+    `;
         }
 
         return html;
       },
+
 
       waterLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
-        const tags = feature.get('tags') || {};
 
-        const name = tags.name || '';
-        const type = tags.type || tags.natural || this.translations['tag:water']?.message;
+        const clusterFeatures: Feature[] = feature.get('features') || [];
+        const isCluster = clusterFeatures.length > 1;
 
-        let html = name ? `<div class="title">${name}</div>` : '';
-        html += `<div class="type">${type}</div>`;
-        html += await this.buildTagListHTML(tags, feature);
+        const f = clusterFeatures.length ? clusterFeatures[0] : feature;
 
-        const isCluster = !!feature.get('features') && feature.get('features').length > 1;
+        const rawTags = f.get('tags') || {};
+        const tags = { ...rawTags };
+
+        if (tags.opening_hours) {
+          tags.opening_hours = formatOpeningHours(tags.opening_hours, this.translations);
+        }
+
+        const typeKey =
+          tags.waterway || tags.natural || tags.water || 'water';
+
+        const typeLabel =
+          this.translations[`tag:${typeKey}`]?.message ||
+          this.translations['tag:water']?.message ||
+          'Eau';
+
+        let html = '';
+
+        if (isCluster) {
+          html += `
+      <div class="card-header">
+        <div class="title">
+          ${this.translations['tag:number_cluster']?.message
+            .replace('{type}', typeLabel)
+            .replace('{count}', clusterFeatures.length.toString())}
+        </div>
+      </div>
+    `;
+        }
+        else {
+          const name = tags.name || typeLabel;
+
+          html += `
+      <div class="card-header">
+        <div class="title">${name}</div>
+        <div class="subtitle">
+          <span style="color:#1a73e8; font-weight:700;">Type:</span>
+          <span style="color:#000; font-weight:600; margin-left:4px;">
+            ${typeLabel.replace(/s$/, '')}
+          </span>
+        </div>
+      </div>
+    `;
+
+          html += await this.buildTagListHTML(tags, f);
+        }
 
         if (!isCluster) {
           html += `
-            <div class="card-footer">
-              ${getGoButtonHTML()}
-              ${getEditButtonHTML()}
-            </div>
-          `;
+      <div class="card-footer">
+        ${getGoButtonHTML()}
+        ${getEditButtonHTML()}
+      </div>
+    `;
         }
 
         return html;
       },
+
 
 
       pinLayer: async () => {
@@ -371,75 +499,89 @@ export class InteractionService {
       hotelLayer: async (feature) => {
         this.tooltipEl.className = 'tooltip-card';
 
-        const cluster = feature.get('features');
+        const clusterFeatures: Feature[] = feature.get('features') || [];
+        const isCluster = clusterFeatures.length > 1;
 
-        // === 1) CLUSTER : plusieurs hôtels ===
-        if (cluster && cluster.length > 1) {
-          const count = cluster.length;
-          const type = this.translations['tag:hotel']?.message || 'hôtels';
-          return `
-      <div class="title">
-        ${this.translations['number_cluster']?.message.replace('{type}', type).replace('{count}', String(count))
-          || `Nombre de ${type}: ${count}`}
+        const f = clusterFeatures.length ? clusterFeatures[0] : feature;
+
+        const rawTags = f.get('tags') || {};
+        const tags = { ...rawTags };
+
+        if (tags.opening_hours) {
+          tags.opening_hours = formatOpeningHours(tags.opening_hours, this.translations);
+        }
+
+        const typeKey = 'hotel';
+        const typeLabel =
+          this.translations[`tag:${typeKey}`]?.message ||
+          'Hôtel';
+
+        let html = '';
+
+        if (isCluster) {
+          html += `
+      <div class="card-header">
+        <div class="title">
+          ${this.translations['tag:number_cluster']?.message
+            .replace('{type}', typeLabel)
+            .replace('{count}', clusterFeatures.length.toString()) || `Nombre de ${typeLabel}: ${clusterFeatures.length}`}
+        </div>
+      </div>
+    `;
+        } else {
+          const name = tags.name || typeLabel;
+
+          html += `
+      <div class="card-header">
+        <div class="title">${name}</div>
+        <div class="subtitle">
+          <span style="color:#1a73e8; font-weight:700;">Type:</span>
+          <span style="color:#000; font-weight:600; margin-left:4px;">
+            ${typeLabel.replace(/s$/, '')}
+          </span>
+        </div>
+      </div>
+    `;
+
+          const addField = async (labelKey: string, value?: string) => {
+            if (!value) return;
+            const translatedLabel = await this.translateOSMTag(
+              labelKey,
+              this.languageService.currentLanguage as any
+            );
+            html += `
+        <div class="field">
+          <span class="label">${translatedLabel}</span>
+          <span class="value">${value}</span>
+        </div>
+      `;
+          };
+
+          html += await this.buildTagListHTML(tags, f);
+        }
+
+        if (!isCluster) {
+          html += `
+      <div class="card-footer">
+        ${getGoButtonHTML()}
+        ${getEditButtonHTML()}
       </div>
     `;
         }
 
-        // === 2) UN SEUL HÔTEL ===
-        const f = cluster ? cluster[0] : feature;
-        const tags = f.get('tags') || {};
-        const name = tags.name || this.translations['tag:hotel']?.message;
-
-        let html = `<div class="title">${name}</div>`;
-
-        const add = async (labelKey: string, value?: string) => {
-          if (!value) return;
-          const translatedLabel = await this.translateOSMTag(
-            labelKey,
-            this.languageService.currentLanguage as any
-          );
-          html += `
-      <div class="field">
-        <span class="label">${translatedLabel}</span>
-        <span class="value">${value}</span>
-      </div>`;
-        };
-
-        await add('stars', tags.stars || tags['stars:official']);
-        await add('phone', tags.phone || tags['contact:phone']);
-        await add('email', tags.email || tags['contact:email']);
-        await add('website', tags.website || tags['contact:website']);
-        await add('openingHours', tags.opening_hours);
-        await add('checkin', tags.checkin);
-        await add('checkout', tags.checkout);
-
-        html += await this.buildTagListHTML(tags, feature);
-
-        const isCluster = !!feature.get('features') && feature.get('features').length > 1;
-
-        if (!isCluster) {
-          html += `
-            <div class="card-footer">
-              ${getGoButtonHTML()}
-              ${getEditButtonHTML()}
-            </div>
-          `;
-        }
-
         return html;
       },
+
       eventLayer: async (feature: Feature) => {
         this.tooltipEl.className = 'tooltip-event';
 
         const name = feature.get('name') || 'Événement';
         const tags = feature.get('tags') || {};
         const logo = feature.get('logo') || '/images/event.jpg';
-        const duration = feature.get('duration') || {}; // { start: '...', end: '...' }
+        const duration = feature.get('duration') || {};
 
-        // buildTagListHTML doit retourner directement du HTML string
         const tagsHtml = await this.buildTagListHTML(tags, feature);
 
-        // Préparer l'affichage de la durée si elle existe
         let durationHtml = '';
         if (duration.start || duration.end) {
           const start = duration.start ? new Date(duration.start).toLocaleString() : '';
@@ -600,15 +742,17 @@ export class InteractionService {
       const f = clusterFeatures.length ? clusterFeatures[0] : feature;
 
       // Tags
-      const tags = f.get('tags') || {};
+      const rawTags = f.get('tags') || {};
+      const tags = { ...rawTags }; // 👈 copie
+
 
       // Ici on sauvegarde l'état du tag d'origine
       const saveOpeningHours = tags.opening_hours;
 
       if (tags.opening_hours) {
-        // On modifie le tag d'origine (à ne pas faire de base) pour traduire correctement
         tags.opening_hours = formatOpeningHours(tags.opening_hours, this.translations);
       }
+
 
       // Type de commerce
       const shopType = tags.shop || tags['amenity'] || key;
@@ -657,8 +801,6 @@ export class InteractionService {
       </div>
     `;
       }
-      // Ici, on utilise une backup du tag d'origine pour que le prochain clic sur une feature affiche les bonnes horaires
-      tags.opening_hours = saveOpeningHours;
 
       return html;
     };
@@ -860,7 +1002,6 @@ export class InteractionService {
 
 
 
-
     };
 
 // Exemple d’utilisation
@@ -907,16 +1048,9 @@ export class InteractionService {
     };
 
     const layerName = getLayerForFeature(feature);
-    console.log("DEBUG 2");
     if (layerName && this.tooltipLayerMap[layerName]) {
-      console.log("DEBUG 3");
       this.currentFeature = feature;
-
-      console.log("DEBUG 2");
-
       const htmlOrPromise = this.tooltipLayerMap[layerName](feature);
-
-      console.log("DEBUG 3: ", htmlOrPromise);
 
       // 🔥 Supporte string ou Promise<string>
       const html =
@@ -924,7 +1058,6 @@ export class InteractionService {
           ? await htmlOrPromise
           : htmlOrPromise;
 
-      console.log("DEBUG 4: ");
 
       // 🔥 NE PAS toucher au DOM ici → on retourne le HTML
       return html || "";
@@ -1097,8 +1230,6 @@ export class InteractionService {
   async buildTagListHTML(tags: Record<string, any>, feature: Feature<Geometry>): Promise<string> {
     if (!tags) return '';
 
-    console.log("tags: ",tags);
-
     const excluded = new Set([
       'geometry','features','id','layer','name',
       'brand','shop','amenity',
@@ -1192,9 +1323,6 @@ export class InteractionService {
     }
 
     html += '</div>';
-
-    console.log("debug ", html);
-
     return html;
   }
 

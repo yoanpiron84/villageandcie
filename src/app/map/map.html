@@ -13,13 +13,58 @@
   (cancel)="showAddForm = false">
 </app-add-form>
 
+<div class="routine-modal-backdrop" *ngIf="showRoutineModal">
+  <div class="routine-modal">
+
+    <h3>Que voulez-vous faire maintenant ?</h3>
+
+    <label>
+      <input type="checkbox" [(ngModel)]="routineChoices.manger" />
+      🍽️ Manger
+    </label>
+
+    <label>
+      <input type="checkbox" [(ngModel)]="routineChoices.boire" />
+      🍺 Boire
+    </label>
+
+    <label>
+      <input type="checkbox" [(ngModel)]="routineChoices.dormir" />
+      🛏️ Dormir
+    </label>
+
+    <label>
+      <input type="checkbox" [(ngModel)]="routineChoices.culte" />
+      ⛪ Culte
+    </label>
+
+    <label>
+      <input type="checkbox" [(ngModel)]="routineChoices.evenements" />
+      🎭 Événements
+    </label>
+
+    <div class="routine-alert" *ngIf="!selectedCity">
+      Veuillez sélectionner une ville avant de valider.
+    </div>
+
+    <div class="actions">
+      <button (click)="applyRoutine()" [disabled]="!selectedCity">Afficher</button>
+      <button class="cancel" (click)="closeRoutineModal()">Annuler</button>
+    </div>
+
+
+  </div>
+</div>
+
 
 <div id="map-container" class="map-container">
 
   <!-- Carte en premier -->
   <div #mapHost id="map" class="map-host">
+
     <!-- Recherche -->
     <div class="search-container">
+
       <input
         type="text"
         placeholder="Rechercher un lieu..."
@@ -71,9 +116,9 @@
         <option value="routed-foot">{{ translations['routed_foot'] || 'À pied' }}</option>
         <option value="routed-bike">{{ translations['routed_bike'] || 'Vélo' }}</option>
       </select>
-    </div>
 
-    <button class="add-btn" (click)="startAddMode()">+</button>
+      <button class="add-btn" (click)="startAddMode()" aria-label="Ajouter un point">+</button>
+    </div>
 
     <!-- 🧭 Carte déroulante des étapes -->
     <div class="steps-card" *ngIf="routeService.showStepsCard && routeService.routeInfo?.steps?.length">
@@ -105,6 +150,11 @@
       </div>
 
     </div>
+
+    <!-- BOUTON ROUTINE -->
+    <button class="routine-btn" (click)="openRoutineModal()" aria-label="Autour de moi">
+      🧭
+    </button>
 
     <!-- Localisation -->
     <button class="btn-localisation" [class.panel-open]="isPanelOpen"
